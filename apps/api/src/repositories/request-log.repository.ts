@@ -1,0 +1,101 @@
+import { prisma } from "./db/prisma";
+
+type CreateLogData = {
+	projectId: string;
+	endpointId: string | null;
+	method: string;
+	path: string;
+	status: number;
+	requestHeaders: string;
+	requestBody: string | null;
+	responseBody: string | null;
+	duration: number;
+};
+
+type FindLogsOptions = {
+	projectId: string;
+	limit?: number;
+	offset?: number;
+	method?: string;
+	status?: number;
+	endpointId?: string;
+};
+
+export function findByProjectId(options: FindLogsOptions) {
+	const {
+		projectId,
+		limit = 50,
+		offset = 0,
+		method,
+		status,
+		endpointId,
+	} = options;
+
+	return prisma.requestLog.findMany({
+		where: {
+			projectId,
+			...(method && { method }),
+			...(status && { status }),
+			...(endpointId && { endpointId }),
+		},
+		orderBy: { createdAt: "desc" },
+		take: limit,
+		skip: offset,
+	});
+}
+
+export function countByProjectId(
+	options: Omit<FindLogsOptions, "limit" | "offset">,
+) {
+	const { projectId, method, status, endpointId } = options;
+
+	return prisma.requestLog.count({
+		where: {
+			projectId,
+			...(method && { method }),
+			...(status && { status }),
+			...(endpointId && { endpointId }),
+		},
+	});
+}
+
+export function findById(id: string) {
+	return prisma.requestLog.findUnique({
+		where: { id },
+	});
+}
+
+export function findByIdAndProject(id: string, projectId: string) {
+	return prisma.requestLog.findFirst({
+		where: { id, projectId },
+	});
+}
+
+export function create(data: CreateLogData) {
+	return prisma.requestLog.create({ data });
+}
+
+export function deleteByProjectId(projectId: string) {
+	return prisma.requestLog.deleteMany({
+		where: { projectId },
+	});
+}
+
+export function getEndpointStats(projectId: string) {
+	return prisma.requestLog.groupBy({
+		by: ["endpointId"],
+		where: { projectId, endpointId: { not: null } },
+		_count: { id: true },
+		_max: { createdAt: true },
+	});
+}
+
+export function getUnmatchedRequests(projectId: string) {
+	return prisma.requestLog.groupBy({
+		by: ["method", "path"],
+		where: { projectId, endpointId: null },
+		_count: { id: true },
+		_max: { createdAt: true },
+		orderBy: { _count: { id: "desc" } },
+	});
+}
