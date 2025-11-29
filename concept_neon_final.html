@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock API Server - Neon Aurora Final</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #050505;
+            --text: #ffffff;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.15);
+            --accent-1: #FF2E63; /* Vibrant Pink */
+            --accent-2: #08D9D6; /* Neon Cyan */
+            --accent-3: #7F2CCB; /* Deep Purple */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Background Aurora */
+        .aurora-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: #050505;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            filter: blur(100px);
+            opacity: 0.25;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .blob-1 {
+            top: -20%;
+            left: -10%;
+            width: 60vw;
+            height: 60vw;
+            background: var(--accent-3);
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            bottom: -20%;
+            right: -10%;
+            width: 70vw;
+            height: 70vw;
+            background: radial-gradient(circle, var(--accent-1), transparent 70%);
+            animation-delay: -5s;
+        }
+
+        .blob-3 {
+            top: 30%;
+            left: 30%;
+            width: 50vw;
+            height: 50vw;
+            background: var(--accent-2);
+            opacity: 0.15;
+            animation-delay: -8s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -30px) scale(1.05); }
+            66% { transform: translate(-10px, 10px) scale(0.95); }
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+        }
+
+        nav a:hover {
+            color: #fff;
+        }
+
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 6rem;
+            font-weight: 800;
+            line-height: 0.95;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #fff, #ccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.lead {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.7);
+            max-width: 700px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .cta-button {
+            padding: 1.2rem 3rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-primary {
+            background: #fff;
+            color: #000;
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 50px rgba(255,255,255,0.2);
+        }
+
+        .cta-glass {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-glass:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+        }
+
+        /* Enhanced Glass Cards */
+        .cards-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 4rem 0 8rem;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--glass-highlight);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .glass-card:hover .card-icon {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .glass-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .glass-card p {
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 6rem 0 10rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+            align-items: center;
+        }
+
+        .pricing-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            border-radius: 24px;
+            text-align: left;
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .pricing-card.featured {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+        }
+
+        .pricing-card.featured::after {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-2);
+            color: #000;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+        }
+
+        .plan-name {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .plan-price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: #fff;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 2.5rem;
+        }
+
+        .feature-list li {
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: var(--accent-2);
+            margin-right: 0.75rem;
+            font-weight: 800;
+        }
+
+        .plan-button {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #fff;
+        }
+
+        .btn-filled {
+            background: #fff;
+            color: #000;
+        }
+
+        .btn-filled:hover {
+            background: var(--accent-2);
+            box-shadow: 0 0 20px rgba(8, 217, 214, 0.4);
+        }
+
+        /* Floating UI Elements */
+        .floating-ui {
+            position: absolute;
+            background: rgba(15,15,15,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #ccc;
+            backdrop-filter: blur(5px);
+            z-index: -1;
+        }
+
+        .ui-1 { top: 20%; left: 10%; transform: rotate(-5deg); }
+        .ui-2 { bottom: 30%; right: 5%; transform: rotate(5deg); }
+
+    </style>
+</head>
+<body>
+
+    <div class="aurora-container">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">MockServer</div>
+            <nav>
+                <a href="#">Product</a>
+                <a href="#">Docs</a>
+                <a href="#">Pricing</a>
+                <a href="#">Login</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div class="floating-ui ui-1">HTTP 200 OK<br>Latency: 24ms</div>
+            <div class="floating-ui ui-2">{ "status": "authorized" }</div>
+
+            <h1>Fake It 'Til You <br><span class="gradient-text">Make It.</span></h1>
+            <p class="lead">The world's most powerful mock server. Build frontend features today. Worry about the backend tomorrow.</p>
+            
+            <div class="cta-group">
+                <a href="#" class="cta-button cta-primary">Start Mocking</a>
+                <a href="#" class="cta-button cta-glass">Read the Spec</a>
+            </div>
+        </section>
+
+        <section class="cards-section">
+            <div class="glass-card">
+                <div class="card-icon">⚡️</div>
+                <h3>Lightning Fast</h3>
+                <p>Spin up a mock server in seconds. No config files, no docker containers. Just a URL.</p>
+            </div>
+            <div class="glass-card">
+                <div class="card-icon">🔐</div>
+                <h3>Real Auth</h3>
+                <p>Don't just mock data, mock security. Test your JWT flows and API keys like it's production.</p>
+            </div>
+            <div class="glass-card">
+                <div class="card-icon">🎲</div>
+                <h3>Chaos Ready</h3>
+                <p>Inject random failures and latency. See how your app handles the worst case scenarios.</p>
+            </div>
+        </section>
+
+        <section class="pricing-section">
+            <h2 class="section-title">Simple Pricing</h2>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 3rem;">Start for free, upgrade when you scale.</p>
+            
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Developer</div>
+                    <div class="plan-price">$0 <span>/mo</span></div>
+                    <ul class="feature-list">
+                        <li>1 Mock Project</li>
+                        <li>500 Requests/mo</li>
+                        <li>Basic Auth</li>
+                        <li>Public Endpoints</li>
+                    </ul>
+                    <a href="#" class="plan-button btn-outline">Start Free</a>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="pricing-card featured">
+                    <div class="plan-name">Team</div>
+                    <div class="plan-price">$29 <span>/mo</span></div>
+                    <ul class="feature-list">
+                        <li>Unlimited Projects</li>
+                        <li>100k Requests/mo</li>
+                        <li>JWT & API Keys</li>
+                        <li>Chaos Engineering</li>
+                        <li>Private Projects</li>
+                    </ul>
+                    <a href="#" class="plan-button btn-filled">Get Started</a>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="pricing-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">$99 <span>/mo</span></div>
+                    <ul class="feature-list">
+                        <li>Unlimited Everything</li>
+                        <li>SSO / SAML</li>
+                        <li>SLA Guarantee</li>
+                        <li>Dedicated Support</li>
+                    </ul>
+                    <a href="#" class="plan-button btn-outline">Contact Sales</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
