@@ -2,10 +2,15 @@ import { CreateProjectModal } from "@/components/create-project-modal";
 import { EmptyState } from "@/components/empty-state";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { deleteProject, getProjects, getEndpoints } from "@/lib/api";
+import { deleteProject, getEndpoints, getProjects } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import type { Project, Endpoint } from "@/types";
-import { useMutation, useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
+import type { Project } from "@/types";
+import {
+	useMutation,
+	useQueries,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FolderPlus, Loader2, LogOut, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -52,7 +57,11 @@ function ProjectCard({
 			</div>
 			<div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
 				{showConfirm ? (
-					<div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="flex items-center gap-2"
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
+					>
 						<Button
 							variant="ghost"
 							size="sm"
@@ -165,7 +174,9 @@ function DashboardPage() {
 			<Navbar
 				actions={
 					<>
-						<span className="text-sm text-white/60 mr-2 hidden sm:inline">{user?.email}</span>
+						<span className="text-sm text-white/60 mr-2 hidden sm:inline">
+							{user?.email}
+						</span>
 						<Button
 							onClick={() => setCreateModalOpen(true)}
 							className="bg-white text-black hover:bg-gray-200 rounded-full px-6"
@@ -186,47 +197,45 @@ function DashboardPage() {
 			/>
 
 			<main className="relative z-10 mx-auto max-w-6xl px-6 py-8 md:px-12">
-				<div className="glass rounded-2xl p-8">
-					<div className="flex justify-between items-center mb-8">
-						<h1 className="text-2xl font-bold">Projects</h1>
-						<Button
-							onClick={() => setCreateModalOpen(true)}
-							className="bg-white text-black hover:bg-gray-200 rounded-full px-6"
-						>
-							+ New Project
-						</Button>
-					</div>
-
-					{isLoading ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							<ProjectSkeleton />
-							<ProjectSkeleton />
-							<ProjectSkeleton />
-						</div>
-					) : projects.length === 0 ? (
-						<EmptyState
-							icon={FolderPlus}
-							title="No projects yet"
-							description="Create your first mock API project to start building endpoints."
-							action={{
-								label: "Create Project",
-								onClick: () => setCreateModalOpen(true),
-							}}
-						/>
-					) : (
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{projects.map((project) => (
-								<ProjectCard
-									key={project.id}
-									project={project}
-									endpointCount={endpointCounts.get(project.id)}
-									onDelete={() => deleteMutation.mutate(project.id)}
-								/>
-							))}
-							<CreateProjectCard onClick={() => setCreateModalOpen(true)} />
-						</div>
-					)}
+				<div className="flex justify-between items-center mb-8">
+					<h1 className="text-2xl font-bold">Projects</h1>
+					<Button
+						onClick={() => setCreateModalOpen(true)}
+						className="bg-white text-black hover:bg-gray-200 rounded-full px-6"
+					>
+						+ New Project
+					</Button>
 				</div>
+
+				{isLoading ? (
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						<ProjectSkeleton />
+						<ProjectSkeleton />
+						<ProjectSkeleton />
+					</div>
+				) : projects.length === 0 ? (
+					<EmptyState
+						icon={FolderPlus}
+						title="No projects yet"
+						description="Create your first mock API project to start building endpoints."
+						action={{
+							label: "Create Project",
+							onClick: () => setCreateModalOpen(true),
+						}}
+					/>
+				) : (
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{projects.map((project) => (
+							<ProjectCard
+								key={project.id}
+								project={project}
+								endpointCount={endpointCounts.get(project.id)}
+								onDelete={() => deleteMutation.mutate(project.id)}
+							/>
+						))}
+						<CreateProjectCard onClick={() => setCreateModalOpen(true)} />
+					</div>
+				)}
 			</main>
 
 			<CreateProjectModal

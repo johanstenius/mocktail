@@ -2,7 +2,9 @@ import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { apiKeysRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
+import { billingRouter } from "./routes/billing";
 import { endpointsRouter } from "./routes/endpoints";
 import { importRouter } from "./routes/import";
 import { mockRouter } from "./routes/mock";
@@ -28,6 +30,8 @@ app.route("/api/projects/:projectId/endpoints", endpointsRouter);
 app.route("/api/projects/:projectId/import", importRouter);
 app.route("/api/projects/:projectId/logs", requestLogsRouter);
 app.route("/api/projects/:projectId/statistics", statisticsRouter);
+app.route("/api/api-keys", apiKeysRouter);
+app.route("/api/billing", billingRouter);
 
 // Mock server routes
 app.route("/mock", mockRouter);

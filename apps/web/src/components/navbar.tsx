@@ -10,7 +10,9 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 	const location = useLocation();
 
 	function isActive(path: string) {
-		return location.pathname === path || location.pathname.startsWith(path + "/");
+		return (
+			location.pathname === path || location.pathname.startsWith(`${path}/`)
+		);
 	}
 
 	return (
@@ -44,15 +46,7 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 					)}
 				</div>
 
-				<div className="flex items-center gap-4">
-					<div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-						<div className="w-2 h-2 rounded-full bg-[var(--color-success)] shadow-[0_0_10px_var(--color-success)]" />
-						<span className="text-xs font-semibold text-white/80">
-							System Operational
-						</span>
-					</div>
-					{actions && <div className="flex items-center gap-3">{actions}</div>}
-				</div>
+				{actions && <div className="flex items-center gap-3">{actions}</div>}
 			</div>
 		</nav>
 	);

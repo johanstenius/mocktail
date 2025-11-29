@@ -30,16 +30,25 @@ model User {
 }
 
 model Organization {
-  id        String          @id @default(cuid())
-  name      String
-  slug      String          @unique
-  ownerId   String
-  tier      Tier            @default(free)
-  createdAt DateTime        @default(now())
-  owner     User            @relation("OrgOwner", fields: [ownerId], references: [id])
-  members   OrgMembership[]
-  projects  Project[]
-  usage     UsageRecord[]
+  id                      String          @id @default(cuid())
+  name                    String
+  slug                    String          @unique
+  ownerId                 String
+  tier                    Tier            @default(free)
+  createdAt               DateTime        @default(now())
+  // Billing
+  monthlyRequests         Int             @default(0)
+  requestResetAt          DateTime?
+  stripeCustomerId        String?         @unique
+  stripeSubscriptionId    String?
+  stripeCancelAtPeriodEnd Boolean         @default(false)
+  stripeCurrentPeriodEnd  DateTime?
+  // Relations
+  owner                   User            @relation("OrgOwner", fields: [ownerId], references: [id])
+  members                 OrgMembership[]
+  projects                Project[]
+  usage                   UsageRecord[]
+  apiKeys                 ApiKey[]
 }
 
 model OrgMembership {
@@ -125,4 +134,13 @@ model RequestLog {
 
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   endpoint Endpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
+}
+
+model ApiKey {
+  id        String       @id @default(cuid())
+  key       String       @unique
+  name      String
+  orgId     String
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }

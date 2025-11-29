@@ -182,6 +182,23 @@ export async function getProjectStatistics(
 	);
 }
 
+export type GlobalStatistics = {
+	totalRequests: number;
+	totalUnmatched: number;
+	projectStats: Array<{
+		projectId: string;
+		projectName: string;
+		projectSlug: string;
+		requestCount: number;
+		endpointCount: number;
+		unmatchedCount: number;
+	}>;
+};
+
+export async function getGlobalStatistics(): Promise<GlobalStatistics> {
+	return fetchJson<GlobalStatistics>(`${API_BASE}/api/statistics`);
+}
+
 // Auth
 export async function register(input: RegisterInput): Promise<AuthResponse> {
 	return fetchJson<AuthResponse>(`${API_BASE}/api/auth/register`, {

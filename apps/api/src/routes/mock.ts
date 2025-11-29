@@ -1,9 +1,17 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { apiKeyMiddleware, getApiKeyOrg } from "../middleware/api-key";
+import { createMockRateLimiter } from "../middleware/rate-limit";
+import * as limitsService from "../services/limits.service";
 import * as mockService from "../services/mock.service";
 
 export const mockRouter = new Hono();
+
+const rateLimiter = createMockRateLimiter();
+
+mockRouter.use("*", apiKeyMiddleware);
+mockRouter.use("*", rateLimiter);
 
 function extractQueryParams(url: URL): Record<string, string> {
 	const query: Record<string, string> = {};
@@ -40,6 +48,17 @@ function extractPath(c: Context): string {
 }
 
 mockRouter.all("/:orgSlug/:projectSlug/*", async (c) => {
+	const orgId = getApiKeyOrg(c);
+
+	// Track monthly request quota
+	const quotaCheck = await limitsService.trackRequest(orgId);
+	if (!quotaCheck.allowed) {
+		return c.json(
+			{ error: "Monthly request quota exceeded", code: "QUOTA_EXCEEDED" },
+			429,
+		);
+	}
+
 	const startTime = Date.now();
 	const orgSlug = c.req.param("orgSlug");
 	const projectSlug = c.req.param("projectSlug");
