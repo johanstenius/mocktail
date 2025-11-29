@@ -1,0 +1,24 @@
+import { z } from "@hono/zod-openapi";
+
+export const errorSchema = z.object({
+	error: z.string(),
+	message: z.string(),
+});
+
+export const idParamSchema = z.object({
+	id: z.string(),
+});
+
+export const projectIdParamSchema = z.object({
+	projectId: z.string(),
+});
+
+export const endpointIdParamSchema = z.object({
+	projectId: z.string(),
+	endpointId: z.string(),
+});
+
+export const requestLogIdParamSchema = z.object({
+	projectId: z.string(),
+	id: z.string(),
+});
