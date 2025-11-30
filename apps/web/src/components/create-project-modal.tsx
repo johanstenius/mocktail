@@ -1,6 +1,7 @@
 import { createProject } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import {
 	Dialog,
@@ -36,9 +37,11 @@ export function CreateProjectModal({
 			setName("");
 			setSlug("");
 			setError(null);
+			toast.success("Project created");
 		},
 		onError: (err: Error) => {
 			setError(err.message);
+			toast.error("Failed to create project");
 		},
 	});
 

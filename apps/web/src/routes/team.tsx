@@ -24,6 +24,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Mail, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/team")({
 	component: TeamPage,
@@ -204,9 +205,11 @@ function InviteModal({
 			setEmail("");
 			setRole("member");
 			setError("");
+			toast.success("Invite sent");
 		},
 		onError: (err: Error) => {
 			setError(err.message);
+			toast.error("Failed to send invite");
 		},
 	});
 
@@ -292,6 +295,10 @@ function TeamPage() {
 			updateMemberRole(memberId, role),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["members"] });
+			toast.success("Role updated");
+		},
+		onError: () => {
+			toast.error("Failed to update role");
 		},
 	});
 
@@ -299,6 +306,10 @@ function TeamPage() {
 		mutationFn: removeMember,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["members"] });
+			toast.success("Member removed");
+		},
+		onError: () => {
+			toast.error("Failed to remove member");
 		},
 	});
 
@@ -306,6 +317,10 @@ function TeamPage() {
 		mutationFn: revokeInvite,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["invites"] });
+			toast.success("Invite revoked");
+		},
+		onError: () => {
+			toast.error("Failed to revoke invite");
 		},
 	});
 

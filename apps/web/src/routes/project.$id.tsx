@@ -23,8 +23,10 @@ import {
 	Route as RouteIcon,
 	Trash2,
 	TrendingUp,
+	Upload,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/project/$id")({
 	component: ProjectDetailPage,
@@ -33,7 +35,6 @@ export const Route = createFileRoute("/project/$id")({
 type TabId = "endpoints" | "logs" | "analytics" | "settings";
 
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 
 function EndpointRow({
 	endpoint,
@@ -57,6 +58,10 @@ function EndpointRow({
 		mutationFn: () => deleteEndpoint(projectId, endpoint.id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["endpoints", projectId] });
+			toast.success("Endpoint deleted");
+		},
+		onError: () => {
+			toast.error("Failed to delete endpoint");
 		},
 	});
 
@@ -69,13 +74,7 @@ function EndpointRow({
 			onClick={onEdit}
 			onKeyDown={(e) => e.key === "Enter" && onEdit()}
 		>
-			<div className="flex items-center gap-6">
-				<div
-					onClick={(e) => e.stopPropagation()}
-					onKeyDown={(e) => e.stopPropagation()}
-				>
-					<Switch defaultChecked />
-				</div>
+			<div className="flex items-center gap-4">
 				<div>
 					<div className="flex items-center gap-3 mb-1">
 						<h3 className="font-['Outfit'] font-semibold text-[var(--text-primary)]">
@@ -88,16 +87,9 @@ function EndpointRow({
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
-				<div className="flex gap-2">
-					<Badge variant="success">
-						<div className="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />
-						Active
-					</Badge>
-					{stat && stat.requestCount > 0 && (
-						<Badge variant="default">{stat.requestCount} Hits</Badge>
-					)}
-				</div>
-
+				{stat && stat.requestCount > 0 && (
+					<Badge variant="default">{stat.requestCount} Hits</Badge>
+				)}
 				<div
 					className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
 					onClick={(e) => e.stopPropagation()}
@@ -470,7 +462,15 @@ function ProjectDetailPage() {
 						{project.name}
 					</span>
 				</div>
-				<div className="flex items-center gap-4">
+				<div className="flex items-center gap-2">
+					<Button
+						variant="outline"
+						onClick={() => setImportModalOpen(true)}
+						className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
+					>
+						<Upload className="h-4 w-4 mr-2" />
+						Import
+					</Button>
 					<Button
 						onClick={handleNewEndpoint}
 						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"

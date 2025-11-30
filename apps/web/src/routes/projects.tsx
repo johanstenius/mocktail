@@ -19,6 +19,7 @@ import {
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { FolderPlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/projects")({
 	component: ProjectsPage,
@@ -140,6 +141,10 @@ function ProjectsPage() {
 		mutationFn: deleteProject,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
+			toast.success("Project deleted");
+		},
+		onError: () => {
+			toast.error("Failed to delete project");
 		},
 	});
 
@@ -147,7 +152,11 @@ function ProjectsPage() {
 		mutationFn: createSampleProject,
 		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
+			toast.success("Demo project created");
 			navigate({ to: "/project/$id", params: { id: result.project.id } });
+		},
+		onError: () => {
+			toast.error("Failed to create demo project");
 		},
 	});
 

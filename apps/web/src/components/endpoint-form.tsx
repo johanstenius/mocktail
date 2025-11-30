@@ -8,6 +8,7 @@ import type {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { CopyButton } from "./copy-button";
 import { Button } from "./ui/button";
 import {
@@ -104,8 +105,12 @@ export function EndpointForm({
 			queryClient.invalidateQueries({ queryKey: ["statistics", projectId] });
 			onOpenChange(false);
 			resetForm();
+			toast.success("Endpoint created");
 		},
-		onError: (err: Error) => setError(err.message),
+		onError: (err: Error) => {
+			setError(err.message);
+			toast.error("Failed to create endpoint");
+		},
 	});
 
 	const updateMutation = useMutation({
@@ -114,8 +119,12 @@ export function EndpointForm({
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["endpoints", projectId] });
 			onOpenChange(false);
+			toast.success("Endpoint updated");
 		},
-		onError: (err: Error) => setError(err.message),
+		onError: (err: Error) => {
+			setError(err.message);
+			toast.error("Failed to update endpoint");
+		},
 	});
 
 	function resetForm() {

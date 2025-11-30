@@ -20,6 +20,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
 	component: BillingPage,
@@ -211,6 +212,9 @@ function BillingPage() {
 		onSuccess: (data) => {
 			window.location.href = data.url;
 		},
+		onError: () => {
+			toast.error("Failed to start checkout");
+		},
 	});
 
 	const cancelMutation = useMutation({
@@ -218,6 +222,10 @@ function BillingPage() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["billing", "usage"] });
 			setShowCancelConfirm(false);
+			toast.success("Subscription cancelled");
+		},
+		onError: () => {
+			toast.error("Failed to cancel subscription");
 		},
 	});
 
@@ -225,6 +233,10 @@ function BillingPage() {
 		mutationFn: reactivateSubscription,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["billing", "usage"] });
+			toast.success("Subscription reactivated");
+		},
+		onError: () => {
+			toast.error("Failed to reactivate subscription");
 		},
 	});
 
