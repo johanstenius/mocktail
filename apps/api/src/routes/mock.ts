@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import type { StatusCode } from "hono/utils/http-status";
 import { getMockProjectId, mockAuthMiddleware } from "../middleware/mock-auth";
 import { createMockRateLimiter } from "../middleware/rate-limit";
 import * as limitsService from "../services/limits.service";
@@ -81,5 +82,12 @@ mockRouter.all("/*", async (c) => {
 		c.header(key, value);
 	}
 
-	return c.json(result.response.body, result.response.status as 200);
+	const status = result.response.status;
+
+	// 204 No Content and 304 Not Modified must not have a body
+	if (status === 204 || status === 304) {
+		return c.body(null, status as StatusCode);
+	}
+
+	return c.json(result.response.body, status as 200);
 });
