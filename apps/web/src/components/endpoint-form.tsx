@@ -28,7 +28,7 @@ const COMMON_STATUS_CODES = [200, 201, 204, 400, 401, 403, 404, 500];
 
 type EndpointFormProps = {
 	projectId: string;
-	projectSlug?: string;
+	apiKey?: string;
 	endpoint?: Endpoint;
 	prefill?: { method: HttpMethod; path: string };
 	open: boolean;
@@ -37,7 +37,7 @@ type EndpointFormProps = {
 
 export function EndpointForm({
 	projectId,
-	projectSlug,
+	apiKey,
 	endpoint,
 	prefill,
 	open,
@@ -182,10 +182,10 @@ export function EndpointForm({
 							<DialogTitle>
 								{isEditing ? "Edit Endpoint" : "Create Endpoint"}
 							</DialogTitle>
-							{isEditing && projectSlug && (
+							{isEditing && apiKey && (
 								<div className="flex items-center gap-2">
 									<CopyButton
-										value={getMockUrl(projectSlug, path)}
+										value={getMockUrl(path)}
 										label="Copy URL"
 										variant="ghost"
 										size="sm"
@@ -194,10 +194,7 @@ export function EndpointForm({
 										URL
 									</CopyButton>
 									<CopyButton
-										value={getCurlCommand(
-											method,
-											getMockUrl(projectSlug, path),
-										)}
+										value={getCurlCommand(method, getMockUrl(path), apiKey)}
 										label="Copy cURL"
 										variant="ghost"
 										size="sm"

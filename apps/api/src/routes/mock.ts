@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { apiKeyMiddleware, getApiKeyOrg } from "../middleware/api-key";
+import { getMockProjectId, mockAuthMiddleware } from "../middleware/mock-auth";
 import { createMockRateLimiter } from "../middleware/rate-limit";
 import * as limitsService from "../services/limits.service";
 import * as mockService from "../services/mock.service";
@@ -10,7 +10,7 @@ export const mockRouter = new Hono();
 
 const rateLimiter = createMockRateLimiter();
 
-mockRouter.use("*", apiKeyMiddleware);
+mockRouter.use("*", mockAuthMiddleware);
 mockRouter.use("*", rateLimiter);
 
 function extractQueryParams(url: URL): Record<string, string> {
@@ -43,15 +43,10 @@ async function extractBody(request: Request): Promise<unknown> {
 	}
 }
 
-function extractPath(c: Context): string {
-	return `/${c.req.path.split("/").slice(4).join("/")}`;
-}
+mockRouter.all("/*", async (c) => {
+	const projectId = getMockProjectId(c);
 
-mockRouter.all("/:orgSlug/:projectSlug/*", async (c) => {
-	const orgId = getApiKeyOrg(c);
-
-	// Track monthly request quota
-	const quotaCheck = await limitsService.trackRequest(orgId);
+	const quotaCheck = await limitsService.trackProjectRequest(projectId);
 	if (!quotaCheck.allowed) {
 		return c.json(
 			{ error: "Monthly request quota exceeded", code: "QUOTA_EXCEEDED" },
@@ -60,9 +55,7 @@ mockRouter.all("/:orgSlug/:projectSlug/*", async (c) => {
 	}
 
 	const startTime = Date.now();
-	const orgSlug = c.req.param("orgSlug");
-	const projectSlug = c.req.param("projectSlug");
-	const path = extractPath(c);
+	const path = `/${c.req.path.split("/").slice(2).join("/")}`;
 	const method = c.req.method;
 
 	const url = new URL(c.req.url);
@@ -71,7 +64,7 @@ mockRouter.all("/:orgSlug/:projectSlug/*", async (c) => {
 	const body = await extractBody(c.req.raw);
 
 	const result = await mockService.handleMockRequest(
-		{ orgSlug, projectSlug, method, path, headers, query, body },
+		{ projectId, method, path, headers, query, body },
 		startTime,
 	);
 

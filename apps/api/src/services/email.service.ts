@@ -4,6 +4,7 @@ import { logger } from "../lib/logger";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
+
 const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 
 type SendInviteEmailParams = {
@@ -24,7 +25,7 @@ export async function sendInviteEmail(
 		return;
 	}
 
-	const { data, error } = await resend.emails.send({
+	const { error } = await resend.emails.send({
 		from: "Mocktail <noreply@mocktail.stenius.me>",
 		to: params.to,
 		subject: `Join ${params.orgName} on Mocktail`,
@@ -56,7 +57,7 @@ export async function sendPasswordResetEmail(
 		return;
 	}
 
-	const { data, error } = await resend.emails.send({
+	const { error } = await resend.emails.send({
 		from: "Mocktail <noreply@mocktail.stenius.me>",
 		to: params.to,
 		subject: "Reset your password",
@@ -86,7 +87,7 @@ export async function sendVerificationEmail(
 		return;
 	}
 
-	const { data, error } = await resend.emails.send({
+	const { error } = await resend.emails.send({
 		from: "Mocktail <noreply@mocktail.stenius.me>",
 		to: params.to,
 		subject: "Verify your email",

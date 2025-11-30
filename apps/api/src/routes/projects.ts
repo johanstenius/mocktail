@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
 import { authMiddleware, getAuth } from "../middleware/auth";
+import { invalidateProjectKeyCache } from "../middleware/mock-auth";
 import { errorSchema, idParamSchema } from "../schemas/common";
 import {
 	createProjectSchema,
@@ -224,4 +225,52 @@ projectsRouter.openapi(deleteRoute, async (c) => {
 
 	await projectService.remove(id);
 	return c.body(null, 204);
+});
+
+// Rotate API key
+const rotateKeyRoute = createRoute({
+	method: "post",
+	path: "/{id}/rotate-key",
+	tags: ["Projects"],
+	request: {
+		params: idParamSchema,
+	},
+	responses: {
+		200: {
+			description: "API key rotated",
+			content: {
+				"application/json": {
+					schema: projectSchema,
+				},
+			},
+		},
+		404: {
+			description: "Project not found",
+			content: {
+				"application/json": {
+					schema: errorSchema,
+				},
+			},
+		},
+	},
+});
+
+projectsRouter.openapi(rotateKeyRoute, async (c) => {
+	const auth = getAuth(c);
+	const { id } = c.req.valid("param");
+
+	const existing = await projectService.findById(id);
+	if (!existing || existing.orgId !== auth.orgId) {
+		return c.json({ error: "not_found", message: "Project not found" }, 404);
+	}
+
+	const oldKey = existing.apiKey;
+	const project = await projectService.rotateApiKey(id);
+	if (!project) {
+		return c.json({ error: "not_found", message: "Project not found" }, 404);
+	}
+
+	invalidateProjectKeyCache(oldKey);
+
+	return c.json(mapProjectToResponse(project));
 });

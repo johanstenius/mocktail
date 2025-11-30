@@ -23,6 +23,15 @@ export function findById(id: string) {
 	});
 }
 
+export function findByIdWithEndpoints(id: string, method?: string) {
+	return prisma.project.findUnique({
+		where: { id },
+		include: {
+			endpoints: method ? { where: { method } } : true,
+		},
+	});
+}
+
 export function findBySlug(slug: string) {
 	return prisma.project.findUnique({
 		where: { slug },
@@ -79,5 +88,50 @@ export function update(id: string, data: { name?: string; slug?: string }) {
 export function remove(id: string) {
 	return prisma.project.delete({
 		where: { id },
+	});
+}
+
+export function findByApiKey(apiKey: string) {
+	return prisma.project.findUnique({
+		where: { apiKey },
+		include: { org: { select: { id: true, tier: true } } },
+	});
+}
+
+export function findByIdWithOrg(id: string) {
+	return prisma.project.findUnique({
+		where: { id },
+		include: { org: { select: { id: true, tier: true } } },
+	});
+}
+
+export async function sumMonthlyRequestsByOrgId(
+	orgId: string,
+): Promise<number> {
+	const result = await prisma.project.aggregate({
+		where: { orgId },
+		_sum: { monthlyRequests: true },
+	});
+	return result._sum.monthlyRequests ?? 0;
+}
+
+export function updateApiKey(id: string, apiKey: string) {
+	return prisma.project.update({
+		where: { id },
+		data: { apiKey },
+	});
+}
+
+export function incrementMonthlyRequests(id: string) {
+	return prisma.project.update({
+		where: { id },
+		data: { monthlyRequests: { increment: 1 } },
+	});
+}
+
+export function resetMonthlyRequests(id: string) {
+	return prisma.project.update({
+		where: { id },
+		data: { monthlyRequests: 1, requestResetAt: new Date() },
 	});
 }

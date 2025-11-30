@@ -1,10 +1,7 @@
 import type {
 	AcceptInviteResponse,
 	ActivityItem,
-	ApiKey,
 	AuthResponse,
-	CreateApiKeyInput,
-	CreateApiKeyResponse,
 	CreateEndpointInput,
 	CreateInviteInput,
 	CreateProjectInput,
@@ -394,27 +391,12 @@ export async function createSampleProject(): Promise<SampleProjectResult> {
 	);
 }
 
-// API Keys
-export async function getApiKeys(): Promise<ApiKey[]> {
-	const data = await fetchJson<{ apiKeys: ApiKey[] }>(
-		`${API_BASE}/api/api-keys`,
+// Project API Key
+export async function rotateProjectApiKey(projectId: string): Promise<Project> {
+	return fetchJson<Project>(
+		`${API_BASE}/api/projects/${projectId}/rotate-key`,
+		{
+			method: "POST",
+		},
 	);
-	return data.apiKeys;
-}
-
-export async function createApiKey(
-	input: CreateApiKeyInput,
-): Promise<CreateApiKeyResponse> {
-	return fetchJson<CreateApiKeyResponse>(`${API_BASE}/api/api-keys`, {
-		method: "POST",
-		body: JSON.stringify(input),
-	});
-}
-
-export async function deleteApiKey(id: string): Promise<void> {
-	const token = getAccessToken();
-	await fetch(`${API_BASE}/api/api-keys/${id}`, {
-		method: "DELETE",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-	});
 }

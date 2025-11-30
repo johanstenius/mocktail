@@ -1,7 +1,7 @@
 import type { Context, Next } from "hono";
 import { UNAUTHENTICATED_RATE_LIMIT, getLimits } from "../config/limits";
 import { rateLimited } from "../utils/errors";
-import { getApiKeyTier, hasApiKey } from "./api-key";
+import { getMockTier } from "./mock-auth";
 
 type SlidingWindowEntry = {
 	timestamps: number[];
@@ -78,30 +78,12 @@ export function createMockRateLimiter() {
 	startCleanupInterval();
 
 	return async function mockRateLimiter(c: Context, next: Next) {
-		if (!hasApiKey(c)) {
-			// Fallback to IP-based limit for unauthenticated
-			const ip = getClientIp(c);
-			const { allowed, remaining, resetAt } = checkRateLimit(
-				`ip:${ip}`,
-				UNAUTHENTICATED_RATE_LIMIT,
-			);
-			setRateLimitHeaders(c, UNAUTHENTICATED_RATE_LIMIT, remaining, resetAt);
-
-			if (!allowed) {
-				c.header("Retry-After", String(1));
-				throw rateLimited();
-			}
-			await next();
-			return;
-		}
-
-		const tier = getApiKeyTier(c);
+		const tier = getMockTier(c);
 		const limits = getLimits(tier);
-		const apiKey = c.req.header("X-API-Key") || "";
-		const keyHash = apiKey.slice(-8); // Use last 8 chars as identifier
+		const projectId = c.get("mockProjectId") as string;
 
 		const { allowed, remaining, resetAt } = checkRateLimit(
-			`key:${keyHash}`,
+			`project:${projectId}`,
 			limits.rateLimit,
 		);
 		setRateLimitHeaders(c, limits.rateLimit, remaining, resetAt);

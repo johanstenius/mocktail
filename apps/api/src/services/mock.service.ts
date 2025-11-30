@@ -16,8 +16,7 @@ type Endpoint = {
 };
 
 export type MockRequest = {
-	orgSlug: string;
-	projectSlug: string;
+	projectId: string;
 	method: string;
 	path: string;
 	headers: Record<string, string>;
@@ -39,9 +38,8 @@ export async function handleMockRequest(
 	request: MockRequest,
 	startTime: number,
 ): Promise<MockResult> {
-	const project = await projectRepo.findByOrgSlugAndProjectSlug(
-		request.orgSlug,
-		request.projectSlug,
+	const project = await projectRepo.findByIdWithEndpoints(
+		request.projectId,
 		request.method,
 	);
 

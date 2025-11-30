@@ -6,33 +6,37 @@ export type TierLimits = {
 	teamMembers: number;
 	monthlyRequests: number;
 	rateLimit: number;
+	requestLogRetentionDays: number;
 };
 
 export const TIER_LIMITS: Record<Tier, TierLimits> = {
 	free: {
-		projects: 3,
-		endpointsPerProject: 10,
-		teamMembers: 3,
-		monthlyRequests: 10_000,
-		rateLimit: 10,
+		projects: 1,
+		endpointsPerProject: 5,
+		teamMembers: 2,
+		monthlyRequests: 1_000,
+		rateLimit: 5,
+		requestLogRetentionDays: 1,
 	},
 	pro: {
-		projects: 20,
-		endpointsPerProject: 100,
-		teamMembers: Number.POSITIVE_INFINITY,
-		monthlyRequests: 500_000,
-		rateLimit: 100,
+		projects: 10,
+		endpointsPerProject: 50,
+		teamMembers: 10,
+		monthlyRequests: 100_000,
+		rateLimit: 50,
+		requestLogRetentionDays: 30,
 	},
 	enterprise: {
 		projects: Number.POSITIVE_INFINITY,
 		endpointsPerProject: Number.POSITIVE_INFINITY,
 		teamMembers: Number.POSITIVE_INFINITY,
 		monthlyRequests: Number.POSITIVE_INFINITY,
-		rateLimit: 1000,
+		rateLimit: 500,
+		requestLogRetentionDays: 90,
 	},
 } as const;
 
-export const UNAUTHENTICATED_RATE_LIMIT = 20;
+export const UNAUTHENTICATED_RATE_LIMIT = 10;
 
 export function getLimits(tier: Tier): TierLimits {
 	return TIER_LIMITS[tier];

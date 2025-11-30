@@ -11,15 +11,17 @@ import {
 	getEndpoints,
 	getProject,
 	getProjectStatistics,
+	rotateProjectApiKey,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { getCurlCommand, getMockUrl, getProjectBaseUrl } from "@/lib/url";
+import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
 import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Loader2,
 	Plus,
+	RefreshCw,
 	Route as RouteIcon,
 	Trash2,
 	TrendingUp,
@@ -39,20 +41,20 @@ import { Badge } from "@/components/ui/badge";
 function EndpointRow({
 	endpoint,
 	projectId,
-	projectSlug,
+	apiKey,
 	stat,
 	onEdit,
 }: {
 	endpoint: Endpoint;
 	projectId: string;
-	projectSlug: string;
+	apiKey: string;
 	stat?: { requestCount: number };
 	onEdit: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const queryClient = useQueryClient();
-	const mockUrl = getMockUrl(projectSlug, endpoint.path);
-	const curlCommand = getCurlCommand(endpoint.method, mockUrl);
+	const mockUrl = getMockUrl(endpoint.path);
+	const curlCommand = getCurlCommand(endpoint.method, mockUrl, apiKey);
 
 	const deleteMutation = useMutation({
 		mutationFn: () => deleteEndpoint(projectId, endpoint.id),
@@ -339,6 +341,130 @@ function ProjectAnalytics({
 	);
 }
 
+function ProjectSettings({
+	projectId,
+	apiKey,
+}: {
+	projectId: string;
+	apiKey: string;
+}) {
+	const [showConfirmRotate, setShowConfirmRotate] = useState(false);
+	const queryClient = useQueryClient();
+
+	const rotateMutation = useMutation({
+		mutationFn: () => rotateProjectApiKey(projectId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+			toast.success("API key rotated");
+			setShowConfirmRotate(false);
+		},
+		onError: () => {
+			toast.error("Failed to rotate API key");
+		},
+	});
+
+	const exampleCurl = getCurlCommand(
+		"GET",
+		`${getMockBaseUrl()}/users`,
+		apiKey,
+	);
+
+	return (
+		<div>
+			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Settings</h3>
+
+			<div className="space-y-6">
+				{/* API Key Section */}
+				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">
+						API Key
+					</h4>
+					<p className="text-sm text-[var(--text-muted)] mb-4">
+						Use this key to authenticate requests to your mock endpoints.
+						Include it in the{" "}
+						<code className="text-[var(--glow-violet)]">X-API-Key</code> header,
+						or use{" "}
+						<code className="text-[var(--glow-violet)]">
+							Authorization: Bearer
+						</code>{" "}
+						/<code className="text-[var(--glow-violet)]">Basic</code> auth.
+					</p>
+
+					<div className="flex items-center gap-2 mb-4">
+						<code className="flex-1 text-[var(--text-primary)] font-['JetBrains_Mono'] text-sm bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-xl border border-[var(--border-subtle)]">
+							{apiKey}
+						</code>
+						<CopyButton
+							value={apiKey}
+							label="Copy API key"
+							variant="outline"
+							size="icon"
+							className="h-10 w-10"
+						/>
+					</div>
+
+					<div className="flex items-center gap-2">
+						{showConfirmRotate ? (
+							<>
+								<span className="text-sm text-amber-400">
+									This will invalidate the current key immediately.
+								</span>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setShowConfirmRotate(false)}
+								>
+									Cancel
+								</Button>
+								<Button
+									variant="destructive"
+									size="sm"
+									onClick={() => rotateMutation.mutate()}
+									disabled={rotateMutation.isPending}
+								>
+									{rotateMutation.isPending ? (
+										<Loader2 className="h-4 w-4 animate-spin mr-2" />
+									) : null}
+									Confirm Rotate
+								</Button>
+							</>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setShowConfirmRotate(true)}
+								className="text-amber-400 border-amber-400/30 hover:bg-amber-400/10"
+							>
+								<RefreshCw className="h-4 w-4 mr-2" />
+								Rotate Key
+							</Button>
+						)}
+					</div>
+				</div>
+
+				{/* Example Usage */}
+				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">
+						Example Usage
+					</h4>
+					<div className="relative">
+						<pre className="text-[var(--text-secondary)] font-['JetBrains_Mono'] text-sm bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-xl border border-[var(--border-subtle)] overflow-x-auto">
+							{exampleCurl}
+						</pre>
+						<CopyButton
+							value={exampleCurl}
+							label="Copy example"
+							variant="ghost"
+							size="icon"
+							className="absolute top-2 right-2 h-8 w-8"
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 function ProjectDetailPage() {
 	const { id: projectId } = Route.useParams();
 	const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -491,10 +617,10 @@ function ProjectDetailPage() {
 						</h1>
 						<div className="flex items-center gap-2">
 							<code className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm bg-[var(--bg-surface)] px-2 py-1 rounded-lg border border-[var(--border-subtle)]">
-								{getProjectBaseUrl(project.slug)}
+								{getMockBaseUrl()}
 							</code>
 							<CopyButton
-								value={getProjectBaseUrl(project.slug)}
+								value={getMockBaseUrl()}
 								label="Copy base URL"
 								variant="ghost"
 								size="icon"
@@ -571,7 +697,7 @@ function ProjectDetailPage() {
 											key={endpoint.id}
 											endpoint={endpoint}
 											projectId={projectId}
-											projectSlug={project.slug}
+											apiKey={project.apiKey}
 											stat={statsMap.get(endpoint.id)}
 											onEdit={() => handleEditEndpoint(endpoint)}
 										/>
@@ -598,14 +724,7 @@ function ProjectDetailPage() {
 
 					{/* Settings Tab */}
 					{activeTab === "settings" && (
-						<div>
-							<h3 className="text-xl font-bold mb-6 font-['Outfit']">
-								Settings
-							</h3>
-							<div className="text-[var(--text-muted)]">
-								Project settings coming soon...
-							</div>
-						</div>
+						<ProjectSettings projectId={projectId} apiKey={project.apiKey} />
 					)}
 				</div>
 			</div>
@@ -613,7 +732,7 @@ function ProjectDetailPage() {
 			{/* Modals */}
 			<EndpointForm
 				projectId={projectId}
-				projectSlug={project.slug}
+				apiKey={project.apiKey}
 				endpoint={selectedEndpoint ?? undefined}
 				prefill={prefillData ?? undefined}
 				open={endpointModalOpen}

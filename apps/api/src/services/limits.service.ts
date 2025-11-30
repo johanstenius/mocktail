@@ -2,6 +2,7 @@ import type { Tier } from "@prisma/client";
 import { getLimits } from "../config/limits";
 import { prisma } from "../repositories/db/prisma";
 import * as orgRepo from "../repositories/organization.repository";
+import * as projectRepo from "../repositories/project.repository";
 
 export type LimitCheckResult = {
 	allowed: boolean;
@@ -137,5 +138,40 @@ export async function trackRequest(
 	return {
 		allowed: true,
 		remaining: limits.monthlyRequests - org.monthlyRequests - 1,
+	};
+}
+
+export async function trackProjectRequest(
+	projectId: string,
+): Promise<{ allowed: boolean; remaining: number }> {
+	const project = await projectRepo.findByIdWithOrg(projectId);
+	if (!project) {
+		return { allowed: false, remaining: 0 };
+	}
+
+	const limits = getLimits(project.org.tier);
+
+	// Check if we need to reset (first of month)
+	const now = new Date();
+	const resetAt = project.requestResetAt;
+	if (
+		!resetAt ||
+		resetAt.getMonth() !== now.getMonth() ||
+		resetAt.getFullYear() !== now.getFullYear()
+	) {
+		await projectRepo.resetMonthlyRequests(project.id);
+		return { allowed: true, remaining: limits.monthlyRequests - 1 };
+	}
+
+	// Aggregate all project requests for org quota check
+	const orgTotal = await projectRepo.sumMonthlyRequestsByOrgId(project.orgId);
+	if (orgTotal >= limits.monthlyRequests) {
+		return { allowed: false, remaining: 0 };
+	}
+
+	await projectRepo.incrementMonthlyRequests(project.id);
+	return {
+		allowed: true,
+		remaining: limits.monthlyRequests - orgTotal - 1,
 	};
 }

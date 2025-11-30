@@ -53,7 +53,6 @@ model Organization {
   members                 OrgMembership[]
   projects                Project[]
   usage                   UsageRecord[]
-  apiKeys                 ApiKey[]
   invites                 OrgInvite[]
 }
 
@@ -90,14 +89,16 @@ model UsageRecord {
 }
 
 model Project {
-  id        String       @id @default(cuid())
-  name      String
-  slug      String
-  apiKey    String?
-  orgId     String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id              String       @id @default(cuid())
+  name            String
+  slug            String
+  apiKey          String       @unique
+  orgId           String
+  monthlyRequests Int          @default(0)
+  requestResetAt  DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   endpoints   Endpoint[]
   requestLogs RequestLog[]
@@ -142,15 +143,6 @@ model RequestLog {
   endpoint Endpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
 }
 
-model ApiKey {
-  id        String       @id @default(cuid())
-  key       String       @unique
-  name      String
-  orgId     String
-  createdBy String?
-  createdAt DateTime     @default(now())
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-}
 
 model PasswordResetToken {
   id        String   @id @default(cuid())

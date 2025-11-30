@@ -32,12 +32,12 @@ const TIER_INFO: Record<
 > = {
 	free: {
 		name: "Free",
-		description: "For individuals and small projects",
+		description: "Try it out, no credit card required",
 		price: "$0",
 	},
 	pro: {
 		name: "Pro",
-		description: "For growing teams and businesses",
+		description: "For teams shipping to production",
 		price: "$29",
 	},
 	enterprise: {
@@ -49,24 +49,26 @@ const TIER_INFO: Record<
 
 const TIER_FEATURES: Record<Tier, string[]> = {
 	free: [
-		"3 projects",
-		"30 endpoints total",
-		"10,000 requests/month",
-		"3 team members",
+		"1 project",
+		"5 endpoints",
+		"1,000 requests/month",
+		"2 team members",
+		"1 day log retention",
 	],
 	pro: [
-		"Unlimited projects",
-		"Unlimited endpoints",
-		"1,000,000 requests/month",
-		"Unlimited team members",
-		"Priority support",
+		"10 projects",
+		"50 endpoints per project",
+		"100,000 requests/month",
+		"10 team members",
+		"30 day log retention",
 	],
 	enterprise: [
-		"Everything in Pro",
+		"Unlimited projects",
+		"Unlimited endpoints",
 		"Unlimited requests",
+		"Unlimited team members",
+		"90 day log retention",
 		"SSO/SAML",
-		"Dedicated support",
-		"Custom SLA",
 	],
 };
 

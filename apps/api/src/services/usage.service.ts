@@ -1,5 +1,5 @@
 import type { Tier } from "@prisma/client";
-import { TIER_LIMITS, isUnlimited } from "../config/tiers";
+import { getLimits } from "../config/limits";
 import * as orgRepo from "../repositories/organization.repository";
 import * as usageRepo from "../repositories/usage.repository";
 
@@ -28,8 +28,8 @@ export async function checkApiCallLimit(
 	orgId: string,
 	tier: Tier,
 ): Promise<LimitCheck> {
-	const limits = TIER_LIMITS[tier];
-	if (isUnlimited(limits.apiCallsPerMonth)) {
+	const limits = getLimits(tier);
+	if (!Number.isFinite(limits.monthlyRequests)) {
 		return { allowed: true };
 	}
 
@@ -41,10 +41,10 @@ export async function checkApiCallLimit(
 	);
 	const currentCalls = usage?.apiCalls ?? 0;
 
-	if (currentCalls >= limits.apiCallsPerMonth) {
+	if (currentCalls >= limits.monthlyRequests) {
 		return {
 			allowed: false,
-			reason: `Monthly API call limit (${limits.apiCallsPerMonth}) exceeded`,
+			reason: `Monthly API call limit (${limits.monthlyRequests}) exceeded`,
 		};
 	}
 
@@ -55,16 +55,16 @@ export async function checkProjectLimit(
 	orgId: string,
 	tier: Tier,
 ): Promise<LimitCheck> {
-	const limits = TIER_LIMITS[tier];
-	if (isUnlimited(limits.maxProjects)) {
+	const limits = getLimits(tier);
+	if (!Number.isFinite(limits.projects)) {
 		return { allowed: true };
 	}
 
 	const projectCount = await orgRepo.countProjectsByOrgId(orgId);
-	if (projectCount >= limits.maxProjects) {
+	if (projectCount >= limits.projects) {
 		return {
 			allowed: false,
-			reason: `Project limit (${limits.maxProjects}) reached`,
+			reason: `Project limit (${limits.projects}) reached`,
 		};
 	}
 
@@ -75,7 +75,7 @@ export async function getUsageSummary(
 	orgId: string,
 	tier: Tier,
 ): Promise<UsageSummary> {
-	const limits = TIER_LIMITS[tier];
+	const limits = getLimits(tier);
 	const now = new Date();
 
 	const [usage, projectCount] = await Promise.all([
@@ -85,8 +85,8 @@ export async function getUsageSummary(
 
 	return {
 		apiCalls: usage?.apiCalls ?? 0,
-		apiCallsLimit: limits.apiCallsPerMonth,
+		apiCallsLimit: limits.monthlyRequests,
 		projectCount,
-		projectLimit: limits.maxProjects,
+		projectLimit: limits.projects,
 	};
 }

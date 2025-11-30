@@ -5,8 +5,10 @@ export type ProjectModel = {
 	id: string;
 	name: string;
 	slug: string;
-	apiKey: string | null;
+	apiKey: string;
 	orgId: string;
+	monthlyRequests: number;
+	requestResetAt: Date | null;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -57,4 +59,15 @@ export async function remove(id: string): Promise<boolean> {
 	if (!existing) return false;
 	await projectRepo.remove(id);
 	return true;
+}
+
+export function findByApiKey(apiKey: string): Promise<ProjectModel | null> {
+	return projectRepo.findByApiKey(apiKey);
+}
+
+export async function rotateApiKey(id: string): Promise<ProjectModel | null> {
+	const existing = await projectRepo.findById(id);
+	if (!existing) return null;
+	const newApiKey = `mk_${nanoid(24)}`;
+	return projectRepo.updateApiKey(id, newApiKey);
 }

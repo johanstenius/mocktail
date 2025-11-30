@@ -175,7 +175,7 @@ function LandingPage() {
 					{/* Free Tier */}
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
 						<div className="text-xl font-semibold mb-1 font-['Outfit']">
-							Developer
+							Free
 						</div>
 						<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
 							$0
@@ -184,14 +184,15 @@ function LandingPage() {
 							</span>
 						</div>
 						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							Perfect for side projects and indie hackers.
+							Try it out, no credit card required.
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
 							{[
-								"3 Projects",
-								"30 Endpoints",
-								"10,000 Requests/mo",
-								"3 Team Members",
+								"1 Project",
+								"5 Endpoints",
+								"1,000 Requests/mo",
+								"2 Team Members",
+								"1 Day Log Retention",
 							].map((feature) => (
 								<li
 									key={feature}
@@ -227,14 +228,15 @@ function LandingPage() {
 							</span>
 						</div>
 						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							For growing teams shipping to production.
+							For teams shipping to production.
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
 							{[
-								"20 Projects",
-								"2,000 Endpoints",
-								"500,000 Requests/mo",
-								"Unlimited Team Members",
+								"10 Projects",
+								"50 Endpoints per Project",
+								"100,000 Requests/mo",
+								"10 Team Members",
+								"30 Day Log Retention",
 							].map((feature) => (
 								<li
 									key={feature}
@@ -271,6 +273,8 @@ function LandingPage() {
 								"Unlimited Projects",
 								"Unlimited Endpoints",
 								"Unlimited Requests",
+								"Unlimited Team Members",
+								"90 Day Log Retention",
 								"SSO / SAML",
 							].map((feature) => (
 								<li

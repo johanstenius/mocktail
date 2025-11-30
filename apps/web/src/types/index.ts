@@ -5,7 +5,7 @@ export type Project = {
 	id: string;
 	name: string;
 	slug: string;
-	apiKey: string | null;
+	apiKey: string;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -225,22 +225,4 @@ export type ActivityItem = {
 export type SampleProjectResult = {
 	project: { id: string; name: string; slug: string };
 	endpointsCreated: number;
-};
-
-// API Keys
-export type ApiKey = {
-	id: string;
-	key: string;
-	name: string;
-	createdBy: string | null;
-	createdAt: string;
-};
-
-export type CreateApiKeyInput = {
-	name: string;
-};
-
-export type CreateApiKeyResponse = {
-	apiKey: ApiKey;
-	fullKey: string;
 };
