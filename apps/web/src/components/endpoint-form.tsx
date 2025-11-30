@@ -1,11 +1,7 @@
 import { createEndpoint, updateEndpoint } from "@/lib/api";
+import { getErrorMessage } from "@/lib/errors";
 import { getCurlCommand, getMockUrl } from "@/lib/url";
-import type {
-	BodyType,
-	CreateEndpointInput,
-	Endpoint,
-	HttpMethod,
-} from "@/types";
+import type { CreateEndpointInput, Endpoint, HttpMethod } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -49,9 +45,6 @@ export function EndpointForm({
 	const [method, setMethod] = useState<HttpMethod>(endpoint?.method ?? "GET");
 	const [path, setPath] = useState(endpoint?.path ?? "/");
 	const [status, setStatus] = useState(endpoint?.status ?? 200);
-	const [bodyType, setBodyType] = useState<BodyType>(
-		endpoint?.bodyType ?? "static",
-	);
 	const [body, setBody] = useState(() => {
 		if (!endpoint?.body) return "{}";
 		if (endpoint.bodyType === "template") return String(endpoint.body);
@@ -61,13 +54,24 @@ export function EndpointForm({
 	const [failRate, setFailRate] = useState(endpoint?.failRate ?? 0);
 	const [error, setError] = useState<string | null>(null);
 
+	const isTemplate = body.includes("{{");
+
+	function formatJsonBody() {
+		if (isTemplate) return;
+		try {
+			const parsed = JSON.parse(body);
+			setBody(JSON.stringify(parsed, null, 2));
+		} catch {
+			// invalid JSON, leave as-is (will show error on submit)
+		}
+	}
+
 	useEffect(() => {
 		if (open) {
 			if (endpoint) {
 				setMethod(endpoint.method);
 				setPath(endpoint.path);
 				setStatus(endpoint.status);
-				setBodyType(endpoint.bodyType);
 				setBody(
 					endpoint.bodyType === "template"
 						? String(endpoint.body)
@@ -79,7 +83,6 @@ export function EndpointForm({
 				setMethod(prefill.method);
 				setPath(prefill.path);
 				setStatus(200);
-				setBodyType("static");
 				setBody("{}");
 				setDelay(0);
 				setFailRate(0);
@@ -87,7 +90,6 @@ export function EndpointForm({
 				setMethod("GET");
 				setPath("/");
 				setStatus(200);
-				setBodyType("static");
 				setBody("{}");
 				setDelay(0);
 				setFailRate(0);
@@ -108,9 +110,9 @@ export function EndpointForm({
 			resetForm();
 			toast.success("Endpoint created");
 		},
-		onError: (err: Error) => {
-			setError(err.message);
-			toast.error("Failed to create endpoint");
+		onError: (err: unknown) => {
+			setError(getErrorMessage(err));
+			toast.error(getErrorMessage(err));
 		},
 	});
 
@@ -122,9 +124,9 @@ export function EndpointForm({
 			onOpenChange(false);
 			toast.success("Endpoint updated");
 		},
-		onError: (err: Error) => {
-			setError(err.message);
-			toast.error("Failed to update endpoint");
+		onError: (err: unknown) => {
+			setError(getErrorMessage(err));
+			toast.error(getErrorMessage(err));
 		},
 	});
 
@@ -132,7 +134,6 @@ export function EndpointForm({
 		setMethod("GET");
 		setPath("/");
 		setStatus(200);
-		setBodyType("static");
 		setBody("{}");
 		setDelay(0);
 		setFailRate(0);
@@ -144,10 +145,11 @@ export function EndpointForm({
 		setError(null);
 
 		const statusAllowsBody = !NO_BODY_STATUS_CODES.includes(status);
+		const bodyType = isTemplate ? "template" : "static";
 
 		let parsedBody: unknown = null;
 		if (statusAllowsBody) {
-			if (bodyType === "template") {
+			if (isTemplate) {
 				parsedBody = body;
 			} else {
 				try {
@@ -285,80 +287,46 @@ export function EndpointForm({
 							</div>
 						</div>
 
-						{/* Body Type Toggle - only show when status allows body */}
-						{statusAllowsBody && (
-							<div>
-								<Label>Response Type</Label>
-								<div className="mt-1.5 flex gap-2">
-									<button
-										type="button"
-										onClick={() => setBodyType("static")}
-										className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
-											bodyType === "static"
-												? "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)] border border-[var(--glow-violet)]/30 ring-2 ring-[var(--glow-violet)]/20"
-												: "bg-white/5 text-[var(--text-muted)] border border-white/10 hover:border-white/20 hover:text-[var(--text-secondary)]"
-										}`}
-									>
-										Static JSON
-									</button>
-									<button
-										type="button"
-										onClick={() => setBodyType("template")}
-										className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
-											bodyType === "template"
-												? "bg-[var(--glow-blue)]/20 text-[var(--glow-blue)] border border-[var(--glow-blue)]/30 ring-2 ring-[var(--glow-blue)]/20"
-												: "bg-white/5 text-[var(--text-muted)] border border-white/10 hover:border-white/20 hover:text-[var(--text-secondary)]"
-										}`}
-									>
-										Template
-									</button>
-								</div>
-							</div>
-						)}
-
 						{/* Response Body - only show when status allows body */}
 						{statusAllowsBody ? (
 							<div>
-								<Label htmlFor="body">
-									{bodyType === "template"
-										? "Response Body (Template)"
-										: "Response Body (JSON)"}
-								</Label>
+								<div className="flex items-center gap-2">
+									<Label htmlFor="body">Response Body</Label>
+									{isTemplate && (
+										<span className="text-xs bg-[var(--glow-blue)]/20 text-[var(--glow-blue)] px-2 py-0.5 rounded-full">
+											Template
+										</span>
+									)}
+								</div>
 								<Textarea
 									id="body"
 									value={body}
 									onChange={(e) => setBody(e.target.value)}
+									onBlur={formatJsonBody}
 									className="mt-1.5 min-h-[160px] font-mono text-sm"
-									placeholder={
-										bodyType === "template"
-											? `{
-  "id": "{{request.params.id}}",
-  "name": "{{faker_person_fullName}}",
-  "email": "{{faker_internet_email}}"
-}`
-											: '{"message": "Hello, world!"}'
-									}
+									placeholder='{"message": "Hello, world!"}'
 								/>
-								{bodyType === "template" && (
-									<p className="mt-2 text-xs text-[var(--text-muted)]">
-										Use{" "}
-										<code className="bg-[var(--glow-blue)]/10 text-[var(--glow-blue)] px-1.5 py-0.5 rounded">
-											{"{{request.params.id}}"}
-										</code>
-										,{" "}
-										<code className="bg-[var(--glow-blue)]/10 text-[var(--glow-blue)] px-1.5 py-0.5 rounded">
-											{"{{request.query.name}}"}
-										</code>
-										,{" "}
-										<code className="bg-[var(--glow-pink)]/10 text-[var(--glow-pink)] px-1.5 py-0.5 rounded">
-											{"{{faker_person_fullName}}"}
-										</code>
-										,{" "}
-										<code className="bg-[var(--glow-pink)]/10 text-[var(--glow-pink)] px-1.5 py-0.5 rounded">
-											{"{{faker_internet_email}}"}
-										</code>
-									</p>
-								)}
+								<p className="mt-2 text-xs text-[var(--text-muted)]">
+									Supports{" "}
+									<a
+										href="/docs#response-templates"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-[var(--glow-blue)] hover:underline"
+									>
+										templates
+									</a>{" "}
+									and{" "}
+									<a
+										href="/docs#faker-helpers"
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-[var(--glow-pink)] hover:underline"
+									>
+										faker helpers
+									</a>{" "}
+									for dynamic responses
+								</p>
 							</div>
 						) : (
 							<p className="text-sm text-[var(--text-muted)] italic">

@@ -19,6 +19,7 @@ import {
 	updateMemberRole,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import type { Invite, Member, OrgRole } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -207,9 +208,9 @@ function InviteModal({
 			setError("");
 			toast.success("Invite sent");
 		},
-		onError: (err: Error) => {
-			setError(err.message);
-			toast.error("Failed to send invite");
+		onError: (err: unknown) => {
+			setError(getErrorMessage(err));
+			toast.error(getErrorMessage(err));
 		},
 	});
 

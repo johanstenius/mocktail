@@ -12,6 +12,7 @@ import {
 import * as projectService from "../services/project.service";
 import * as logService from "../services/request-log.service";
 import type { RequestLogModel } from "../services/request-log.service";
+import { notFound } from "../utils/errors";
 
 export const requestLogsRouter = new OpenAPIHono();
 
@@ -76,7 +77,7 @@ requestLogsRouter.openapi(listRoute, async (c) => {
 
 	const project = await projectService.findById(projectId);
 	if (!project) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	const { logs, total } = await logService.findByProjectId({
@@ -128,10 +129,7 @@ requestLogsRouter.openapi(getRoute, async (c) => {
 	const log = await logService.findById(id, projectId);
 
 	if (!log) {
-		return c.json(
-			{ error: "not_found", message: "Request log not found" },
-			404,
-		);
+		throw notFound("Request log");
 	}
 
 	return c.json(mapRequestLogToResponse(log));
@@ -170,7 +168,7 @@ requestLogsRouter.openapi(deleteAllRoute, async (c) => {
 
 	const project = await projectService.findById(projectId);
 	if (!project) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	const deleted = await logService.clearByProjectId(projectId);

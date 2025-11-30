@@ -10,6 +10,7 @@ import {
 } from "../schemas/project";
 import * as projectService from "../services/project.service";
 import type { ProjectModel } from "../services/project.service";
+import { conflict, notFound } from "../utils/errors";
 
 export const projectsRouter = new OpenAPIHono();
 
@@ -83,7 +84,7 @@ projectsRouter.openapi(getRoute, async (c) => {
 	const project = await projectService.findById(id);
 
 	if (!project || project.orgId !== auth.orgId) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	return c.json(mapProjectToResponse(project));
@@ -132,7 +133,7 @@ projectsRouter.openapi(createProjectRoute, async (c) => {
 		auth.orgId,
 	);
 	if (existing) {
-		return c.json({ error: "conflict", message: "Slug already exists" }, 409);
+		throw conflict("Slug already exists");
 	}
 
 	const project = await projectService.create({ ...body, orgId: auth.orgId });
@@ -181,12 +182,12 @@ projectsRouter.openapi(updateRoute, async (c) => {
 
 	const existing = await projectService.findById(id);
 	if (!existing || existing.orgId !== auth.orgId) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	const project = await projectService.update(id, body);
 	if (!project) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 	return c.json(mapProjectToResponse(project));
 });
@@ -220,7 +221,7 @@ projectsRouter.openapi(deleteRoute, async (c) => {
 
 	const existing = await projectService.findById(id);
 	if (!existing || existing.orgId !== auth.orgId) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	await projectService.remove(id);
@@ -261,13 +262,13 @@ projectsRouter.openapi(rotateKeyRoute, async (c) => {
 
 	const existing = await projectService.findById(id);
 	if (!existing || existing.orgId !== auth.orgId) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	const oldKey = existing.apiKey;
 	const project = await projectService.rotateApiKey(id);
 	if (!project) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	invalidateProjectKeyCache(oldKey);

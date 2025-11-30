@@ -81,6 +81,32 @@ export function deleteByProjectId(projectId: string) {
 	});
 }
 
+export async function deleteOlderThan(
+	projectId: string,
+	cutoffDate: Date,
+	chunkSize = 1000,
+): Promise<number> {
+	let totalDeleted = 0;
+
+	while (true) {
+		const toDelete = await prisma.requestLog.findMany({
+			where: { projectId, createdAt: { lt: cutoffDate } },
+			select: { id: true },
+			take: chunkSize,
+		});
+
+		if (toDelete.length === 0) break;
+
+		const { count } = await prisma.requestLog.deleteMany({
+			where: { id: { in: toDelete.map((r) => r.id) } },
+		});
+
+		totalDeleted += count;
+	}
+
+	return totalDeleted;
+}
+
 export function getEndpointStats(projectId: string) {
 	return prisma.requestLog.groupBy({
 		by: ["endpointId"],

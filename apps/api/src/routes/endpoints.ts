@@ -12,6 +12,7 @@ import {
 } from "../schemas/endpoint";
 import * as endpointService from "../services/endpoint.service";
 import type { EndpointModel } from "../services/endpoint.service";
+import { conflict, notFound } from "../utils/errors";
 
 export const endpointsRouter = new OpenAPIHono();
 
@@ -102,7 +103,7 @@ endpointsRouter.openapi(getRoute, async (c) => {
 	const endpoint = await endpointService.findById(endpointId, projectId);
 
 	if (!endpoint) {
-		return c.json({ error: "not_found", message: "Endpoint not found" }, 404);
+		throw notFound("Endpoint");
 	}
 
 	return c.json(mapEndpointToResponse(endpoint));
@@ -168,15 +169,9 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 
 	if ("error" in result) {
 		if (result.error === "project_not_found") {
-			return c.json({ error: "not_found", message: "Project not found" }, 404);
+			throw notFound("Project");
 		}
-		return c.json(
-			{
-				error: "conflict",
-				message: "Endpoint with this method and path already exists",
-			},
-			409,
-		);
+		throw conflict("Endpoint with this method and path already exists");
 	}
 
 	return c.json(mapEndpointToResponse(result.endpoint), 201);
@@ -224,7 +219,7 @@ endpointsRouter.openapi(updateRoute, async (c) => {
 	const endpoint = await endpointService.update(endpointId, projectId, body);
 
 	if (!endpoint) {
-		return c.json({ error: "not_found", message: "Endpoint not found" }, 404);
+		throw notFound("Endpoint");
 	}
 
 	return c.json(mapEndpointToResponse(endpoint));
@@ -258,7 +253,7 @@ endpointsRouter.openapi(deleteRoute, async (c) => {
 
 	const deleted = await endpointService.remove(endpointId, projectId);
 	if (!deleted) {
-		return c.json({ error: "not_found", message: "Endpoint not found" }, 404);
+		throw notFound("Endpoint");
 	}
 
 	return c.body(null, 204);

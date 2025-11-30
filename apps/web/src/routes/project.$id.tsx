@@ -1,6 +1,6 @@
 import { CopyButton } from "@/components/copy-button";
-import { EmptyState } from "@/components/empty-state";
 import { EndpointForm } from "@/components/endpoint-form";
+import { ImportDropzone } from "@/components/import-dropzone";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
 import { RequestLogTable } from "@/components/request-log-table";
@@ -77,14 +77,13 @@ function EndpointRow({
 			onKeyDown={(e) => e.key === "Enter" && onEdit()}
 		>
 			<div className="flex items-center gap-4">
+				<MethodBadge method={endpoint.method} className="w-16 justify-center" />
 				<div>
-					<div className="flex items-center gap-3 mb-1">
-						<h3 className="font-['Outfit'] font-semibold text-[var(--text-primary)]">
-							{endpoint.path}
-						</h3>
-					</div>
+					<h3 className="font-['JetBrains_Mono'] font-medium text-[var(--text-primary)]">
+						{endpoint.path}
+					</h3>
 					<div className="font-['JetBrains_Mono'] text-xs text-[var(--text-muted)]">
-						Status: {endpoint.status}
+						→ {endpoint.status}
 					</div>
 				</div>
 			</div>
@@ -677,19 +676,25 @@ function ProjectDetailPage() {
 									<EndpointRowSkeleton />
 								</div>
 							) : endpoints.length === 0 ? (
-								<EmptyState
-									icon={RouteIcon}
-									title="No endpoints yet"
-									description="Import from an OpenAPI spec or create endpoints manually."
-									action={{
-										label: "Import Spec",
-										onClick: () => setImportModalOpen(true),
-									}}
-									secondaryAction={{
-										label: "Create Endpoint",
-										onClick: handleNewEndpoint,
-									}}
-								/>
+								<div className="flex flex-col items-center py-12">
+									<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] mb-4">
+										<RouteIcon className="h-8 w-8 text-[var(--text-muted)]" />
+									</div>
+									<h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1 font-['Outfit']">
+										No endpoints yet
+									</h3>
+									<p className="text-sm text-[var(--text-muted)] mb-6">
+										Import from an OpenAPI spec or{" "}
+										<button
+											type="button"
+											onClick={handleNewEndpoint}
+											className="text-[var(--glow-violet)] hover:underline"
+										>
+											create one manually
+										</button>
+									</p>
+									<ImportDropzone projectId={projectId} variant="compact" />
+								</div>
 							) : (
 								<div className="space-y-2">
 									{endpoints.map((endpoint) => (

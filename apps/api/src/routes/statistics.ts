@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { errorSchema, projectIdParamSchema } from "../schemas/common";
 import { statisticsSchema } from "../schemas/statistics";
 import * as statisticsService from "../services/statistics.service";
+import { notFound } from "../utils/errors";
 
 export const statisticsRouter = new OpenAPIHono();
 
@@ -38,7 +39,7 @@ statisticsRouter.openapi(getStatisticsRoute, async (c) => {
 	const stats = await statisticsService.getProjectStatistics(projectId);
 
 	if (!stats) {
-		return c.json({ error: "not_found", message: "Project not found" }, 404);
+		throw notFound("Project");
 	}
 
 	return c.json({

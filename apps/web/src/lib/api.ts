@@ -24,6 +24,7 @@ import type {
 	UpdateEndpointInput,
 	Usage,
 } from "@/types";
+import { ApiError } from "./errors";
 
 const API_BASE = "http://localhost:4000";
 const TOKEN_KEY = "mocktail_tokens";
@@ -54,8 +55,12 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 		headers,
 	});
 	if (!res.ok) {
-		const error = await res.json().catch(() => ({ message: "Request failed" }));
-		throw new Error(error.message || `HTTP ${res.status}`);
+		const data = await res.json().catch(() => ({}));
+		throw new ApiError(
+			data.error ?? "Request failed",
+			data.code ?? "INTERNAL_ERROR",
+			data.fields,
+		);
 	}
 	return res.json();
 }

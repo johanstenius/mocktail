@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { logger } from "./lib/logger";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
+import { adminRouter } from "./routes/admin";
 import { authRouter } from "./routes/auth";
 import { billingRouter } from "./routes/billing";
 import { dashboardRouter } from "./routes/dashboard";
@@ -46,6 +47,9 @@ app.route("/api/dashboard", dashboardRouter);
 
 // Mock server routes
 app.route("/mock", mockRouter);
+
+// Admin routes
+app.route("/admin", adminRouter);
 
 // OpenAPI docs
 app.doc("/api/docs", {

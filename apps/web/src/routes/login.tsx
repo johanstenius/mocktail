@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -41,7 +42,7 @@ function LoginPage() {
 			await login(email, password);
 			navigate({ to: "/dashboard" });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Login failed");
+			setError(getErrorMessage(err));
 		} finally {
 			setIsLoading(false);
 		}

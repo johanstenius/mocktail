@@ -3,6 +3,7 @@ import { errorSchema, projectIdParamSchema } from "../schemas/common";
 import { importResultSchema, importSpecSchema } from "../schemas/import";
 import * as importService from "../services/import.service";
 import type { ImportedEndpoint } from "../services/import.service";
+import { badRequest, notFound } from "../utils/errors";
 
 export const importRouter = new OpenAPIHono();
 
@@ -84,12 +85,9 @@ importRouter.openapi(importRoute, async (c) => {
 
 	if (!result.success) {
 		if (result.error === "project_not_found") {
-			return c.json({ error: "not_found", message: "Project not found" }, 404);
+			throw notFound("Project");
 		}
-		return c.json(
-			{ error: "invalid_spec", message: result.message ?? "Invalid spec" },
-			400,
-		);
+		throw badRequest(result.message ?? "Invalid spec");
 	}
 
 	return c.json({

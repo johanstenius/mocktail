@@ -27,6 +27,13 @@
 	--status-success: #10b981;
 	--status-success-dim: rgba(16, 185, 129, 0.2);
 
+	/* HTTP Method Colors */
+	--color-method-get: #22c55e;
+	--color-method-post: #3b82f6;
+	--color-method-put: #f59e0b;
+	--color-method-patch: #eab308;
+	--color-method-delete: #ef4444;
+
 	/* Spacing */
 	--space-xs: 4px;
 	--space-sm: 8px;

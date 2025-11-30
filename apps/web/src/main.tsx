@@ -31,7 +31,22 @@ if (rootElement) {
 			<QueryClientProvider client={queryClient}>
 				<AuthProvider>
 					<RouterProvider router={router} />
-					<Toaster richColors position="bottom-right" />
+					<Toaster
+						position="bottom-right"
+						toastOptions={{
+							style: {
+								background: "var(--bg-surface)",
+								border: "1px solid var(--border-subtle)",
+								color: "var(--text-primary)",
+								fontFamily: "Inter, sans-serif",
+							},
+							classNames: {
+								success: "!border-emerald-500/30",
+								error: "!border-red-500/30",
+								info: "!border-[var(--glow-violet)]/30",
+							},
+						}}
+					/>
 				</AuthProvider>
 			</QueryClientProvider>
 		</StrictMode>,

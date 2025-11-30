@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { acceptInvite, getInviteByToken } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/errors";
 import type { InviteInfo } from "@/types";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CheckCircle, Loader2, Users } from "lucide-react";
@@ -51,9 +52,7 @@ function InvitePage() {
 				const info = await getInviteByToken(token as string);
 				setInviteInfo(info);
 			} catch (err) {
-				setInviteError(
-					err instanceof Error ? err.message : "Invalid or expired invite",
-				);
+				setInviteError(getErrorMessage(err));
 			} finally {
 				setIsLoadingInvite(false);
 			}
@@ -107,7 +106,7 @@ function InvitePage() {
 			);
 			setIsSuccess(true);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to accept invite");
+			setError(getErrorMessage(err));
 		} finally {
 			setIsSubmitting(false);
 		}

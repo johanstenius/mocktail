@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { forgotPassword } from "@/lib/api";
+import { getErrorMessage } from "@/lib/errors";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -26,7 +27,7 @@ function ForgotPasswordPage() {
 			await forgotPassword(email);
 			setIsSubmitted(true);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Something went wrong");
+			setError(getErrorMessage(err));
 		} finally {
 			setIsLoading(false);
 		}

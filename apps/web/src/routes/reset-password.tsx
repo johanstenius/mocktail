@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resetPassword } from "@/lib/api";
+import { getErrorMessage } from "@/lib/errors";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -51,7 +52,7 @@ function ResetPasswordPage() {
 			await resetPassword(token, password);
 			setIsSuccess(true);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Something went wrong");
+			setError(getErrorMessage(err));
 		} finally {
 			setIsLoading(false);
 		}

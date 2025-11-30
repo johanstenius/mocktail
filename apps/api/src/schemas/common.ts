@@ -2,7 +2,8 @@ import { z } from "@hono/zod-openapi";
 
 export const errorSchema = z.object({
 	error: z.string(),
-	message: z.string(),
+	code: z.string(),
+	fields: z.record(z.string()).optional(),
 });
 
 export const idParamSchema = z.object({

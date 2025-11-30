@@ -108,6 +108,7 @@ function DocsPage() {
 								<NavLink href="#endpoints">Endpoints</NavLink>
 								<NavLink href="#path-parameters">Path Parameters</NavLink>
 								<NavLink href="#response-templates">Response Templates</NavLink>
+								<NavLink href="#faker-helpers">Faker Helpers</NavLink>
 							</div>
 							<div>
 								<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 font-semibold">
@@ -429,7 +430,9 @@ fetch("https://api.mocktail.dev/mock/users", {
 						<Section id="response-templates" title="Response Templates">
 							<p>
 								Templates let you generate dynamic responses using request data.
-								Switch the body type to "Template" to enable template syntax.
+								Templates are auto-detected when your response body contains{" "}
+								<code className="text-[var(--glow-violet)]">{"{{"}</code>{" "}
+								syntax.
 							</p>
 
 							<SubSection title="Available Variables">
@@ -437,25 +440,25 @@ fetch("https://api.mocktail.dev/mock/users", {
 								<ul className="list-disc list-inside space-y-2 ml-4">
 									<li>
 										<code className="text-[var(--glow-violet)]">
-											{"{{ params.* }}"}
+											{"{{ request.params.* }}"}
 										</code>{" "}
 										- Path parameters
 									</li>
 									<li>
 										<code className="text-[var(--glow-violet)]">
-											{"{{ query.* }}"}
+											{"{{ request.query.* }}"}
 										</code>{" "}
 										- Query string parameters
 									</li>
 									<li>
 										<code className="text-[var(--glow-violet)]">
-											{"{{ headers.* }}"}
+											{"{{ request.headers.* }}"}
 										</code>{" "}
 										- Request headers
 									</li>
 									<li>
 										<code className="text-[var(--glow-violet)]">
-											{"{{ body.* }}"}
+											{"{{ request.body.* }}"}
 										</code>{" "}
 										- Request body (for POST/PUT/PATCH)
 									</li>
@@ -471,10 +474,9 @@ fetch("https://api.mocktail.dev/mock/users", {
 								</p>
 								<p>Template body:</p>
 								<CodeBlock>{`{
-  "id": "{{ params.id }}",
-  "requestedBy": "{{ headers.x-user-id }}",
-  "filter": "{{ query.filter }}",
-  "timestamp": "{{ now }}"
+  "id": "{{ request.params.id }}",
+  "requestedBy": "{{ request.headers.x-user-id }}",
+  "filter": "{{ request.query.filter }}"
 }`}</CodeBlock>
 								<p className="mt-2">
 									Request:{" "}
@@ -487,8 +489,7 @@ fetch("https://api.mocktail.dev/mock/users", {
 								<CodeBlock>{`{
   "id": "123",
   "requestedBy": "admin",
-  "filter": "active",
-  "timestamp": "2025-01-15T10:30:00.000Z"
+  "filter": "active"
 }`}</CodeBlock>
 							</SubSection>
 
@@ -500,10 +501,174 @@ fetch("https://api.mocktail.dev/mock/users", {
 								</p>
 								<p>Template body:</p>
 								<CodeBlock>{`{
-  "id": "usr_generated_123",
-  "name": "{{ body.name }}",
-  "email": "{{ body.email }}",
-  "createdAt": "{{ now }}"
+  "id": "{{ faker_string_uuid }}",
+  "name": "{{ request.body.name }}",
+  "email": "{{ request.body.email }}"
+}`}</CodeBlock>
+							</SubSection>
+						</Section>
+
+						{/* Faker Helpers */}
+						<Section id="faker-helpers" title="Faker Helpers">
+							<p>
+								Generate realistic fake data in your templates using built-in
+								faker helpers. Use them anywhere in your response body.
+							</p>
+
+							<SubSection title="Person">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_person_fullName }}"}
+										</code>{" "}
+										- Full name (e.g., "John Smith")
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_person_firstName }}"}
+										</code>{" "}
+										- First name
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_person_lastName }}"}
+										</code>{" "}
+										- Last name
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Internet">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_internet_email }}"}
+										</code>{" "}
+										- Email address
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_internet_username }}"}
+										</code>{" "}
+										- Username
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_internet_url }}"}
+										</code>{" "}
+										- URL
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="String">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_string_uuid }}"}
+										</code>{" "}
+										- UUID v4
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_string_alphanumeric 10 }}"}
+										</code>{" "}
+										- Random alphanumeric (length param optional)
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Number">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_number_int }}"}
+										</code>{" "}
+										- Random integer
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_number_int 100 }}"}
+										</code>{" "}
+										- Random integer with max
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_number_float }}"}
+										</code>{" "}
+										- Random float (2 decimals)
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Date">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_date_past }}"}
+										</code>{" "}
+										- ISO date in the past
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_date_future }}"}
+										</code>{" "}
+										- ISO date in the future
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_date_recent }}"}
+										</code>{" "}
+										- ISO date within last few days
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Text">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_lorem_sentence }}"}
+										</code>{" "}
+										- Random sentence
+									</li>
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_lorem_paragraph }}"}
+										</code>{" "}
+										- Random paragraph
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Media">
+								<ul className="list-disc list-inside space-y-2 ml-4">
+									<li>
+										<code className="text-[var(--glow-pink)]">
+											{"{{ faker_image_url }}"}
+										</code>{" "}
+										- Random image URL
+									</li>
+								</ul>
+							</SubSection>
+
+							<SubSection title="Example">
+								<CodeBlock>{`{
+  "id": "{{ faker_string_uuid }}",
+  "name": "{{ faker_person_fullName }}",
+  "email": "{{ faker_internet_email }}",
+  "avatar": "{{ faker_image_url }}",
+  "bio": "{{ faker_lorem_sentence }}",
+  "createdAt": "{{ faker_date_past }}"
+}`}</CodeBlock>
+								<p className="mt-2">Response:</p>
+								<CodeBlock>{`{
+  "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "name": "Sarah Johnson",
+  "email": "sarah.johnson@example.com",
+  "avatar": "https://picsum.photos/seed/abc/640/480",
+  "bio": "Lorem ipsum dolor sit amet consectetur.",
+  "createdAt": "2024-08-15T14:32:00.000Z"
 }`}</CodeBlock>
 							</SubSection>
 						</Section>

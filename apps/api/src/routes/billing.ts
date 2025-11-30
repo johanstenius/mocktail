@@ -11,6 +11,7 @@ import {
 } from "../schemas/billing";
 import * as limitsService from "../services/limits.service";
 import * as stripeService from "../services/stripe.service";
+import { badRequest, notFound } from "../utils/errors";
 
 export const billingRouter = new OpenAPIHono();
 
@@ -69,11 +70,11 @@ billingRouter.openapi(createCheckoutRoute, async (c) => {
 	]);
 
 	if (!org) {
-		return c.json({ error: "Organization not found" }, 404);
+		throw notFound("Organization");
 	}
 
 	if (!user) {
-		return c.json({ error: "User not found" }, 404);
+		throw notFound("User");
 	}
 
 	const result = await stripeService.createCheckoutSession({
@@ -103,7 +104,7 @@ billingRouter.post("/webhook", async (c) => {
 	const signature = c.req.header("stripe-signature");
 
 	if (!signature) {
-		return c.json({ error: "Missing signature" }, 400);
+		throw badRequest("Missing signature");
 	}
 
 	const payload = await c.req.text();
@@ -113,6 +114,6 @@ billingRouter.post("/webhook", async (c) => {
 		return c.json({ received: true });
 	} catch (err) {
 		logger.error({ err }, "webhook error");
-		return c.json({ error: "Webhook error" }, 400);
+		throw badRequest("Webhook error");
 	}
 });

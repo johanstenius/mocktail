@@ -179,3 +179,16 @@ model OrgInvite {
 
   @@unique([email, orgId])
 }
+
+model BatchJob {
+  id        String    @id @default(cuid())
+  type      String
+  status    String    // running, completed, failed
+  result    String?   // JSON summary
+  error     String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  @@index([type])
+  @@index([startedAt])
+}

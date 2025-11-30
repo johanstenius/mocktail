@@ -16,6 +16,7 @@ function RootLayout() {
 		"/forgot-password",
 		"/reset-password",
 		"/invite",
+		"/docs",
 	];
 	const showSidebar = !publicPaths.some(
 		(path) =>
