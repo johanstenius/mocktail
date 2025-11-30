@@ -30,12 +30,12 @@ function LandingPage() {
 						>
 							Pricing
 						</a>
-						<a
-							href="#docs"
+						<Link
+							to="/docs"
 							className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
 						>
 							Docs
-						</a>
+						</Link>
 					</nav>
 					<Link
 						to="/login"
@@ -64,12 +64,12 @@ function LandingPage() {
 					>
 						Start for Free
 					</Link>
-					<a
-						href="#docs"
+					<Link
+						to="/docs"
 						className="h-12 px-7 rounded-full bg-[rgba(255,255,255,0.05)] text-[var(--text-primary)] border border-[var(--border-subtle)] font-semibold backdrop-blur-md hover:bg-[rgba(255,255,255,0.1)] hover:border-[var(--border-highlight)] transition-all flex items-center font-['Inter']"
 					>
 						Read Documentation
-					</a>
+					</Link>
 				</div>
 
 				{/* Code Preview */}
@@ -188,11 +188,11 @@ function LandingPage() {
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
 							{[
-								"1 Project",
-								"5 Endpoints",
-								"1,000 Requests/mo",
-								"2 Team Members",
-								"1 Day Log Retention",
+								"3 Projects",
+								"10 Endpoints per Project",
+								"5,000 Requests/mo",
+								"3 Team Members",
+								"3 Day Log Retention",
 							].map((feature) => (
 								<li
 									key={feature}

@@ -16,6 +16,7 @@ import { Route as ProjectsRouteImport } from "./routes/projects"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as InviteRouteImport } from "./routes/invite"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
+import { Route as DocsRouteImport } from "./routes/docs"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as BillingRouteImport } from "./routes/billing"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
@@ -57,6 +58,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: "/forgot-password",
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsRoute = DocsRouteImport.update({
+  id: "/docs",
+  path: "/docs",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | "/analytics"
     | "/billing"
     | "/dashboard"
+    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | "/analytics"
     | "/billing"
     | "/dashboard"
+    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | "/analytics"
     | "/billing"
     | "/dashboard"
+    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
+  DocsRoute: typeof DocsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
@@ -237,6 +250,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/docs": {
+      id: "/docs"
+      path: "/docs"
+      fullPath: "/docs"
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
@@ -280,6 +300,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
+  DocsRoute: DocsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
