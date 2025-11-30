@@ -1,9 +1,11 @@
+import { CopyButton } from "@/components/copy-button";
 import { EmptyState } from "@/components/empty-state";
 import { EndpointForm } from "@/components/endpoint-form";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
 import { RequestLogTable } from "@/components/request-log-table";
 import { Button } from "@/components/ui/button";
+import { getCurlCommand, getMockUrl } from "@/lib/url";
 import {
 	deleteEndpoint,
 	getEndpoints,
@@ -35,16 +37,20 @@ import { Switch } from "@/components/ui/switch";
 function EndpointRow({
 	endpoint,
 	projectId,
+	projectSlug,
 	stat,
 	onEdit,
 }: {
 	endpoint: Endpoint;
 	projectId: string;
+	projectSlug: string;
 	stat?: { requestCount: number };
 	onEdit: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const queryClient = useQueryClient();
+	const mockUrl = getMockUrl(projectSlug, endpoint.path);
+	const curlCommand = getCurlCommand(endpoint.method, mockUrl);
 
 	const deleteMutation = useMutation({
 		mutationFn: () => deleteEndpoint(projectId, endpoint.id),
@@ -96,6 +102,22 @@ function EndpointRow({
 					onClick={(e) => e.stopPropagation()}
 					onKeyDown={(e) => e.stopPropagation()}
 				>
+					<CopyButton
+						value={mockUrl}
+						label="Copy URL"
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+					/>
+					<CopyButton
+						value={curlCommand}
+						label="Copy cURL"
+						variant="ghost"
+						size="sm"
+						className="text-[var(--text-muted)] hover:text-[var(--text-primary)] font-['JetBrains_Mono'] text-xs"
+					>
+						cURL
+					</CopyButton>
 					{showConfirm ? (
 						<>
 							<Button
