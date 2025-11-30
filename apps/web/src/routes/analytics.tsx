@@ -5,14 +5,12 @@ import {
 	StatCardSkeleton,
 	TableRowSkeleton,
 } from "@/components/skeleton";
-import { Select } from "@/components/ui/select";
 import { getProjects, getRequestLogs } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { HttpMethod, RequestLog } from "@/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, TrendingUp } from "lucide-react";
-import { useState } from "react";
 
 export const Route = createFileRoute("/analytics")({
 	component: AnalyticsPage,
@@ -107,7 +105,6 @@ function ProjectStatBar({
 function AnalyticsPage() {
 	const { isAuthenticated, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
-	const [timeRange, setTimeRange] = useState("24h");
 
 	const { data: projects = [], isLoading: projectsLoading } = useQuery({
 		queryKey: ["projects"],
@@ -165,6 +162,12 @@ function AnalyticsPage() {
 					allLogs.reduce((sum, l) => sum + l.duration, 0) / allLogs.length,
 				)
 			: null;
+
+	const oneHourAgo = Date.now() - 60 * 60 * 1000;
+	const requestsLastHour = allLogs.filter(
+		(l) => new Date(l.createdAt).getTime() > oneHourAgo,
+	).length;
+
 	const maxProjectRequests = Math.max(
 		...projectStats.map((p) => p.requestCount),
 		1,
@@ -209,16 +212,6 @@ function AnalyticsPage() {
 					</svg>
 					<h1 className="text-2xl font-bold font-['Outfit']">Analytics</h1>
 				</div>
-				<Select
-					value={timeRange}
-					onChange={(e) => setTimeRange(e.target.value)}
-					className="w-40"
-				>
-					<option value="1h">Last Hour</option>
-					<option value="24h">Last 24 Hours</option>
-					<option value="7d">Last 7 Days</option>
-					<option value="30d">Last 30 Days</option>
-				</Select>
 			</header>
 
 			{/* Content */}
@@ -301,8 +294,9 @@ function AnalyticsPage() {
 									color="warning"
 								/>
 								<StatCard
-									label="Active Projects"
-									value={projects.length}
+									label="Requests / Hour"
+									value={requestsLastHour}
+									subtext="last 60 minutes"
 									color="violet"
 								/>
 								<StatCard
