@@ -1,8 +1,8 @@
 import type { Tier } from "@prisma/client";
 import type { Context, Next } from "hono";
-import { LRUCache } from "../lib/lru-cache";
 import * as projectRepo from "../repositories/project.repository";
 import { unauthorized } from "../utils/errors";
+import { LRUCache } from "../utils/lru-cache";
 
 export type MockAuthContext = {
 	projectId: string;

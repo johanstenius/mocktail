@@ -1,8 +1,8 @@
 import type { ErrorHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
-import { logger } from "../lib/logger";
 import { ErrorCode } from "../utils/errors";
+import { logger } from "../utils/logger";
 
 type PrismaError = Error & { code?: string };
 

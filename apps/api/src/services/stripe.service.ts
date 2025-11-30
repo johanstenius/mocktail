@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { config } from "../config";
-import { logger } from "../lib/logger";
 import * as orgRepo from "../repositories/organization.repository";
+import { logger } from "../utils/logger";
 import { sendPaymentFailedEmail } from "./email.service";
 
 const stripe = config.stripeSecretKey

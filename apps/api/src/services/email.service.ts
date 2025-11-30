@@ -1,12 +1,12 @@
 import { Resend } from "resend";
 import { config } from "../config";
-import { logger } from "../lib/logger";
 import { downgradedEmailTemplate } from "../templates/emails/downgraded";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { paymentFailedEmailTemplate } from "../templates/emails/payment-failed";
 import { paymentReminderEmailTemplate } from "../templates/emails/payment-reminder";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
+import { logger } from "../utils/logger";
 
 const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 

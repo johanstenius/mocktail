@@ -15,9 +15,9 @@ import { projectsRouter } from "./controllers/projects";
 import { requestLogsRouter } from "./controllers/request-logs";
 import { statisticsRouter } from "./controllers/statistics";
 import { variantsRouter } from "./controllers/variants";
-import { logger } from "./lib/logger";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
+import { logger } from "./utils/logger";
 
 const app = new OpenAPIHono();
 

@@ -1,7 +1,6 @@
-import { findBestMatch } from "../lib/path-matcher";
 import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
-import * as limitsService from "./limits.service";
+import { findBestMatch } from "../utils/path-matcher";
 import { type MatchContext, findMatchingVariant } from "./rule-matcher.service";
 import { type RequestContext, processTemplate } from "./template-engine";
 import type { MatchRule, RuleLogic, VariantModel } from "./variant.service";
@@ -117,9 +116,6 @@ export async function handleMockRequest(
 	if (!project) {
 		return { success: false, error: "project_not_found" };
 	}
-
-	// Track request for billing/quota
-	await limitsService.trackRequest(project.orgId);
 
 	const match = findBestMatch(project.endpoints as Endpoint[], request.path);
 

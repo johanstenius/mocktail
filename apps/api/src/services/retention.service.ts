@@ -1,8 +1,10 @@
 import { getLimits } from "../config/limits";
-import { logger } from "../lib/logger";
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import { prisma } from "../repositories/db/prisma";
+import * as emailVerificationRepo from "../repositories/email-verification.repository";
+import * as passwordResetRepo from "../repositories/password-reset.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
+import { logger } from "../utils/logger";
 
 export type OrgCleanupResult = {
 	orgId: string;
@@ -61,14 +63,35 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 			}
 		}
 
+		const [expiredVerificationTokens, expiredPasswordResets] =
+			await Promise.all([
+				emailVerificationRepo.deleteExpired(),
+				passwordResetRepo.deleteExpired(),
+			]);
+
 		logger.info(
-			{ jobId: job.id, totalDeleted, orgsAffected: results.length },
+			{
+				jobId: job.id,
+				totalDeleted,
+				orgsAffected: results.length,
+				expiredTokens: {
+					emailVerification: expiredVerificationTokens.count,
+					passwordReset: expiredPasswordResets.count,
+				},
+			},
 			"log cleanup completed",
 		);
 
 		await batchJobRepo.markCompleted(
 			job.id,
-			JSON.stringify({ results, totalDeleted }),
+			JSON.stringify({
+				results,
+				totalDeleted,
+				expiredTokens: {
+					emailVerification: expiredVerificationTokens.count,
+					passwordReset: expiredPasswordResets.count,
+				},
+			}),
 		);
 
 		return { jobId: job.id, results, totalDeleted };

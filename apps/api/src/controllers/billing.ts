@@ -1,5 +1,4 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { logger } from "../lib/logger";
 import {
 	authMiddleware,
 	getAuth,
@@ -18,6 +17,7 @@ import {
 import * as limitsService from "../services/limits.service";
 import * as stripeService from "../services/stripe.service";
 import { badRequest, notFound } from "../utils/errors";
+import { logger } from "../utils/logger";
 
 export const billingRouter = new OpenAPIHono();
 

@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from "hono";
-import { logger } from "../lib/logger";
+import { logger } from "../utils/logger";
 
 export function loggerMiddleware(): MiddlewareHandler {
 	return async (c, next) => {

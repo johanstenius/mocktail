@@ -1,6 +1,6 @@
-import { logger } from "../lib/logger";
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import * as orgRepo from "../repositories/organization.repository";
+import { logger } from "../utils/logger";
 import { sendDowngradedEmail, sendPaymentReminderEmail } from "./email.service";
 
 const GRACE_DAYS = 7;

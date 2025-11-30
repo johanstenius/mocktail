@@ -1,5 +1,4 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { logger } from "../lib/logger";
 import {
 	authMiddleware,
 	getAuth,
@@ -17,6 +16,7 @@ import {
 import * as emailService from "../services/email.service";
 import * as limitsService from "../services/limits.service";
 import * as memberService from "../services/member.service";
+import { logger } from "../utils/logger";
 
 export const invitesRouter = new OpenAPIHono();
 
