@@ -20,6 +20,8 @@ export type MatchRule = {
 	value?: string;
 };
 
+export type ValidationMode = "none" | "warn" | "strict";
+
 export type VariantModel = {
 	id: string;
 	endpointId: string;
@@ -34,6 +36,8 @@ export type VariantModel = {
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
+	requestBodySchema: string | null;
+	validationMode: ValidationMode;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -61,6 +65,7 @@ function dbToModel(
 		...db,
 		rules: JSON.parse(db.rules) as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
+		validationMode: (db.validationMode ?? "none") as ValidationMode,
 	};
 }
 
@@ -71,6 +76,7 @@ function dbListToModels(
 		...db,
 		rules: JSON.parse(db.rules) as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
+		validationMode: (db.validationMode ?? "none") as ValidationMode,
 	}));
 }
 

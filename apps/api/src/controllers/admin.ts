@@ -15,7 +15,7 @@ adminRouter.use("*", adminAuthMiddleware());
 
 adminRouter.openapi(runLogCleanupRoute, async (c) => {
 	const result = await retentionService.cleanupExpiredLogs();
-	return c.json(result);
+	return c.json(result, 200);
 });
 
 adminRouter.openapi(listJobsRoute, async (c) => {
@@ -24,16 +24,19 @@ adminRouter.openapi(listJobsRoute, async (c) => {
 		? await batchJobRepo.findByType(type, Number(limit))
 		: await batchJobRepo.findByType("log_cleanup", Number(limit));
 
-	return c.json({
-		jobs: jobs.map((j) => ({
-			...j,
-			startedAt: j.startedAt.toISOString(),
-			endedAt: j.endedAt?.toISOString() ?? null,
-		})),
-	});
+	return c.json(
+		{
+			jobs: jobs.map((j) => ({
+				...j,
+				startedAt: j.startedAt.toISOString(),
+				endedAt: j.endedAt?.toISOString() ?? null,
+			})),
+		},
+		200,
+	);
 });
 
 adminRouter.openapi(runGracePeriodRoute, async (c) => {
 	const result = await gracePeriodService.processGracePeriods();
-	return c.json(result);
+	return c.json(result, 200);
 });

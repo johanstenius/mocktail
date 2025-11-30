@@ -19,7 +19,7 @@ membersRouter.use("*", authMiddleware(), requireVerifiedEmail());
 membersRouter.openapi(listMembersRoute, async (c) => {
 	const { orgId } = getAuth(c);
 	const members = await memberService.listMembers(orgId);
-	return c.json({ members });
+	return c.json({ members }, 200);
 });
 
 membersRouter.openapi(updateMemberRoute, async (c) => {
@@ -35,7 +35,7 @@ membersRouter.openapi(updateMemberRoute, async (c) => {
 		orgId,
 	);
 
-	return c.json({ member });
+	return c.json({ member }, 200);
 });
 
 membersRouter.openapi(deleteMemberRoute, async (c) => {

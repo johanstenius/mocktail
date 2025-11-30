@@ -26,6 +26,7 @@ export type FindLogsOptions = {
 export type CreateLogInput = {
 	projectId: string;
 	endpointId: string | null;
+	variantId: string | null;
 	method: string;
 	path: string;
 	status: number;
@@ -56,6 +57,7 @@ export function create(input: CreateLogInput): Promise<RequestLogModel> {
 	return logRepo.create({
 		projectId: input.projectId,
 		endpointId: input.endpointId,
+		variantId: input.variantId,
 		method: input.method,
 		path: input.path,
 		status: input.status,

@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
@@ -258,6 +259,7 @@ export async function createSampleProject(
 	const project = await projectRepo.create({
 		name: "Petstore Demo",
 		slug,
+		apiKey: `mk_${nanoid(24)}`,
 		orgId,
 	});
 

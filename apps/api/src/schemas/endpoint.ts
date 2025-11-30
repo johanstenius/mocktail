@@ -88,12 +88,6 @@ export const getEndpointRoute = createRoute({
 				"application/json": { schema: endpointSchema },
 			},
 		},
-		404: {
-			description: "Endpoint not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
 	},
 });
 
@@ -114,18 +108,6 @@ export const createEndpointRoute = createRoute({
 			description: "Endpoint created",
 			content: {
 				"application/json": { schema: endpointSchema },
-			},
-		},
-		404: {
-			description: "Project not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
-		409: {
-			description: "Endpoint already exists",
-			content: {
-				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -150,12 +132,6 @@ export const updateEndpointRoute = createRoute({
 				"application/json": { schema: endpointSchema },
 			},
 		},
-		404: {
-			description: "Endpoint not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
 	},
 });
 
@@ -169,12 +145,6 @@ export const deleteEndpointRoute = createRoute({
 	responses: {
 		204: {
 			description: "Endpoint deleted",
-		},
-		404: {
-			description: "Endpoint not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
 		},
 	},
 });

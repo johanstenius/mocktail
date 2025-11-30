@@ -19,6 +19,38 @@ export type EndpointModel = {
 	updatedAt: Date;
 };
 
+type PrismaEndpoint = {
+	id: string;
+	projectId: string;
+	method: string;
+	path: string;
+	status: number | null;
+	headers: string | null;
+	body: string | null;
+	bodyType: string | null;
+	delay: number | null;
+	failRate: number | null;
+	createdAt: Date;
+	updatedAt: Date;
+};
+
+function toEndpointModel(e: PrismaEndpoint): EndpointModel {
+	return {
+		id: e.id,
+		projectId: e.projectId,
+		method: e.method,
+		path: e.path,
+		status: e.status ?? 200,
+		headers: e.headers ?? "{}",
+		body: e.body ?? "",
+		bodyType: e.bodyType ?? "static",
+		delay: e.delay ?? 0,
+		failRate: e.failRate ?? 0,
+		createdAt: e.createdAt,
+		updatedAt: e.updatedAt,
+	};
+}
+
 export type CreateEndpointInput = {
 	method: string;
 	path: string;
@@ -32,15 +64,19 @@ export type CreateEndpointInput = {
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;
 
-export function findByProjectId(projectId: string): Promise<EndpointModel[]> {
-	return endpointRepo.findByProjectId(projectId);
+export async function findByProjectId(
+	projectId: string,
+): Promise<EndpointModel[]> {
+	const endpoints = await endpointRepo.findByProjectId(projectId);
+	return endpoints.map(toEndpointModel);
 }
 
-export function findById(
+export async function findById(
 	endpointId: string,
 	projectId: string,
 ): Promise<EndpointModel | null> {
-	return endpointRepo.findByIdAndProject(endpointId, projectId);
+	const endpoint = await endpointRepo.findByIdAndProject(endpointId, projectId);
+	return endpoint ? toEndpointModel(endpoint) : null;
 }
 
 export async function create(
@@ -102,7 +138,7 @@ export async function create(
 		ctx,
 	});
 
-	return { endpoint };
+	return { endpoint: toEndpointModel(endpoint) };
 }
 
 export async function update(
@@ -165,7 +201,7 @@ export async function update(
 		});
 	}
 
-	return endpoint;
+	return endpoint ? toEndpointModel(endpoint) : null;
 }
 
 export async function remove(

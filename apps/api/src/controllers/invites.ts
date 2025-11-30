@@ -29,7 +29,7 @@ invitesRouter.use("/:inviteId", authMiddleware(), requireVerifiedEmail());
 invitesRouter.openapi(getInviteByTokenRoute, async (c) => {
 	const { token } = c.req.valid("query");
 	const invite = await memberService.getInviteByToken(token);
-	return c.json({ invite });
+	return c.json({ invite }, 200);
 });
 
 invitesRouter.openapi(acceptInviteRoute, async (c) => {
@@ -41,7 +41,7 @@ invitesRouter.openapi(acceptInviteRoute, async (c) => {
 invitesRouter.openapi(listInvitesRoute, async (c) => {
 	const { orgId } = getAuth(c);
 	const invites = await memberService.listInvites(orgId);
-	return c.json({ invites });
+	return c.json({ invites }, 200);
 });
 
 invitesRouter.openapi(createInviteRoute, async (c) => {

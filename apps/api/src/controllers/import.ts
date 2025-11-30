@@ -51,9 +51,12 @@ importRouter.openapi(importRoute, async (c) => {
 		throw badRequest(result.message ?? "Invalid spec");
 	}
 
-	return c.json({
-		created: result.created,
-		skipped: result.skipped,
-		endpoints: result.endpoints.map(mapEndpointToResponse),
-	});
+	return c.json(
+		{
+			created: result.created,
+			skipped: result.skipped,
+			endpoints: result.endpoints.map(mapEndpointToResponse),
+		},
+		200,
+	);
 });

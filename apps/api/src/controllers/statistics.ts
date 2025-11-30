@@ -18,14 +18,18 @@ statisticsRouter.openapi(getStatisticsRoute, async (c) => {
 		throw notFound("Project");
 	}
 
-	return c.json({
-		endpoints: stats.endpoints.map((e) => ({
-			...e,
-			lastRequestAt: e.lastRequestAt?.toISOString() ?? null,
-		})),
-		unmatched: stats.unmatched.map((u) => ({
-			...u,
-			lastRequestAt: u.lastRequestAt?.toISOString() ?? null,
-		})),
-	});
+	return c.json(
+		{
+			endpoints: stats.endpoints.map((e) => ({
+				...e,
+				lastRequestAt: e.lastRequestAt?.toISOString() ?? null,
+			})),
+			unmatched: stats.unmatched.map((u) => ({
+				...u,
+				lastRequestAt: u.lastRequestAt?.toISOString() ?? null,
+			})),
+			avgLatency: stats.avgLatency,
+		},
+		200,
+	);
 });

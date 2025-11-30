@@ -57,10 +57,13 @@ auditRouter.openapi(listAuditLogsRoute, async (c) => {
 		to: query.to ? new Date(query.to) : undefined,
 	});
 
-	return c.json({
-		logs: logs.map(mapAuditLogToResponse),
-		total,
-	});
+	return c.json(
+		{
+			logs: logs.map(mapAuditLogToResponse),
+			total,
+		},
+		200,
+	);
 });
 
 auditRouter.openapi(exportAuditLogsRoute, async (c) => {
@@ -116,5 +119,5 @@ auditRouter.openapi(exportAuditLogsRoute, async (c) => {
 		});
 	}
 
-	return c.json({ logs: mapped, total });
+	return c.json({ logs: mapped, total }, 200);
 });

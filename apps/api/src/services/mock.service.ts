@@ -66,6 +66,8 @@ function dbVariantToModel(variant: Variant): VariantModel {
 		...variant,
 		rules: JSON.parse(variant.rules) as MatchRule[],
 		ruleLogic: variant.ruleLogic as RuleLogic,
+		requestBodySchema: null,
+		validationMode: "none",
 	};
 }
 
@@ -95,6 +97,8 @@ function getEffectiveVariant(
 				failRate: endpoint.failRate ?? 0,
 				rules: [],
 				ruleLogic: "and",
+				requestBodySchema: null,
+				validationMode: "none",
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			},

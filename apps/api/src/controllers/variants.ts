@@ -41,6 +41,10 @@ function mapVariantToResponse(variant: VariantModel) {
 		failRate: variant.failRate,
 		rules: variant.rules,
 		ruleLogic: variant.ruleLogic,
+		requestBodySchema: variant.requestBodySchema
+			? parseJson(variant.requestBodySchema)
+			: null,
+		validationMode: variant.validationMode ?? ("none" as const),
 		createdAt: variant.createdAt.toISOString(),
 		updatedAt: variant.updatedAt.toISOString(),
 	};
@@ -49,9 +53,10 @@ function mapVariantToResponse(variant: VariantModel) {
 variantsRouter.openapi(listVariantsRoute, async (c) => {
 	const { endpointId } = c.req.valid("param");
 	const variants = await variantService.findByEndpointId(endpointId);
-	return c.json({ variants: variants.map(mapVariantToResponse) });
+	return c.json({ variants: variants.map(mapVariantToResponse) }, 200);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 variantsRouter.openapi(getVariantRoute, async (c) => {
 	const { endpointId, variantId } = c.req.valid("param");
 	const variant = await variantService.findById(variantId, endpointId);
@@ -60,9 +65,10 @@ variantsRouter.openapi(getVariantRoute, async (c) => {
 		throw notFound("Variant");
 	}
 
-	return c.json(mapVariantToResponse(variant));
+	return c.json(mapVariantToResponse(variant), 200);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 variantsRouter.openapi(createVariantRoute, async (c) => {
 	const { endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");
@@ -90,6 +96,7 @@ variantsRouter.openapi(createVariantRoute, async (c) => {
 	return c.json(mapVariantToResponse(result.variant), 201);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 variantsRouter.openapi(updateVariantRoute, async (c) => {
 	const { endpointId, variantId } = c.req.valid("param");
 	const body = c.req.valid("json");
@@ -100,7 +107,7 @@ variantsRouter.openapi(updateVariantRoute, async (c) => {
 		throw notFound("Variant");
 	}
 
-	return c.json(mapVariantToResponse(variant));
+	return c.json(mapVariantToResponse(variant), 200);
 });
 
 variantsRouter.openapi(deleteVariantRoute, async (c) => {
@@ -124,5 +131,5 @@ variantsRouter.openapi(reorderVariantsRoute, async (c) => {
 		throw badRequest("Invalid variant IDs");
 	}
 
-	return c.json({ variants: variants.map(mapVariantToResponse) });
+	return c.json({ variants: variants.map(mapVariantToResponse) }, 200);
 });

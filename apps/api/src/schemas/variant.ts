@@ -118,12 +118,6 @@ export const getVariantRoute = createRoute({
 				"application/json": { schema: variantSchema },
 			},
 		},
-		404: {
-			description: "Variant not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
 	},
 });
 
@@ -144,12 +138,6 @@ export const createVariantRoute = createRoute({
 			description: "Variant created",
 			content: {
 				"application/json": { schema: variantSchema },
-			},
-		},
-		404: {
-			description: "Endpoint not found",
-			content: {
-				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -174,12 +162,6 @@ export const updateVariantRoute = createRoute({
 				"application/json": { schema: variantSchema },
 			},
 		},
-		404: {
-			description: "Variant not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
 	},
 });
 
@@ -193,18 +175,6 @@ export const deleteVariantRoute = createRoute({
 	responses: {
 		204: {
 			description: "Variant deleted",
-		},
-		400: {
-			description: "Cannot delete last variant",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
-		},
-		404: {
-			description: "Variant not found",
-			content: {
-				"application/json": { schema: errorSchema },
-			},
 		},
 	},
 });
@@ -226,12 +196,6 @@ export const reorderVariantsRoute = createRoute({
 			description: "Variants reordered",
 			content: {
 				"application/json": { schema: variantListSchema },
-			},
-		},
-		400: {
-			description: "Invalid variant IDs",
-			content: {
-				"application/json": { schema: errorSchema },
 			},
 		},
 	},

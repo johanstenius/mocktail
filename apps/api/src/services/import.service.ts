@@ -19,6 +19,38 @@ export type ImportedEndpoint = {
 	updatedAt: Date;
 };
 
+type PrismaEndpoint = {
+	id: string;
+	projectId: string;
+	method: string;
+	path: string;
+	status: number | null;
+	headers: string | null;
+	body: string | null;
+	bodyType: string | null;
+	delay: number | null;
+	failRate: number | null;
+	createdAt: Date;
+	updatedAt: Date;
+};
+
+function toImportedEndpoint(e: PrismaEndpoint): ImportedEndpoint {
+	return {
+		id: e.id,
+		projectId: e.projectId,
+		method: e.method,
+		path: e.path,
+		status: e.status ?? 200,
+		headers: e.headers ?? "{}",
+		body: e.body ?? "",
+		bodyType: e.bodyType ?? "static",
+		delay: e.delay ?? 0,
+		failRate: e.failRate ?? 0,
+		createdAt: e.createdAt,
+		updatedAt: e.updatedAt,
+	};
+}
+
 export type ImportResult =
 	| {
 			success: true;
@@ -74,7 +106,7 @@ export async function importSpec(
 					status: ep.status,
 					body: JSON.stringify(ep.body),
 				});
-				createdEndpoints.push(updated);
+				createdEndpoints.push(toImportedEndpoint(updated));
 			} else {
 				skipped++;
 			}
@@ -108,7 +140,7 @@ export async function importSpec(
 			ruleLogic: "and",
 		});
 
-		createdEndpoints.push(created);
+		createdEndpoints.push(toImportedEndpoint(created));
 	}
 
 	return {

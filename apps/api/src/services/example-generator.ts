@@ -2,159 +2,249 @@ import type { OpenAPIV3 } from "openapi-types";
 
 type SchemaObject = OpenAPIV3.SchemaObject;
 
-let idCounter = 1;
+const STRING_FORMAT_VALUES: Record<string, () => string> = {
+	date: () => new Date().toISOString().split("T")[0],
+	"date-time": () => new Date().toISOString(),
+	email: () => "user@example.com",
+	uri: () => "https://example.com",
+	url: () => "https://example.com",
+	uuid: () => "123e4567-e89b-12d3-a456-426614174000",
+};
 
-function resetIdCounter(): void {
-	idCounter = 1;
+const STRING_NAME_PATTERNS: Array<{
+	match: (name: string) => boolean;
+	value: () => string;
+}> = [
+	{ match: (n) => n.includes("email"), value: () => "user@example.com" },
+	{ match: (n) => n.includes("name"), value: () => "John Doe" },
+	{
+		match: (n) => n.includes("url") || n.includes("link"),
+		value: () => "https://example.com",
+	},
+	{ match: (n) => n.includes("phone"), value: () => "+1-555-555-5555" },
+	{
+		match: (n) => n.includes("date"),
+		value: () => new Date().toISOString().split("T")[0],
+	},
+	{ match: (n) => n.includes("time"), value: () => new Date().toISOString() },
+	{
+		match: (n) => n.includes("id") || n.includes("uuid"),
+		value: () => "123e4567-e89b-12d3-a456-426614174000",
+	},
+	{
+		match: (n) => n.includes("description"),
+		value: () => "A sample description",
+	},
+	{ match: (n) => n.includes("title"), value: () => "Sample Title" },
+];
+
+const NUMBER_NAME_PATTERNS: Array<{
+	match: (name: string) => boolean;
+	value: (ctx: GeneratorContext) => number;
+}> = [
+	{ match: (n) => n.includes("id"), value: (ctx) => ctx.idCounter++ },
+	{
+		match: (n) => n.includes("count") || n.includes("total"),
+		value: () => 10,
+	},
+	{
+		match: (n) => n.includes("price") || n.includes("amount"),
+		value: () => 99.99,
+	},
+	{ match: (n) => n.includes("age"), value: () => 25 },
+	{ match: (n) => n.includes("year"), value: () => new Date().getFullYear() },
+];
+
+type GeneratorContext = { idCounter: number };
+
+function createContext(): GeneratorContext {
+	return { idCounter: 1 };
 }
 
 function generateString(schema: SchemaObject, propertyName?: string): string {
-	if (schema.example !== undefined) return String(schema.example);
-	if (schema.enum && schema.enum.length > 0) return String(schema.enum[0]);
-	if (schema.default !== undefined) return String(schema.default);
+	if (schema.example !== undefined) {
+		return String(schema.example);
+	}
+	if (schema.enum && schema.enum.length > 0) {
+		return String(schema.enum[0]);
+	}
+	if (schema.default !== undefined) {
+		return String(schema.default);
+	}
 
 	const name = propertyName?.toLowerCase() ?? "";
-	if (name.includes("email")) return "user@example.com";
-	if (name.includes("name")) return "John Doe";
-	if (name.includes("url") || name.includes("link"))
-		return "https://example.com";
-	if (name.includes("phone")) return "+1-555-555-5555";
-	if (name.includes("date")) return new Date().toISOString().split("T")[0];
-	if (name.includes("time")) return new Date().toISOString();
-	if (name.includes("id") || name.includes("uuid"))
-		return "123e4567-e89b-12d3-a456-426614174000";
-	if (name.includes("description")) return "A sample description";
-	if (name.includes("title")) return "Sample Title";
+	for (const pattern of STRING_NAME_PATTERNS) {
+		if (pattern.match(name)) {
+			return pattern.value();
+		}
+	}
 
-	if (schema.format === "date") return new Date().toISOString().split("T")[0];
-	if (schema.format === "date-time") return new Date().toISOString();
-	if (schema.format === "email") return "user@example.com";
-	if (schema.format === "uri" || schema.format === "url")
-		return "https://example.com";
-	if (schema.format === "uuid") return "123e4567-e89b-12d3-a456-426614174000";
+	if (schema.format) {
+		const formatValue = STRING_FORMAT_VALUES[schema.format];
+		if (formatValue) {
+			return formatValue();
+		}
+	}
 
 	return "string";
 }
 
-function generateNumber(schema: SchemaObject, propertyName?: string): number {
-	if (schema.example !== undefined) return Number(schema.example);
-	if (schema.enum && schema.enum.length > 0) return Number(schema.enum[0]);
-	if (schema.default !== undefined) return Number(schema.default);
+function generateNumber(
+	schema: SchemaObject,
+	propertyName: string | undefined,
+	ctx: GeneratorContext,
+): number {
+	if (schema.example !== undefined) {
+		return Number(schema.example);
+	}
+	if (schema.enum && schema.enum.length > 0) {
+		return Number(schema.enum[0]);
+	}
+	if (schema.default !== undefined) {
+		return Number(schema.default);
+	}
 
 	const name = propertyName?.toLowerCase() ?? "";
-	if (name.includes("id")) return idCounter++;
-	if (name.includes("count") || name.includes("total")) return 10;
-	if (name.includes("price") || name.includes("amount")) return 99.99;
-	if (name.includes("age")) return 25;
-	if (name.includes("year")) return new Date().getFullYear();
+	for (const pattern of NUMBER_NAME_PATTERNS) {
+		if (pattern.match(name)) {
+			return pattern.value(ctx);
+		}
+	}
 
-	if (schema.minimum !== undefined) return schema.minimum;
-	if (schema.maximum !== undefined) return schema.maximum;
+	if (schema.minimum !== undefined) {
+		return schema.minimum;
+	}
+	if (schema.maximum !== undefined) {
+		return schema.maximum;
+	}
 
 	return schema.type === "integer" ? 1 : 1.0;
 }
 
 function generateBoolean(schema: SchemaObject): boolean {
-	if (schema.example !== undefined) return Boolean(schema.example);
-	if (schema.default !== undefined) return Boolean(schema.default);
+	if (schema.example !== undefined) {
+		return Boolean(schema.example);
+	}
+	if (schema.default !== undefined) {
+		return Boolean(schema.default);
+	}
 	return true;
 }
 
-function generateArray(schema: SchemaObject, depth: number): unknown[] {
-	if (schema.example !== undefined) return schema.example as unknown[];
-
-	if (!schema.items) return [];
+function generateArray(
+	schema: SchemaObject,
+	depth: number,
+	ctx: GeneratorContext,
+): unknown[] {
+	if (schema.example !== undefined) {
+		return schema.example as unknown[];
+	}
+	if (schema.type !== "array" || !("items" in schema) || !schema.items) {
+		return [];
+	}
 
 	const itemSchema = schema.items as SchemaObject;
 	const count = schema.minItems ?? 1;
-	const items: unknown[] = [];
 
-	for (let i = 0; i < count; i++) {
-		items.push(generateFromSchema(itemSchema, undefined, depth + 1));
-	}
-
-	return items;
+	return Array.from({ length: count }, () =>
+		generateFromSchema(itemSchema, undefined, depth + 1, ctx),
+	);
 }
 
 function generateObject(
 	schema: SchemaObject,
 	depth: number,
+	ctx: GeneratorContext,
 ): Record<string, unknown> {
-	if (schema.example !== undefined)
+	if (schema.example !== undefined) {
 		return schema.example as Record<string, unknown>;
-
-	const result: Record<string, unknown> = {};
-
-	if (schema.properties) {
-		for (const [key, propSchema] of Object.entries(schema.properties)) {
-			result[key] = generateFromSchema(
-				propSchema as SchemaObject,
-				key,
-				depth + 1,
-			);
-		}
 	}
 
-	return result;
+	if (!schema.properties) {
+		return {};
+	}
+
+	return Object.fromEntries(
+		Object.entries(schema.properties).map(([key, propSchema]) => [
+			key,
+			generateFromSchema(propSchema as SchemaObject, key, depth + 1, ctx),
+		]),
+	);
+}
+
+function mergeAllOfSchemas(schemas: OpenAPIV3.SchemaObject[]): SchemaObject {
+	return schemas.reduce<SchemaObject>(
+		(merged, sub) => {
+			if (sub.properties) {
+				merged.properties = { ...merged.properties, ...sub.properties };
+			}
+			return merged;
+		},
+		{ type: "object", properties: {} },
+	);
 }
 
 function generateFromSchema(
 	schema: SchemaObject,
-	propertyName?: string,
-	depth = 0,
+	propertyName: string | undefined,
+	depth: number,
+	ctx: GeneratorContext,
 ): unknown {
-	if (depth > 10) return null;
-
-	if (schema.example !== undefined) return schema.example;
-
-	if (schema.allOf) {
-		const merged: SchemaObject = { type: "object", properties: {} };
-		for (const subSchema of schema.allOf) {
-			const sub = subSchema as SchemaObject;
-			if (sub.properties) {
-				merged.properties = { ...merged.properties, ...sub.properties };
-			}
-		}
-		return generateObject(merged, depth);
+	if (depth > 10) {
+		return null;
+	}
+	if (schema.example !== undefined) {
+		return schema.example;
 	}
 
-	if (schema.oneOf && schema.oneOf.length > 0) {
+	if (schema.allOf) {
+		const merged = mergeAllOfSchemas(schema.allOf as SchemaObject[]);
+		return generateObject(merged, depth, ctx);
+	}
+
+	if (schema.oneOf?.[0]) {
 		return generateFromSchema(
 			schema.oneOf[0] as SchemaObject,
 			propertyName,
 			depth + 1,
+			ctx,
 		);
 	}
 
-	if (schema.anyOf && schema.anyOf.length > 0) {
+	if (schema.anyOf?.[0]) {
 		return generateFromSchema(
 			schema.anyOf[0] as SchemaObject,
 			propertyName,
 			depth + 1,
+			ctx,
 		);
 	}
 
-	switch (schema.type) {
-		case "string":
-			return generateString(schema, propertyName);
-		case "number":
-		case "integer":
-			return generateNumber(schema, propertyName);
-		case "boolean":
-			return generateBoolean(schema);
-		case "array":
-			return generateArray(schema, depth);
-		case "object":
-			return generateObject(schema, depth);
-		case "null":
-			return null;
-		default:
-			if (schema.properties) return generateObject(schema, depth);
-			return null;
+	const generators: Record<
+		string,
+		(s: SchemaObject, p: string | undefined, d: number) => unknown
+	> = {
+		string: (s, p) => generateString(s, p),
+		number: (s, p) => generateNumber(s, p, ctx),
+		integer: (s, p) => generateNumber(s, p, ctx),
+		boolean: (s) => generateBoolean(s),
+		array: (s, _, d) => generateArray(s, d, ctx),
+		object: (s, _, d) => generateObject(s, d, ctx),
+		null: () => null,
+	};
+
+	const generator = generators[schema.type as string];
+	if (generator) {
+		return generator(schema, propertyName, depth);
 	}
+
+	if (schema.properties) {
+		return generateObject(schema, depth, ctx);
+	}
+
+	return null;
 }
 
 export function generateExample(schema: SchemaObject): unknown {
-	resetIdCounter();
-	return generateFromSchema(schema);
+	return generateFromSchema(schema, undefined, 0, createContext());
 }

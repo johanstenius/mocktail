@@ -38,7 +38,7 @@ export function findByIdWithEndpoints(id: string, method?: string) {
 }
 
 export function findBySlug(slug: string) {
-	return prisma.project.findUnique({
+	return prisma.project.findFirst({
 		where: { slug },
 	});
 }
@@ -77,7 +77,7 @@ export function findByOrgSlugAndProjectSlug(
 export function create(data: {
 	name: string;
 	slug: string;
-	apiKey?: string;
+	apiKey: string;
 	orgId: string;
 }) {
 	return prisma.project.create({ data });

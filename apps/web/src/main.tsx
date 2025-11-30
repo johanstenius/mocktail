@@ -41,9 +41,9 @@ if (rootElement) {
 								fontFamily: "Inter, sans-serif",
 							},
 							classNames: {
-								success: "!border-emerald-500/30",
-								error: "!border-red-500/30",
-								info: "!border-[var(--glow-violet)]/30",
+								success: "!border-emerald-500/30 !bg-emerald-500/5",
+								error: "!border-[var(--color-error)]/30 !bg-[var(--color-error)]/5 !text-[var(--color-error)]",
+								info: "!border-[var(--glow-violet)]/30 !bg-[var(--glow-violet)]/5",
 							},
 						}}
 					/>

@@ -48,9 +48,10 @@ function mapEndpointToResponse(endpoint: EndpointModel) {
 endpointsRouter.openapi(listEndpointsRoute, async (c) => {
 	const { projectId } = c.req.valid("param");
 	const endpoints = await endpointService.findByProjectId(projectId);
-	return c.json({ endpoints: endpoints.map(mapEndpointToResponse) });
+	return c.json({ endpoints: endpoints.map(mapEndpointToResponse) }, 200);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 endpointsRouter.openapi(getEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const endpoint = await endpointService.findById(endpointId, projectId);
@@ -59,9 +60,10 @@ endpointsRouter.openapi(getEndpointRoute, async (c) => {
 		throw notFound("Endpoint");
 	}
 
-	return c.json(mapEndpointToResponse(endpoint));
+	return c.json(mapEndpointToResponse(endpoint), 200);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	const { projectId } = c.req.valid("param");
 	const body = c.req.valid("json");
@@ -89,6 +91,7 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	return c.json(mapEndpointToResponse(result.endpoint), 201);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue
 endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");
@@ -99,7 +102,7 @@ endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 		throw notFound("Endpoint");
 	}
 
-	return c.json(mapEndpointToResponse(endpoint));
+	return c.json(mapEndpointToResponse(endpoint), 200);
 });
 
 endpointsRouter.openapi(deleteEndpointRoute, async (c) => {

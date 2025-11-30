@@ -58,40 +58,46 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 	const usage = await limitsService.getUsage(auth.orgId);
 
 	if (!usage) {
-		return c.json({
-			tier: "free" as const,
-			projects: { current: 0, limit: 3 },
-			endpoints: { current: 0, limit: 30 },
-			members: { current: 0, limit: 3 },
-			requests: { current: 0, limit: 10000 },
-			cancelAtPeriodEnd: false,
-			currentPeriodEnd: null,
-			paymentFailedAt: null,
-		});
+		return c.json(
+			{
+				tier: "free" as const,
+				projects: { current: 0, limit: 3 },
+				endpoints: { current: 0, limit: 30 },
+				members: { current: 0, limit: 3 },
+				requests: { current: 0, limit: 10000 },
+				cancelAtPeriodEnd: false,
+				currentPeriodEnd: null,
+				paymentFailedAt: null,
+			},
+			200,
+		);
 	}
 
-	return c.json({
-		tier: usage.tier,
-		projects: {
-			current: usage.projects.used,
-			limit: toLimit(usage.projects.limit),
+	return c.json(
+		{
+			tier: usage.tier,
+			projects: {
+				current: usage.projects.used,
+				limit: toLimit(usage.projects.limit),
+			},
+			endpoints: {
+				current: usage.endpoints.used,
+				limit: toLimit(usage.endpoints.limit),
+			},
+			members: {
+				current: usage.members.used,
+				limit: toLimit(usage.members.limit),
+			},
+			requests: {
+				current: usage.requests.used,
+				limit: toLimit(usage.requests.limit),
+			},
+			cancelAtPeriodEnd: usage.cancelAtPeriodEnd,
+			currentPeriodEnd: usage.currentPeriodEnd?.toISOString() ?? null,
+			paymentFailedAt: usage.paymentFailedAt?.toISOString() ?? null,
 		},
-		endpoints: {
-			current: usage.endpoints.used,
-			limit: toLimit(usage.endpoints.limit),
-		},
-		members: {
-			current: usage.members.used,
-			limit: toLimit(usage.members.limit),
-		},
-		requests: {
-			current: usage.requests.used,
-			limit: toLimit(usage.requests.limit),
-		},
-		cancelAtPeriodEnd: usage.cancelAtPeriodEnd,
-		currentPeriodEnd: usage.currentPeriodEnd?.toISOString() ?? null,
-		paymentFailedAt: usage.paymentFailedAt?.toISOString() ?? null,
-	});
+		200,
+	);
 });
 
 billingRouter.openapi(createCheckoutRoute, async (c) => {
@@ -116,7 +122,7 @@ billingRouter.openapi(createCheckoutRoute, async (c) => {
 		userEmail: user.email,
 	});
 
-	return c.json(result);
+	return c.json(result, 200);
 });
 
 billingRouter.openapi(cancelSubscriptionRoute, async (c) => {

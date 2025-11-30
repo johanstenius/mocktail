@@ -58,10 +58,13 @@ requestLogsRouter.openapi(listRequestLogsRoute, async (c) => {
 		endpointId: query.endpointId,
 	});
 
-	return c.json({
-		logs: logs.map(mapRequestLogToResponse),
-		total,
-	});
+	return c.json(
+		{
+			logs: logs.map(mapRequestLogToResponse),
+			total,
+		},
+		200,
+	);
 });
 
 requestLogsRouter.openapi(getRequestLogRoute, async (c) => {
@@ -73,7 +76,7 @@ requestLogsRouter.openapi(getRequestLogRoute, async (c) => {
 		throw notFound("Request log");
 	}
 
-	return c.json(mapRequestLogToResponse(log));
+	return c.json(mapRequestLogToResponse(log), 200);
 });
 
 requestLogsRouter.openapi(deleteAllRequestLogsRoute, async (c) => {
@@ -86,5 +89,5 @@ requestLogsRouter.openapi(deleteAllRequestLogsRoute, async (c) => {
 
 	const deleted = await logService.clearByProjectId(projectId);
 
-	return c.json({ deleted });
+	return c.json({ deleted }, 200);
 });

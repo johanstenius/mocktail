@@ -37,7 +37,7 @@ function mapProjectToResponse(project: ProjectModel) {
 projectsRouter.openapi(listProjectsRoute, async (c) => {
 	const auth = getAuth(c);
 	const projects = await projectService.findByOrgId(auth.orgId);
-	return c.json({ projects: projects.map(mapProjectToResponse) });
+	return c.json({ projects: projects.map(mapProjectToResponse) }, 200);
 });
 
 projectsRouter.openapi(getProjectRoute, async (c) => {
@@ -49,7 +49,7 @@ projectsRouter.openapi(getProjectRoute, async (c) => {
 		throw notFound("Project");
 	}
 
-	return c.json(mapProjectToResponse(project));
+	return c.json(mapProjectToResponse(project), 200);
 });
 
 projectsRouter.openapi(createProjectRoute, async (c) => {
@@ -84,7 +84,7 @@ projectsRouter.openapi(updateProjectRoute, async (c) => {
 	if (!project) {
 		throw notFound("Project");
 	}
-	return c.json(mapProjectToResponse(project));
+	return c.json(mapProjectToResponse(project), 200);
 });
 
 projectsRouter.openapi(deleteProjectRoute, async (c) => {
@@ -117,5 +117,5 @@ projectsRouter.openapi(rotateKeyRoute, async (c) => {
 
 	invalidateProjectKeyCache(oldKey);
 
-	return c.json(mapProjectToResponse(project));
+	return c.json(mapProjectToResponse(project), 200);
 });

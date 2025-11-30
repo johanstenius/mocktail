@@ -26,6 +26,8 @@
 	/* Status */
 	--status-success: #10b981;
 	--status-success-dim: rgba(16, 185, 129, 0.2);
+	--status-error: #ef4444;
+	--status-warning: #f59e0b;
 
 	/* HTTP Method Colors */
 	--color-method-get: #22c55e;
@@ -33,6 +35,12 @@
 	--color-method-put: #f59e0b;
 	--color-method-patch: #eab308;
 	--color-method-delete: #ef4444;
+
+	/* Missing Variables Mapped to New Palette */
+	--color-error: #ef4444; /* red-500 */
+	--color-primary: #8b5cf6; /* violet-500 */
+	--color-text-muted: #64748b; /* slate-500 */
+	--color-text-subtle: #94a3b8; /* slate-400 */
 
 	/* Spacing */
 	--space-xs: 4px;

@@ -20,7 +20,7 @@ export function findActiveByOrgId(orgId: string) {
 export function findByToken(token: string) {
 	return prisma.orgInvite.findUnique({
 		where: { token },
-		include: { org: { select: { name: true } } },
+		include: { org: { select: { name: true, slug: true } } },
 	});
 }
 

@@ -71,19 +71,22 @@ authRouter.openapi(
 			result.orgId,
 		);
 
-		return c.json({
-			user: {
-				id: userWithOrg.id,
-				email: userWithOrg.email,
-				emailVerifiedAt: userWithOrg.emailVerifiedAt?.toISOString() ?? null,
+		return c.json(
+			{
+				user: {
+					id: userWithOrg.id,
+					email: userWithOrg.email,
+					emailVerifiedAt: userWithOrg.emailVerifiedAt?.toISOString() ?? null,
+				},
+				org: {
+					id: userWithOrg.org.id,
+					name: userWithOrg.org.name,
+					slug: userWithOrg.org.slug,
+				},
+				tokens: result.tokens,
 			},
-			org: {
-				id: userWithOrg.org.id,
-				name: userWithOrg.org.name,
-				slug: userWithOrg.org.slug,
-			},
-			tokens: result.tokens,
-		});
+			200,
+		);
 	},
 );
 
@@ -96,20 +99,21 @@ authRouter.openapi(logoutRoute, async (c) => {
 authRouter.openapi(refreshRoute, async (c) => {
 	const { refreshToken } = c.req.valid("json");
 	const result = await authService.refresh(refreshToken);
-	return c.json(result.tokens);
+	return c.json(result.tokens, 200);
 });
 
-authRouter.openapi(
-	{ ...meRoute, middleware: [authMiddleware()] },
-	async (c) => {
-		const auth = getAuth(c);
-		const user = await authService.getCurrentUser(auth.userId, auth.orgId);
-		return c.json({
+authRouter.use("/me", authMiddleware());
+authRouter.openapi(meRoute, async (c) => {
+	const auth = getAuth(c);
+	const user = await authService.getCurrentUser(auth.userId, auth.orgId);
+	return c.json(
+		{
 			...user,
 			emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
-		});
-	},
-);
+		},
+		200,
+	);
+});
 
 authRouter.openapi(
 	{ ...forgotPasswordRoute, middleware: [forgotPasswordRateLimiter] },
@@ -126,7 +130,10 @@ authRouter.openapi(
 		}
 
 		await authService.forgotPassword(email);
-		return c.json({ message: "If an account exists, a reset email was sent" });
+		return c.json(
+			{ message: "If an account exists, a reset email was sent" },
+			200,
+		);
 	},
 );
 
@@ -135,21 +142,19 @@ authRouter.openapi(
 	async (c) => {
 		const { token, password } = c.req.valid("json");
 		await authService.resetPassword(token, password);
-		return c.json({ message: "Password reset successful" });
+		return c.json({ message: "Password reset successful" }, 200);
 	},
 );
 
-authRouter.openapi(
-	{ ...sendVerificationRoute, middleware: [authMiddleware()] },
-	async (c) => {
-		const { userId } = getAuth(c);
-		await authService.sendVerificationEmail(userId);
-		return c.json({ message: "Verification email sent" });
-	},
-);
+authRouter.use("/send-verification", authMiddleware());
+authRouter.openapi(sendVerificationRoute, async (c) => {
+	const { userId } = getAuth(c);
+	await authService.sendVerificationEmail(userId);
+	return c.json({ message: "Verification email sent" }, 200);
+});
 
 authRouter.openapi(verifyEmailRoute, async (c) => {
 	const { token } = c.req.valid("json");
 	await authService.verifyEmail(token);
-	return c.json({ message: "Email verified" });
+	return c.json({ message: "Email verified" }, 200);
 });
