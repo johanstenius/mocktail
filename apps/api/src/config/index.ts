@@ -8,4 +8,6 @@ export const config = {
 	stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
 	stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
 	stripeProPriceId: process.env.STRIPE_PRO_PRICE_ID || "",
+	// Email
+	resendApiKey: process.env.RESEND_API_KEY || "",
 };

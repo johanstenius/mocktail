@@ -1,6 +1,5 @@
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { authMiddleware, getAuth } from "../middleware/auth";
-import * as userRepo from "../repositories/user.repository";
 import {
 	authErrorSchema,
 	authResponseSchema,
@@ -45,12 +44,6 @@ const registerRoute = createRoute({
 authRouter.openapi(registerRoute, async (c) => {
 	const { email, password, organization } = c.req.valid("json");
 	const result = await authService.register(email, password, organization);
-
-	if (!result.success) {
-		return c.json({ error: result.error }, 400);
-	}
-
-	const user = await userRepo.findById(result.userId);
 	const userWithOrg = await authService.getCurrentUser(
 		result.userId,
 		result.orgId,
@@ -58,11 +51,11 @@ authRouter.openapi(registerRoute, async (c) => {
 
 	return c.json(
 		{
-			user: { id: user?.id, email: user?.email },
+			user: { id: userWithOrg.id, email: userWithOrg.email },
 			org: {
-				id: userWithOrg?.org.id,
-				name: userWithOrg?.org.name,
-				slug: userWithOrg?.org.slug,
+				id: userWithOrg.org.id,
+				name: userWithOrg.org.name,
+				slug: userWithOrg.org.slug,
 			},
 			tokens: result.tokens,
 		},
@@ -100,23 +93,17 @@ const loginRoute = createRoute({
 authRouter.openapi(loginRoute, async (c) => {
 	const { email, password } = c.req.valid("json");
 	const result = await authService.login(email, password);
-
-	if (!result.success) {
-		return c.json({ error: result.error }, 401);
-	}
-
-	const user = await userRepo.findById(result.userId);
 	const userWithOrg = await authService.getCurrentUser(
 		result.userId,
 		result.orgId,
 	);
 
 	return c.json({
-		user: { id: user?.id, email: user?.email },
+		user: { id: userWithOrg.id, email: userWithOrg.email },
 		org: {
-			id: userWithOrg?.org.id,
-			name: userWithOrg?.org.name,
-			slug: userWithOrg?.org.slug,
+			id: userWithOrg.org.id,
+			name: userWithOrg.org.name,
+			slug: userWithOrg.org.slug,
 		},
 		tokens: result.tokens,
 	});
@@ -176,11 +163,6 @@ const refreshRoute = createRoute({
 authRouter.openapi(refreshRoute, async (c) => {
 	const { refreshToken } = c.req.valid("json");
 	const result = await authService.refresh(refreshToken);
-
-	if (!result.success) {
-		return c.json({ error: result.error }, 401);
-	}
-
 	return c.json(result.tokens);
 });
 
@@ -208,10 +190,122 @@ const meRoute = createRoute({
 authRouter.openapi(meRoute, async (c) => {
 	const auth = getAuth(c);
 	const user = await authService.getCurrentUser(auth.userId, auth.orgId);
-
-	if (!user) {
-		return c.json({ error: "User not found" }, 401);
-	}
-
 	return c.json(user);
+});
+
+const forgotPasswordSchema = z.object({
+	email: z.string().email(),
+});
+
+const forgotPasswordRoute = createRoute({
+	method: "post",
+	path: "/forgot-password",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: forgotPasswordSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Password reset email sent",
+			content: {
+				"application/json": {
+					schema: z.object({ message: z.string() }),
+				},
+			},
+		},
+	},
+});
+
+authRouter.openapi(forgotPasswordRoute, async (c) => {
+	const { email } = c.req.valid("json");
+	await authService.forgotPassword(email);
+	return c.json({ message: "If an account exists, a reset email was sent" });
+});
+
+const resetPasswordSchema = z.object({
+	token: z.string(),
+	password: z.string().min(8),
+});
+
+const resetPasswordRoute = createRoute({
+	method: "post",
+	path: "/reset-password",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: resetPasswordSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Password reset successful",
+			content: {
+				"application/json": {
+					schema: z.object({ message: z.string() }),
+				},
+			},
+		},
+	},
+});
+
+authRouter.openapi(resetPasswordRoute, async (c) => {
+	const { token, password } = c.req.valid("json");
+	await authService.resetPassword(token, password);
+	return c.json({ message: "Password reset successful" });
+});
+
+const sendVerificationRoute = createRoute({
+	method: "post",
+	path: "/send-verification",
+	tags: ["Auth"],
+	middleware: [authMiddleware()],
+	responses: {
+		200: {
+			description: "Verification email sent",
+			content: {
+				"application/json": {
+					schema: z.object({ message: z.string() }),
+				},
+			},
+		},
+	},
+});
+
+authRouter.openapi(sendVerificationRoute, async (c) => {
+	const { userId } = getAuth(c);
+	await authService.sendVerificationEmail(userId);
+	return c.json({ message: "Verification email sent" });
+});
+
+const verifyEmailSchema = z.object({
+	token: z.string(),
+});
+
+const verifyEmailRoute = createRoute({
+	method: "post",
+	path: "/verify-email",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: verifyEmailSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Email verified",
+			content: {
+				"application/json": {
+					schema: z.object({ message: z.string() }),
+				},
+			},
+		},
+	},
+});
+
+authRouter.openapi(verifyEmailRoute, async (c) => {
+	const { token } = c.req.valid("json");
+	await authService.verifyEmail(token);
+	return c.json({ message: "Email verified" });
 });

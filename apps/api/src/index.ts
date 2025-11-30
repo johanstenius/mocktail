@@ -2,17 +2,25 @@ import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { errorHandler } from "./middleware/error-handler";
 import { apiKeysRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
 import { billingRouter } from "./routes/billing";
+import { dashboardRouter } from "./routes/dashboard";
 import { endpointsRouter } from "./routes/endpoints";
 import { importRouter } from "./routes/import";
+import { invitesRouter } from "./routes/invites";
+import { membersRouter } from "./routes/members";
 import { mockRouter } from "./routes/mock";
+import { onboardingRouter } from "./routes/onboarding";
 import { projectsRouter } from "./routes/projects";
 import { requestLogsRouter } from "./routes/request-logs";
 import { statisticsRouter } from "./routes/statistics";
 
 const app = new OpenAPIHono();
+
+// Global error handler
+app.onError(errorHandler);
 
 // Middleware
 app.use("*", logger());
@@ -32,6 +40,10 @@ app.route("/api/projects/:projectId/logs", requestLogsRouter);
 app.route("/api/projects/:projectId/statistics", statisticsRouter);
 app.route("/api/api-keys", apiKeysRouter);
 app.route("/api/billing", billingRouter);
+app.route("/api/members", membersRouter);
+app.route("/api/invites", invitesRouter);
+app.route("/api/onboarding", onboardingRouter);
+app.route("/api/dashboard", dashboardRouter);
 
 // Mock server routes
 app.route("/mock", mockRouter);

@@ -9,16 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root"
+import { Route as TeamRouteImport } from "./routes/team"
+import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
 import { Route as RegisterRouteImport } from "./routes/register"
+import { Route as ProjectsRouteImport } from "./routes/projects"
 import { Route as LoginRouteImport } from "./routes/login"
+import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
+import { Route as BillingRouteImport } from "./routes/billing"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as ProjectsIdRouteImport } from "./routes/projects.$id"
 
+const TeamRoute = TeamRouteImport.update({
+  id: "/team",
+  path: "/team",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: "/reset-password",
+  path: "/reset-password",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: "/register",
   path: "/register",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: "/projects",
+  path: "/projects",
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -26,9 +46,19 @@ const LoginRoute = LoginRouteImport.update({
   path: "/login",
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: "/forgot-password",
+  path: "/forgot-password",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: "/billing",
+  path: "/billing",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -42,34 +72,49 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
-  id: "/projects/$id",
-  path: "/projects/$id",
-  getParentRoute: () => rootRouteImport,
+  id: "/$id",
+  path: "/$id",
+  getParentRoute: () => ProjectsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/forgot-password": typeof ForgotPasswordRoute
   "/login": typeof LoginRoute
+  "/projects": typeof ProjectsRouteWithChildren
   "/register": typeof RegisterRoute
+  "/reset-password": typeof ResetPasswordRoute
+  "/team": typeof TeamRoute
   "/projects/$id": typeof ProjectsIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/forgot-password": typeof ForgotPasswordRoute
   "/login": typeof LoginRoute
+  "/projects": typeof ProjectsRouteWithChildren
   "/register": typeof RegisterRoute
+  "/reset-password": typeof ResetPasswordRoute
+  "/team": typeof TeamRoute
   "/projects/$id": typeof ProjectsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
+  "/forgot-password": typeof ForgotPasswordRoute
   "/login": typeof LoginRoute
+  "/projects": typeof ProjectsRouteWithChildren
   "/register": typeof RegisterRoute
+  "/reset-password": typeof ResetPasswordRoute
+  "/team": typeof TeamRoute
   "/projects/$id": typeof ProjectsIdRoute
 }
 export interface FileRouteTypes {
@@ -77,44 +122,84 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/analytics"
+    | "/billing"
     | "/dashboard"
+    | "/forgot-password"
     | "/login"
+    | "/projects"
     | "/register"
+    | "/reset-password"
+    | "/team"
     | "/projects/$id"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
     | "/analytics"
+    | "/billing"
     | "/dashboard"
+    | "/forgot-password"
     | "/login"
+    | "/projects"
     | "/register"
+    | "/reset-password"
+    | "/team"
     | "/projects/$id"
   id:
     | "__root__"
     | "/"
     | "/analytics"
+    | "/billing"
     | "/dashboard"
+    | "/forgot-password"
     | "/login"
+    | "/projects"
     | "/register"
+    | "/reset-password"
+    | "/team"
     | "/projects/$id"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ProjectsRoute: typeof ProjectsRouteWithChildren
   RegisterRoute: typeof RegisterRoute
-  ProjectsIdRoute: typeof ProjectsIdRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  TeamRoute: typeof TeamRoute
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/team": {
+      id: "/team"
+      path: "/team"
+      fullPath: "/team"
+      preLoaderRoute: typeof TeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/reset-password": {
+      id: "/reset-password"
+      path: "/reset-password"
+      fullPath: "/reset-password"
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/register": {
       id: "/register"
       path: "/register"
       fullPath: "/register"
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/projects": {
+      id: "/projects"
+      path: "/projects"
+      fullPath: "/projects"
+      preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login": {
@@ -124,11 +209,25 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/forgot-password": {
+      id: "/forgot-password"
+      path: "/forgot-password"
+      fullPath: "/forgot-password"
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
       fullPath: "/dashboard"
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/billing": {
+      id: "/billing"
+      path: "/billing"
+      fullPath: "/billing"
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/analytics": {
@@ -147,21 +246,37 @@ declare module "@tanstack/react-router" {
     }
     "/projects/$id": {
       id: "/projects/$id"
-      path: "/projects/$id"
+      path: "/$id"
       fullPath: "/projects/$id"
       preLoaderRoute: typeof ProjectsIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProjectsRoute
     }
   }
 }
 
+interface ProjectsRouteChildren {
+  ProjectsIdRoute: typeof ProjectsIdRoute
+}
+
+const ProjectsRouteChildren: ProjectsRouteChildren = {
+  ProjectsIdRoute: ProjectsIdRoute,
+}
+
+const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
+  ProjectsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ProjectsRoute: ProjectsRouteWithChildren,
   RegisterRoute: RegisterRoute,
-  ProjectsIdRoute: ProjectsIdRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  TeamRoute: TeamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

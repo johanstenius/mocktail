@@ -20,13 +20,18 @@ enum OrgRole {
 }
 
 model User {
-  id            String          @id @default(cuid())
-  email         String          @unique
-  passwordHash  String
-  createdAt     DateTime        @default(now())
-  ownedOrgs     Organization[]  @relation("OrgOwner")
-  memberships   OrgMembership[]
-  refreshTokens RefreshToken[]
+  id                     String                   @id @default(cuid())
+  email                  String                   @unique
+  passwordHash           String
+  emailVerifiedAt        DateTime?
+  hasCompletedOnboarding Boolean                  @default(false)
+  onboardingCompletedAt  DateTime?
+  createdAt              DateTime                 @default(now())
+  ownedOrgs              Organization[]           @relation("OrgOwner")
+  memberships            OrgMembership[]
+  refreshTokens          RefreshToken[]
+  passwordResets         PasswordResetToken[]
+  emailVerifications     EmailVerificationToken[]
 }
 
 model Organization {
@@ -49,6 +54,7 @@ model Organization {
   projects                Project[]
   usage                   UsageRecord[]
   apiKeys                 ApiKey[]
+  invites                 OrgInvite[]
 }
 
 model OrgMembership {
@@ -143,4 +149,40 @@ model ApiKey {
   orgId     String
   createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model OrgInvite {
+  id        String       @id @default(cuid())
+  email     String
+  orgId     String
+  role      OrgRole      @default(member)
+  token     String       @unique
+  expiresAt DateTime
+  invitedBy String
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([email, orgId])
 }

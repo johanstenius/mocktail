@@ -1,18 +1,27 @@
 import type {
+	ActivityItem,
 	AuthResponse,
 	CreateEndpointInput,
+	CreateInviteInput,
 	CreateProjectInput,
+	DashboardStats,
 	Endpoint,
 	ImportResult,
 	ImportSpecInput,
+	Invite,
+	InviteInfo,
 	LoginInput,
 	MeResponse,
+	Member,
+	OrgRole,
 	Project,
 	ProjectStatistics,
 	RegisterInput,
 	RequestLog,
+	SampleProjectResult,
 	TokenResponse,
 	UpdateEndpointInput,
+	Usage,
 } from "@/types";
 
 const API_BASE = "http://localhost:4000";
@@ -237,4 +246,146 @@ export async function getMe(accessToken: string): Promise<MeResponse> {
 			Authorization: `Bearer ${accessToken}`,
 		},
 	});
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/forgot-password`, {
+		method: "POST",
+		body: JSON.stringify({ email }),
+	});
+}
+
+export async function resetPassword(
+	token: string,
+	password: string,
+): Promise<void> {
+	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/reset-password`, {
+		method: "POST",
+		body: JSON.stringify({ token, password }),
+	});
+}
+
+// Members
+export async function getMembers(): Promise<Member[]> {
+	const data = await fetchJson<{ members: Member[] }>(
+		`${API_BASE}/api/members`,
+	);
+	return data.members;
+}
+
+export async function updateMemberRole(
+	memberId: string,
+	role: OrgRole,
+): Promise<Member> {
+	const data = await fetchJson<{ member: Member }>(
+		`${API_BASE}/api/members/${memberId}`,
+		{
+			method: "PATCH",
+			body: JSON.stringify({ role }),
+		},
+	);
+	return data.member;
+}
+
+export async function removeMember(memberId: string): Promise<void> {
+	const token = getAccessToken();
+	await fetch(`${API_BASE}/api/members/${memberId}`, {
+		method: "DELETE",
+		headers: token ? { Authorization: `Bearer ${token}` } : {},
+	});
+}
+
+// Invites
+export async function getInvites(): Promise<Invite[]> {
+	const data = await fetchJson<{ invites: Invite[] }>(
+		`${API_BASE}/api/invites`,
+	);
+	return data.invites;
+}
+
+export async function createInvite(input: CreateInviteInput): Promise<Invite> {
+	const data = await fetchJson<{ invite: Invite }>(`${API_BASE}/api/invites`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+	return data.invite;
+}
+
+export async function revokeInvite(inviteId: string): Promise<void> {
+	const token = getAccessToken();
+	await fetch(`${API_BASE}/api/invites/${inviteId}`, {
+		method: "DELETE",
+		headers: token ? { Authorization: `Bearer ${token}` } : {},
+	});
+}
+
+export async function getInviteByToken(token: string): Promise<InviteInfo> {
+	const data = await fetchJson<{ invite: InviteInfo }>(
+		`${API_BASE}/api/invites/token?token=${encodeURIComponent(token)}`,
+	);
+	return data.invite;
+}
+
+export async function acceptInvite(
+	token: string,
+	password?: string,
+): Promise<AuthResponse> {
+	return fetchJson<AuthResponse>(`${API_BASE}/api/invites/accept`, {
+		method: "POST",
+		body: JSON.stringify({ token, password }),
+	});
+}
+
+// Billing
+export async function getUsage(): Promise<Usage> {
+	return fetchJson<Usage>(`${API_BASE}/api/billing/usage`);
+}
+
+export async function createCheckoutSession(): Promise<{ url: string }> {
+	return fetchJson<{ url: string }>(`${API_BASE}/api/billing/checkout`, {
+		method: "POST",
+	});
+}
+
+export async function cancelSubscription(): Promise<void> {
+	await fetchJson<{ success: boolean }>(`${API_BASE}/api/billing/cancel`, {
+		method: "POST",
+	});
+}
+
+export async function reactivateSubscription(): Promise<void> {
+	await fetchJson<{ success: boolean }>(`${API_BASE}/api/billing/reactivate`, {
+		method: "POST",
+	});
+}
+
+// Dashboard
+export async function getDashboardStats(): Promise<DashboardStats> {
+	return fetchJson<DashboardStats>(`${API_BASE}/api/dashboard/stats`);
+}
+
+export async function getDashboardActivity(
+	limit = 10,
+): Promise<ActivityItem[]> {
+	const data = await fetchJson<{ activity: ActivityItem[] }>(
+		`${API_BASE}/api/dashboard/activity?limit=${limit}`,
+	);
+	return data.activity;
+}
+
+// Onboarding
+export async function completeOnboarding(): Promise<{ success: boolean }> {
+	return fetchJson<{ success: boolean }>(
+		`${API_BASE}/api/onboarding/complete`,
+		{
+			method: "POST",
+		},
+	);
+}
+
+export async function createSampleProject(): Promise<SampleProjectResult> {
+	return fetchJson<SampleProjectResult>(
+		`${API_BASE}/api/onboarding/sample-project`,
+		{ method: "POST" },
+	);
 }

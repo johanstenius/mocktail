@@ -17,3 +17,30 @@ export function findByUserId(userId: string) {
 		include: { org: true },
 	});
 }
+
+export function findByOrgId(orgId: string) {
+	return prisma.orgMembership.findMany({
+		where: { orgId },
+		include: { user: { select: { email: true } } },
+		orderBy: { createdAt: "asc" },
+	});
+}
+
+export function findById(id: string) {
+	return prisma.orgMembership.findUnique({
+		where: { id },
+		include: { user: { select: { email: true } } },
+	});
+}
+
+export function updateRole(id: string, role: OrgRole) {
+	return prisma.orgMembership.update({
+		where: { id },
+		data: { role },
+		include: { user: { select: { email: true } } },
+	});
+}
+
+export function deleteById(id: string) {
+	return prisma.orgMembership.delete({ where: { id } });
+}

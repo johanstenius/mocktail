@@ -41,6 +41,7 @@ export const authResponseSchema = z.object({
 export const meResponseSchema = z.object({
 	id: z.string(),
 	email: z.string(),
+	hasCompletedOnboarding: z.boolean(),
 	org: z.object({
 		id: z.string(),
 		name: z.string(),

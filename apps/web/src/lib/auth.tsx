@@ -12,6 +12,7 @@ import * as api from "./api";
 type AuthState = {
 	user: AuthUser | null;
 	org: AuthOrg | null;
+	hasCompletedOnboarding: boolean;
 	isLoading: boolean;
 	isAuthenticated: boolean;
 };
@@ -24,6 +25,7 @@ type AuthContextValue = AuthState & {
 		organization: string,
 	) => Promise<void>;
 	logout: () => Promise<void>;
+	setOnboardingComplete: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<AuthState>({
 		user: null,
 		org: null,
+		hasCompletedOnboarding: true,
 		isLoading: true,
 		isAuthenticated: false,
 	});
@@ -62,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setState({
 				user: null,
 				org: null,
+				hasCompletedOnboarding: true,
 				isLoading: false,
 				isAuthenticated: false,
 			});
@@ -73,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setState({
 				user: { id: me.id, email: me.email },
 				org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
+				hasCompletedOnboarding: me.hasCompletedOnboarding,
 				isLoading: false,
 				isAuthenticated: true,
 			});
@@ -85,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setState({
 					user: { id: me.id, email: me.email },
 					org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
+					hasCompletedOnboarding: me.hasCompletedOnboarding,
 					isLoading: false,
 					isAuthenticated: true,
 				});
@@ -93,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				setState({
 					user: null,
 					org: null,
+					hasCompletedOnboarding: true,
 					isLoading: false,
 					isAuthenticated: false,
 				});
@@ -107,9 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const login = useCallback(async (email: string, password: string) => {
 		const response = await api.login({ email, password });
 		storeTokens(response.tokens);
+		const me = await api.getMe(response.tokens.accessToken);
 		setState({
 			user: response.user,
 			org: response.org,
+			hasCompletedOnboarding: me.hasCompletedOnboarding,
 			isLoading: false,
 			isAuthenticated: true,
 		});
@@ -122,12 +131,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setState({
 				user: response.user,
 				org: response.org,
+				hasCompletedOnboarding: false,
 				isLoading: false,
 				isAuthenticated: true,
 			});
 		},
 		[],
 	);
+
+	const setOnboardingComplete = useCallback(() => {
+		setState((prev) => ({ ...prev, hasCompletedOnboarding: true }));
+	}, []);
 
 	const logout = useCallback(async () => {
 		const tokens = getStoredTokens();
@@ -138,13 +152,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setState({
 			user: null,
 			org: null,
+			hasCompletedOnboarding: true,
 			isLoading: false,
 			isAuthenticated: false,
 		});
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ ...state, login, register, logout }}>
+		<AuthContext.Provider
+			value={{ ...state, login, register, logout, setOnboardingComplete }}
+		>
 			{children}
 		</AuthContext.Provider>
 	);

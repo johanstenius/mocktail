@@ -115,6 +115,7 @@ export type AuthResponse = {
 export type MeResponse = {
 	id: string;
 	email: string;
+	hasCompletedOnboarding: boolean;
 	org: {
 		id: string;
 		name: string;
@@ -133,4 +134,80 @@ export type RegisterInput = {
 export type LoginInput = {
 	email: string;
 	password: string;
+};
+
+// Member types
+export type OrgRole = "owner" | "admin" | "member";
+
+export type Member = {
+	id: string;
+	userId: string;
+	email: string;
+	role: OrgRole;
+	createdAt: string;
+};
+
+export type Invite = {
+	id: string;
+	email: string;
+	role: OrgRole;
+	expiresAt: string;
+	invitedBy: string;
+	createdAt: string;
+};
+
+export type InviteInfo = {
+	email: string;
+	orgName: string;
+	role: OrgRole;
+	expiresAt: string;
+};
+
+export type CreateInviteInput = {
+	email: string;
+	role?: OrgRole;
+};
+
+// Billing types
+export type Tier = "free" | "pro" | "enterprise";
+
+export type UsageItem = {
+	current: number;
+	limit: number | null;
+};
+
+export type Usage = {
+	tier: Tier;
+	projects: UsageItem;
+	endpoints: UsageItem;
+	members: UsageItem;
+	requests: UsageItem;
+	cancelAtPeriodEnd: boolean;
+	currentPeriodEnd: string | null;
+};
+
+// Dashboard types
+export type DashboardStats = {
+	projects: number;
+	endpoints: number;
+	requestsToday: number;
+	requestsThisWeek: number;
+	teamMembers: number;
+};
+
+export type ActivityItem = {
+	id: string;
+	type: "project_created" | "endpoint_created" | "request";
+	projectId?: string;
+	projectName?: string;
+	endpointId?: string;
+	endpointPath?: string;
+	method?: string;
+	status?: number;
+	createdAt: string;
+};
+
+export type SampleProjectResult = {
+	project: { id: string; name: string; slug: string };
+	endpointsCreated: number;
 };

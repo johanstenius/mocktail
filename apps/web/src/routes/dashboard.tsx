@@ -1,160 +1,332 @@
-import { CreateProjectModal } from "@/components/create-project-modal";
-import { EmptyState } from "@/components/empty-state";
-import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { deleteProject, getEndpoints, getProjects } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import type { Project } from "@/types";
+import { WelcomeModal } from "@/components/welcome-modal";
 import {
-	useMutation,
-	useQueries,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
+	getDashboardActivity,
+	getDashboardStats,
+	getProjects,
+} from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import type { ActivityItem, DashboardStats, Project } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FolderPlus, Loader2, LogOut, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import {
+	Activity,
+	ArrowRight,
+	FolderOpen,
+	Loader2,
+	Plus,
+	Route as RouteIcon,
+	Users,
+	Zap,
+} from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
 	component: DashboardPage,
 });
 
-function ProjectCard({
-	project,
-	endpointCount,
-	onDelete,
+function StatCard({
+	label,
+	value,
+	icon: Icon,
+	accent,
 }: {
-	project: Project;
-	endpointCount?: number;
-	onDelete: () => void;
+	label: string;
+	value: number;
+	icon: React.ElementType;
+	accent?: string;
 }) {
-	const [showConfirm, setShowConfirm] = useState(false);
-
 	return (
-		<div className="group relative glass-panel rounded-2xl p-6 transition-all cursor-pointer hover:border-[var(--color-glass-highlight)] hover:-translate-y-1 hover:bg-white/[0.05]">
-			<Link
-				to="/projects/$id"
-				params={{ id: project.id }}
-				className="absolute inset-0 rounded-2xl"
-			/>
-			<div className="flex flex-col h-full">
-				<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-accent-1)]/20 to-[var(--color-accent-2)]/20 border border-white/10 text-xl font-extrabold text-white mb-4">
-					{project.name.charAt(0).toUpperCase()}
-				</div>
-				<h3 className="text-lg font-bold text-white mb-1 group-hover:text-[var(--color-accent-2)] transition-colors">
-					{project.name}
-				</h3>
-				<p className="text-sm font-mono text-[var(--color-text-muted)] mb-4">
-					/m/{project.slug}
-				</p>
-				<div className="mt-auto flex items-center gap-2">
-					{endpointCount !== undefined && (
-						<span className="text-xs px-2 py-1 bg-white/10 rounded">
-							{endpointCount} Endpoint{endpointCount !== 1 ? "s" : ""}
-						</span>
-					)}
+		<div className="glass rounded-xl p-5">
+			<div className="flex items-center justify-between mb-3">
+				<div
+					className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent || "bg-[var(--glow-violet)]/20"}`}
+				>
+					<Icon className="h-5 w-5 text-[var(--text-secondary)]" />
 				</div>
 			</div>
-			<div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-				{showConfirm ? (
+			<div className="text-3xl font-bold font-['Outfit'] mb-1">{value}</div>
+			<div className="text-sm text-[var(--text-muted)]">{label}</div>
+		</div>
+	);
+}
+
+function StatsGrid({ stats }: { stats: DashboardStats }) {
+	return (
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<StatCard
+				label="Projects"
+				value={stats.projects}
+				icon={FolderOpen}
+				accent="bg-[var(--glow-violet)]/20"
+			/>
+			<StatCard
+				label="Endpoints"
+				value={stats.endpoints}
+				icon={RouteIcon}
+				accent="bg-[var(--glow-blue)]/20"
+			/>
+			<StatCard
+				label="Requests Today"
+				value={stats.requestsToday}
+				icon={Zap}
+				accent="bg-[var(--glow-emerald)]/20"
+			/>
+			<StatCard
+				label="Team Members"
+				value={stats.teamMembers}
+				icon={Users}
+				accent="bg-[var(--glow-pink)]/20"
+			/>
+		</div>
+	);
+}
+
+function OnboardingChecklist({
+	stats,
+	projects,
+}: {
+	stats: DashboardStats;
+	projects: Project[];
+}) {
+	const hasProject = stats.projects > 0;
+	const hasEndpoint = stats.endpoints > 0;
+	const hasRequest = stats.requestsToday > 0 || stats.requestsThisWeek > 0;
+	const hasTeam = stats.teamMembers > 1;
+
+	const steps = [
+		{
+			done: hasProject,
+			label: "Create your first project",
+			action: hasProject ? undefined : { to: "/projects", label: "Create" },
+		},
+		{
+			done: hasEndpoint,
+			label: "Add an endpoint",
+			action:
+				hasEndpoint || !hasProject
+					? undefined
+					: { to: `/projects/${projects[0]?.id}`, label: "Add" },
+		},
+		{
+			done: hasRequest,
+			label: "Test your mock API",
+			action: undefined,
+		},
+		{
+			done: hasTeam,
+			label: "Invite a team member",
+			action: hasTeam ? undefined : { to: "/team", label: "Invite" },
+		},
+	];
+
+	const completedCount = steps.filter((s) => s.done).length;
+	const progress = (completedCount / steps.length) * 100;
+
+	if (completedCount === steps.length) {
+		return null;
+	}
+
+	return (
+		<div className="glass rounded-xl p-6">
+			<div className="flex items-center justify-between mb-4">
+				<h3 className="text-lg font-semibold font-['Outfit']">Quick Start</h3>
+				<span className="text-sm text-[var(--text-muted)]">
+					{completedCount}/{steps.length} complete
+				</span>
+			</div>
+
+			<div className="h-1.5 bg-[var(--bg-surface-active)] rounded-full mb-6 overflow-hidden">
+				<div
+					className="h-full bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] rounded-full transition-all duration-500"
+					style={{ width: `${progress}%` }}
+				/>
+			</div>
+
+			<div className="space-y-3">
+				{steps.map((step) => (
 					<div
-						className="flex items-center gap-2"
-						onClick={(e) => e.stopPropagation()}
-						onKeyDown={(e) => e.stopPropagation()}
+						key={step.label}
+						className={`flex items-center justify-between py-2 ${step.done ? "opacity-50" : ""}`}
 					>
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => setShowConfirm(false)}
-						>
-							Cancel
-						</Button>
-						<Button variant="destructive" size="sm" onClick={onDelete}>
-							Delete
-						</Button>
+						<div className="flex items-center gap-3">
+							<div
+								className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${step.done ? "border-[var(--glow-emerald)] bg-[var(--glow-emerald)]" : "border-[var(--border-highlight)]"}`}
+							>
+								{step.done && (
+									<svg
+										className="w-3 h-3 text-white"
+										viewBox="0 0 12 12"
+										aria-hidden="true"
+									>
+										<path
+											fill="currentColor"
+											d="M10.28 2.28L4.5 8.06 1.72 5.28a.75.75 0 00-1.06 1.06l3.5 3.5a.75.75 0 001.06 0l6.5-6.5a.75.75 0 00-1.06-1.06z"
+										/>
+									</svg>
+								)}
+							</div>
+							<span
+								className={
+									step.done ? "line-through text-[var(--text-muted)]" : ""
+								}
+							>
+								{step.label}
+							</span>
+						</div>
+						{step.action && !step.done && (
+							<Link to={step.action.to}>
+								<Button variant="ghost" size="sm">
+									{step.action.label}
+									<ArrowRight className="w-4 h-4 ml-1" />
+								</Button>
+							</Link>
+						)}
 					</div>
-				) : (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8"
-						onClick={(e) => {
-							e.stopPropagation();
-							e.preventDefault();
-							setShowConfirm(true);
-						}}
-					>
-						<Trash2 className="h-4 w-4" />
-					</Button>
-				)}
+				))}
 			</div>
 		</div>
 	);
 }
 
-function CreateProjectCard({ onClick }: { onClick: () => void }) {
+function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
+	if (activity.length === 0) {
+		return (
+			<div className="glass rounded-xl p-6">
+				<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
+					Recent Activity
+				</h3>
+				<div className="text-center py-8 text-[var(--text-muted)]">
+					<Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+					<p>No activity yet</p>
+					<p className="text-sm mt-1">
+						Make requests to your mock endpoints to see activity here
+					</p>
+				</div>
+			</div>
+		);
+	}
+
 	return (
-		<button
-			type="button"
-			onClick={onClick}
-			className="glass-panel rounded-2xl p-6 border-dashed opacity-60 hover:opacity-100 transition-all flex flex-col items-center justify-center min-h-[200px] cursor-pointer"
-		>
-			<div className="text-3xl mb-3 text-white/50">+</div>
-			<span className="font-semibold">Create Project</span>
-		</button>
+		<div className="glass rounded-xl p-6">
+			<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
+				Recent Activity
+			</h3>
+			<div className="space-y-3">
+				{activity.map((item) => (
+					<div
+						key={item.id}
+						className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)] last:border-0"
+					>
+						<div className="flex items-center gap-3">
+							<div
+								className={`px-2 py-0.5 rounded text-xs font-mono font-semibold ${
+									item.method === "GET"
+										? "bg-emerald-500/20 text-emerald-400"
+										: item.method === "POST"
+											? "bg-blue-500/20 text-blue-400"
+											: item.method === "PUT"
+												? "bg-amber-500/20 text-amber-400"
+												: item.method === "DELETE"
+													? "bg-red-500/20 text-red-400"
+													: "bg-slate-500/20 text-slate-400"
+								}`}
+							>
+								{item.method}
+							</div>
+							<div>
+								<span className="font-mono text-sm">{item.endpointPath}</span>
+								<span className="text-[var(--text-muted)] text-sm ml-2">
+									{item.projectName}
+								</span>
+							</div>
+						</div>
+						<div className="flex items-center gap-4">
+							<span
+								className={`text-sm font-mono ${
+									item.status && item.status < 300
+										? "text-emerald-400"
+										: item.status && item.status < 400
+											? "text-amber-400"
+											: "text-red-400"
+								}`}
+							>
+								{item.status}
+							</span>
+							<span className="text-xs text-[var(--text-muted)]">
+								{formatDistanceToNow(new Date(item.createdAt), {
+									addSuffix: true,
+								})}
+							</span>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
 	);
 }
 
-function ProjectSkeleton() {
+function QuickActions() {
 	return (
-		<div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6">
-			<div className="h-12 w-12 rounded-xl bg-white/5 animate-pulse mb-4" />
-			<div className="h-5 w-32 rounded bg-white/5 animate-pulse mb-2" />
-			<div className="h-4 w-24 rounded bg-white/5 animate-pulse mb-4" />
-			<div className="h-6 w-20 rounded bg-white/5 animate-pulse" />
+		<div className="glass rounded-xl p-6">
+			<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
+				Quick Actions
+			</h3>
+			<div className="grid grid-cols-2 gap-3">
+				<Link to="/projects">
+					<Button
+						variant="ghost"
+						className="w-full justify-start h-auto py-3 glass-hover"
+					>
+						<Plus className="w-4 h-4 mr-2" />
+						New Project
+					</Button>
+				</Link>
+				<Link to="/team">
+					<Button
+						variant="ghost"
+						className="w-full justify-start h-auto py-3 glass-hover"
+					>
+						<Users className="w-4 h-4 mr-2" />
+						Invite Team
+					</Button>
+				</Link>
+			</div>
 		</div>
 	);
 }
 
 function DashboardPage() {
-	const { isAuthenticated, isLoading: authLoading, logout, user } = useAuth();
+	const {
+		isAuthenticated,
+		isLoading: authLoading,
+		org,
+		hasCompletedOnboarding,
+	} = useAuth();
 	const navigate = useNavigate();
-	const [createModalOpen, setCreateModalOpen] = useState(false);
-	const queryClient = useQueryClient();
 
-	const { data: projects = [], isLoading } = useQuery({
+	const { data: stats, isLoading: statsLoading } = useQuery({
+		queryKey: ["dashboard-stats"],
+		queryFn: getDashboardStats,
+		enabled: isAuthenticated,
+	});
+
+	const { data: activity = [] } = useQuery({
+		queryKey: ["dashboard-activity"],
+		queryFn: () => getDashboardActivity(10),
+		enabled: isAuthenticated,
+	});
+
+	const { data: projects = [] } = useQuery({
 		queryKey: ["projects"],
 		queryFn: getProjects,
 		enabled: isAuthenticated,
 	});
 
-	const endpointQueries = useQueries({
-		queries: projects.map((project) => ({
-			queryKey: ["endpoints", project.id],
-			queryFn: () => getEndpoints(project.id),
-			enabled: isAuthenticated && projects.length > 0,
-		})),
-	});
-
-	const endpointCounts = new Map<string, number>();
-	projects.forEach((project, index) => {
-		const query = endpointQueries[index];
-		if (query?.data) {
-			endpointCounts.set(project.id, query.data.length);
-		}
-	});
-
-	const deleteMutation = useMutation({
-		mutationFn: deleteProject,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["projects"] });
-		},
-	});
-
-	if (authLoading) {
+	if (authLoading || statsLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-white/50" />
+			<div className="flex-1 flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
 			</div>
 		);
 	}
@@ -164,84 +336,43 @@ function DashboardPage() {
 		return null;
 	}
 
-	async function handleLogout() {
-		await logout();
-		navigate({ to: "/" });
-	}
-
 	return (
-		<div className="min-h-screen">
-			<Navbar
-				actions={
-					<>
-						<span className="text-sm text-white/60 mr-2 hidden sm:inline">
-							{user?.email}
-						</span>
-						<Button
-							onClick={() => setCreateModalOpen(true)}
-							className="bg-white text-black hover:bg-gray-200 rounded-full px-6"
-						>
-							<Plus className="h-4 w-4 mr-2" />
-							New Project
-						</Button>
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={handleLogout}
-							title="Sign out"
-						>
-							<LogOut className="h-4 w-4" />
-						</Button>
-					</>
-				}
-			/>
-
-			<main className="relative z-10 mx-auto max-w-6xl px-6 py-8 md:px-12">
-				<div className="flex justify-between items-center mb-8">
-					<h1 className="text-2xl font-bold">Projects</h1>
-					<Button
-						onClick={() => setCreateModalOpen(true)}
-						className="bg-white text-black hover:bg-gray-200 rounded-full px-6"
-					>
-						+ New Project
-					</Button>
+		<main className="flex-1 flex flex-col overflow-hidden">
+			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
+				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
+					<span className="text-[var(--text-primary)] font-medium">
+						Dashboard
+					</span>
 				</div>
+			</header>
 
-				{isLoading ? (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						<ProjectSkeleton />
-						<ProjectSkeleton />
-						<ProjectSkeleton />
+			<div className="flex-1 overflow-y-auto p-8">
+				<div className="max-w-6xl mx-auto space-y-8">
+					<div>
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+							Welcome back
+						</h1>
+						<p className="text-[var(--text-muted)] font-['Inter'] text-sm">
+							{org?.name}
+						</p>
 					</div>
-				) : projects.length === 0 ? (
-					<EmptyState
-						icon={FolderPlus}
-						title="No projects yet"
-						description="Create your first mock API project to start building endpoints."
-						action={{
-							label: "Create Project",
-							onClick: () => setCreateModalOpen(true),
-						}}
-					/>
-				) : (
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{projects.map((project) => (
-							<ProjectCard
-								key={project.id}
-								project={project}
-								endpointCount={endpointCounts.get(project.id)}
-								onDelete={() => deleteMutation.mutate(project.id)}
-							/>
-						))}
-						<CreateProjectCard onClick={() => setCreateModalOpen(true)} />
-					</div>
-				)}
-			</main>
 
-			<CreateProjectModal
-				open={createModalOpen}
-				onOpenChange={setCreateModalOpen}
-			/>
-		</div>
+					{stats && <StatsGrid stats={stats} />}
+
+					<div className="grid lg:grid-cols-3 gap-6">
+						<div className="lg:col-span-2 space-y-6">
+							{stats && (
+								<OnboardingChecklist stats={stats} projects={projects} />
+							)}
+							<ActivityFeed activity={activity} />
+						</div>
+						<div>
+							<QuickActions />
+						</div>
+					</div>
+				</div>
+			</div>
+			<WelcomeModal open={!hasCompletedOnboarding} onOpenChange={() => {}} />
+		</main>
 	);
 }

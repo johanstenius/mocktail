@@ -1,42 +1,125 @@
 @import "tailwindcss";
 
-@theme {
-	/* Colors - Neon Aurora Theme */
-	--color-bg: #050505;
-	--color-text: #ffffff;
-	--color-text-muted: rgba(255, 255, 255, 0.6);
-	--color-text-subtle: rgba(255, 255, 255, 0.4);
+:root {
+	/* Colors - Luminous Void Palette */
+	--bg-void: #050505;
+	--bg-surface: rgba(255, 255, 255, 0.03);
+	--bg-surface-hover: rgba(255, 255, 255, 0.06);
+	--bg-surface-active: rgba(255, 255, 255, 0.1);
 
-	--color-accent-1: #ff2e63; /* Vibrant Pink */
-	--color-accent-2: #08d9d6; /* Neon Cyan */
-	--color-accent-3: #7f2ccb; /* Deep Purple */
+	--border-subtle: rgba(255, 255, 255, 0.08);
+	--border-highlight: rgba(255, 255, 255, 0.15);
 
-	--color-success: #00e676;
-	--color-warning: #ffc400;
+	--text-primary: #f8fafc;
+	--text-secondary: #94a3b8;
+	--text-muted: #64748b;
 
-	--color-glass: rgba(255, 255, 255, 0.03);
-	--color-glass-border: rgba(255, 255, 255, 0.08);
-	--color-glass-highlight: rgba(255, 255, 255, 0.15);
+	/* Glows */
+	--glow-violet: #8b5cf6;
+	--glow-blue: #3b82f6;
+	--glow-pink: #ec4899;
+	--glow-emerald: #10b981;
 
-	/* Fonts */
-	--font-sans: "Outfit", system-ui, sans-serif;
-	--font-mono: "JetBrains Mono", monospace;
+	/* Status */
+	--status-success: #10b981;
+	--status-success-dim: rgba(16, 185, 129, 0.2);
+
+	/* Spacing */
+	--space-xs: 4px;
+	--space-sm: 8px;
+	--space-md: 16px;
+	--space-lg: 24px;
+	--space-xl: 32px;
+	--space-2xl: 64px;
+
+	/* Radius */
+	--radius-sm: 6px;
+	--radius-md: 12px;
+	--radius-lg: 16px; /* Updated from 24px in fresh-concept to match app-concept broadly, or keep distinct? Let's stick to app-concept for app UI */
+	--radius-full: 9999px;
+
+	/* Sidebar Width */
+	--sidebar-width: 260px;
 }
 
-/* Base styles */
-html {
-	background: var(--color-bg);
-	color: var(--color-text);
-	font-family: var(--font-sans);
+@layer base {
+	body {
+		background-color: var(--bg-void);
+		color: var(--text-primary);
+		font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+			sans-serif;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		font-feature-settings: "rlig" 1, "calt" 1;
+	}
+
+	body::selection {
+		background-color: var(--glow-violet);
+		color: white;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: "Outfit", sans-serif;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+	}
+
+	code,
+	pre {
+		font-family: "JetBrains Mono", monospace;
+	}
 }
 
-body {
-	min-height: 100vh;
-	overflow-x: hidden;
+@layer utilities {
+	.text-gradient {
+		background: linear-gradient(to right, white, #94a3b8);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.glass {
+		background: var(--bg-surface);
+		backdrop-filter: blur(12px);
+		border: 1px solid var(--border-subtle);
+	}
+
+	.glass-hover {
+		transition: all 0.2s;
+	}
+
+	.glass-hover:hover {
+		background: var(--bg-surface-hover);
+		border-color: var(--border-highlight);
+	}
 }
 
-/* Aurora Background */
-.aurora-container {
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+/* Background Glows */
+.glow-bg {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -44,106 +127,50 @@ body {
 	height: 100%;
 	z-index: -1;
 	overflow: hidden;
-	background: var(--color-bg);
 	pointer-events: none;
 }
 
-.aurora-blob {
+.orb {
 	position: absolute;
+	border-radius: 50%;
 	filter: blur(100px);
-	opacity: 0.25;
-	animation: float 15s infinite ease-in-out;
+	opacity: 0.3;
 }
 
-.blob-1 {
+.orb-1 {
 	top: -20%;
 	left: -10%;
-	width: 60vw;
-	height: 60vw;
-	background: var(--color-accent-3);
-	animation-delay: 0s;
+	width: 800px;
+	height: 800px;
+	background: radial-gradient(circle, var(--glow-violet), transparent 70%);
+	animation: float 20s infinite ease-in-out;
 }
 
-.blob-2 {
+.orb-2 {
 	bottom: -20%;
 	right: -10%;
-	width: 70vw;
-	height: 70vw;
-	background: radial-gradient(circle, var(--color-accent-1), transparent 70%);
-	animation-delay: -5s;
+	width: 600px;
+	height: 600px;
+	background: radial-gradient(circle, var(--glow-blue), transparent 70%);
+	animation: float 25s infinite ease-in-out reverse;
 }
 
-.blob-3 {
-	top: 30%;
-	left: 30%;
-	width: 50vw;
-	height: 50vw;
-	background: var(--color-accent-2);
-	opacity: 0.15;
-	animation-delay: -8s;
+.orb-3 {
+	top: 40%;
+	left: -10%;
+	width: 400px;
+	height: 400px;
+	background: radial-gradient(circle, var(--glow-pink), transparent 70%);
+	opacity: 0.2;
+	animation: float 18s infinite ease-in-out 2s;
 }
 
 @keyframes float {
 	0%,
 	100% {
-		transform: translate(0, 0) scale(1);
+		transform: translate(0, 0);
 	}
-	33% {
-		transform: translate(20px, -30px) scale(1.05);
+	50% {
+		transform: translate(30px, -30px);
 	}
-	66% {
-		transform: translate(-10px, 10px) scale(0.95);
-	}
-}
-
-/* Utilities */
-.text-gradient {
-	background: linear-gradient(to right, #ffffff, #cccccc);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-}
-
-.glass {
-	background: var(--color-glass);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	border: 1px solid var(--color-glass-border);
-}
-
-.glass-card {
-	background: var(--color-glass);
-	border: 1px solid var(--color-glass-border);
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-	position: relative;
-	overflow: hidden;
-}
-
-.glass-card::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: linear-gradient(
-		135deg,
-		rgba(255, 255, 255, 0.05) 0%,
-		transparent 100%
-	);
-	opacity: 0;
-	transition: opacity 0.4s;
-	pointer-events: none;
-}
-
-.glass-card:hover {
-	transform: translateY(-10px);
-	border-color: var(--color-glass-highlight);
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-.glass-card:hover::before {
-	opacity: 1;
 }

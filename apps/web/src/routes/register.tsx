@@ -1,3 +1,4 @@
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ function RegisterPage() {
 	if (authLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-white/50" />
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
 			</div>
 		);
 	}
@@ -62,25 +63,26 @@ function RegisterPage() {
 	return (
 		<div className="min-h-screen flex flex-col">
 			<header className="container mx-auto px-8 py-8 flex justify-between items-center relative z-10">
-				<Link
-					to="/"
-					className="font-extrabold text-2xl tracking-tight uppercase text-white"
-				>
-					Mocktail
+				<Link to="/">
+					<Logo />
 				</Link>
 			</header>
 
 			<main className="flex-1 flex items-center justify-center px-4 relative z-10">
 				<div className="w-full max-w-md">
-					<div className="glass-card rounded-2xl p-8">
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-xl rounded-2xl p-8">
 						<div className="text-center mb-8">
-							<h1 className="text-3xl font-bold mb-2">Create account</h1>
-							<p className="text-white/60">Start mocking your APIs today</p>
+							<h1 className="text-3xl font-bold mb-2 font-['Outfit']">
+								Create account
+							</h1>
+							<p className="text-[var(--text-secondary)]">
+								Start mocking your APIs today
+							</p>
 						</div>
 
 						<form onSubmit={handleSubmit} className="space-y-6">
 							{error && (
-								<div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+								<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
 									{error}
 								</div>
 							)}
@@ -95,7 +97,6 @@ function RegisterPage() {
 									placeholder="Acme Inc"
 									required
 									autoComplete="organization"
-									className="bg-white/5 border-white/10 focus:border-white/20"
 								/>
 							</div>
 
@@ -109,7 +110,6 @@ function RegisterPage() {
 									placeholder="you@example.com"
 									required
 									autoComplete="email"
-									className="bg-white/5 border-white/10 focus:border-white/20"
 								/>
 							</div>
 
@@ -123,7 +123,6 @@ function RegisterPage() {
 									placeholder="••••••••"
 									required
 									autoComplete="new-password"
-									className="bg-white/5 border-white/10 focus:border-white/20"
 								/>
 							</div>
 
@@ -137,15 +136,10 @@ function RegisterPage() {
 									placeholder="••••••••"
 									required
 									autoComplete="new-password"
-									className="bg-white/5 border-white/10 focus:border-white/20"
 								/>
 							</div>
 
-							<Button
-								type="submit"
-								disabled={isLoading}
-								className="w-full bg-white text-black hover:bg-gray-200 font-semibold"
-							>
+							<Button type="submit" disabled={isLoading} className="w-full">
 								{isLoading ? (
 									<>
 										<Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -157,11 +151,11 @@ function RegisterPage() {
 							</Button>
 						</form>
 
-						<p className="mt-6 text-center text-sm text-white/60">
+						<p className="mt-6 text-center text-sm text-[var(--text-secondary)]">
 							Already have an account?{" "}
 							<Link
 								to="/login"
-								className="text-[var(--color-accent-2)] hover:underline font-medium"
+								className="text-[var(--glow-violet)] hover:underline font-medium"
 							>
 								Sign in
 							</Link>

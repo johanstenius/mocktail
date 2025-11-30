@@ -2,39 +2,19 @@ import { EmptyState } from "@/components/empty-state";
 import { EndpointForm } from "@/components/endpoint-form";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
-import { Navbar } from "@/components/navbar";
 import { RequestLogTable } from "@/components/request-log-table";
-import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
 	deleteEndpoint,
 	getEndpoints,
 	getProject,
 	getProjectStatistics,
-	getRequestLogs,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import type {
-	Endpoint,
-	EndpointStat,
-	HttpMethod,
-	UnmatchedRequest,
-} from "@/types";
+import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-	AlertTriangle,
-	ArrowLeft,
-	BarChart3,
-	Copy,
-	Layers,
-	Loader2,
-	Plus,
-	Route as RouteIcon,
-	ScrollText,
-	Settings,
-	Trash2,
-} from "lucide-react";
+import { Loader2, Plus, Route as RouteIcon, TrendingUp, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/projects/$id")({
@@ -42,22 +22,6 @@ export const Route = createFileRoute("/projects/$id")({
 });
 
 type TabId = "endpoints" | "logs" | "analytics" | "settings";
-
-function formatRelativeTime(dateStr: string | null): string {
-	if (!dateStr) return "never";
-	const date = new Date(dateStr);
-	const now = new Date();
-	const diffMs = now.getTime() - date.getTime();
-	const diffSec = Math.floor(diffMs / 1000);
-	const diffMin = Math.floor(diffSec / 60);
-	const diffHour = Math.floor(diffMin / 60);
-	const diffDay = Math.floor(diffHour / 24);
-
-	if (diffSec < 60) return "just now";
-	if (diffMin < 60) return `${diffMin}m ago`;
-	if (diffHour < 24) return `${diffHour}h ago`;
-	return `${diffDay}d ago`;
-}
 
 function EndpointRow({
 	endpoint,
@@ -67,7 +31,7 @@ function EndpointRow({
 }: {
 	endpoint: Endpoint;
 	projectId: string;
-	stat?: EndpointStat;
+	stat?: { requestCount: number };
 	onEdit: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -85,31 +49,17 @@ function EndpointRow({
 		<div
 			role="button"
 			tabIndex={0}
-			className="group flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:border-white/10 hover:bg-white/[0.05] transition-all cursor-pointer"
+			className="group flex items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer"
 			onClick={onEdit}
 			onKeyDown={(e) => e.key === "Enter" && onEdit()}
 		>
 			<MethodBadge method={endpoint.method} />
-			<span className="flex-1 font-mono text-sm">{endpoint.path}</span>
+			<span className="flex-1 font-['JetBrains_Mono'] text-sm text-[var(--text-primary)]">
+				{endpoint.path}
+			</span>
 			{stat && stat.requestCount > 0 && (
-				<span className="text-xs text-[var(--color-text-subtle)] tabular-nums">
+				<span className="text-xs text-[var(--text-muted)] tabular-nums font-['JetBrains_Mono']">
 					{stat.requestCount} hits
-				</span>
-			)}
-			{stat?.lastRequestAt && (
-				<span className="text-xs text-[var(--color-text-subtle)]">
-					{formatRelativeTime(stat.lastRequestAt)}
-				</span>
-			)}
-			<StatusBadge status={endpoint.status} />
-			{endpoint.delay > 0 && (
-				<span className="text-xs text-[var(--color-text-subtle)]">
-					+{endpoint.delay}ms
-				</span>
-			)}
-			{endpoint.failRate > 0 && (
-				<span className="text-xs text-[var(--color-warning)]">
-					{endpoint.failRate}% fail
 				</span>
 			)}
 			<div
@@ -153,75 +103,204 @@ function StatCard({
 	label,
 	value,
 	subtext,
+	trend,
 	color = "white",
 }: {
 	label: string;
 	value: string | number;
 	subtext?: string;
-	color?: "white" | "success" | "warning" | "accent-1" | "accent-2";
+	trend?: string;
+	color?: "white" | "success" | "warning" | "violet" | "blue";
 }) {
 	const colorMap = {
 		white: "text-white",
-		success: "text-[var(--color-success)]",
-		warning: "text-[var(--color-warning)]",
-		"accent-1": "text-[var(--color-accent-1)]",
-		"accent-2": "text-[var(--color-accent-2)]",
+		success: "text-[var(--status-success)]",
+		warning: "text-amber-400",
+		violet: "text-[var(--glow-violet)]",
+		blue: "text-[var(--glow-blue)]",
 	};
 
 	return (
-		<div className="glass rounded-xl p-4 bg-white/[0.02]">
-			<div className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
+		<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 hover:border-[var(--border-highlight)] transition-all">
+			<div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
 				{label}
 			</div>
-			<div className={`text-2xl font-bold ${colorMap[color]}`}>{value}</div>
+			<div className={`text-3xl font-bold font-['Outfit'] ${colorMap[color]}`}>
+				{value}
+			</div>
 			{subtext && (
-				<div className="text-xs text-[var(--color-text-subtle)] mt-1">
-					{subtext}
+				<div className="text-xs text-[var(--text-muted)] mt-2">{subtext}</div>
+			)}
+			{trend && (
+				<div className="text-xs text-[var(--status-success)] mt-2 flex items-center gap-1">
+					<TrendingUp className="h-3 w-3" />
+					{trend}
 				</div>
 			)}
 		</div>
 	);
 }
 
-function TopEndpointBar({
+function EndpointStatBar({
+	method,
 	path,
-	count,
+	requestCount,
 	maxCount,
-	color,
-	lastActive,
 }: {
+	method: HttpMethod;
 	path: string;
-	count: number;
+	requestCount: number;
 	maxCount: number;
-	color: string;
-	lastActive: string | null;
 }) {
-	const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+	const percentage = maxCount > 0 ? (requestCount / maxCount) * 100 : 0;
 
 	return (
 		<div className="mb-4 last:mb-0">
-			<div className="flex justify-between mb-1">
-				<span className="font-mono text-sm truncate">{path}</span>
-				<span className="font-bold">{count}</span>
+			<div className="flex justify-between items-center mb-1">
+				<div className="flex items-center gap-2">
+					<MethodBadge method={method} />
+					<span className="font-['JetBrains_Mono'] text-sm">{path}</span>
+				</div>
+				<span className="font-bold tabular-nums font-['JetBrains_Mono'] text-sm">
+					{requestCount.toLocaleString()}
+				</span>
 			</div>
-			<div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+			<div className="h-2 bg-white/10 rounded-full overflow-hidden">
 				<div
-					className="h-full rounded-full"
-					style={{ width: `${percentage}%`, background: color }}
+					className="h-full rounded-full transition-all duration-500 bg-[var(--glow-violet)]"
+					style={{ width: `${percentage}%` }}
 				/>
 			</div>
-			{lastActive && (
-				<div className="text-xs text-[var(--color-text-subtle)] mt-1">
-					Last active: {formatRelativeTime(lastActive)}
+		</div>
+	);
+}
+
+function ProjectAnalytics({
+	projectId,
+	statistics,
+	endpoints,
+}: {
+	projectId: string;
+	statistics: ProjectStatistics | undefined;
+	endpoints: Endpoint[];
+}) {
+	const totalRequests =
+		statistics?.endpoints.reduce((sum, e) => sum + e.requestCount, 0) ?? 0;
+	const totalUnmatched =
+		statistics?.unmatched.reduce((sum, u) => sum + u.count, 0) ?? 0;
+	const maxEndpointRequests = Math.max(
+		...(statistics?.endpoints.map((e) => e.requestCount) ?? [1]),
+		1,
+	);
+
+	const endpointMap = new Map(endpoints.map((e) => [e.id, e]));
+	const sortedEndpointStats = [...(statistics?.endpoints ?? [])].sort(
+		(a, b) => b.requestCount - a.requestCount,
+	);
+
+	return (
+		<div>
+			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Traffic Overview</h3>
+
+			{/* Stats Grid */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+				<StatCard
+					label="Total Requests"
+					value={totalRequests.toLocaleString()}
+					color="white"
+				/>
+				<StatCard
+					label="Unmatched"
+					value={totalUnmatched}
+					subtext={
+						totalRequests > 0
+							? `${((totalUnmatched / Math.max(totalRequests + totalUnmatched, 1)) * 100).toFixed(1)}% miss rate`
+							: undefined
+					}
+					color="warning"
+				/>
+				<StatCard
+					label="Endpoints"
+					value={endpoints.length}
+					color="violet"
+				/>
+				<StatCard
+					label="Avg Latency"
+					value="—"
+					subtext="Coming soon"
+					color="blue"
+				/>
+			</div>
+
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				{/* Traffic by Endpoint */}
+				<div>
+					<h4 className="text-lg font-bold mb-4 font-['Outfit']">
+						Traffic by Endpoint
+					</h4>
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+						{sortedEndpointStats.length === 0 ? (
+							<div className="text-center text-[var(--text-muted)] py-4">
+								No traffic yet
+							</div>
+						) : (
+							sortedEndpointStats.slice(0, 10).map((stat) => {
+								const endpoint = endpointMap.get(stat.endpointId);
+								if (!endpoint) return null;
+								return (
+									<EndpointStatBar
+										key={stat.endpointId}
+										method={endpoint.method}
+										path={endpoint.path}
+										requestCount={stat.requestCount}
+										maxCount={maxEndpointRequests}
+									/>
+								);
+							})
+						)}
+					</div>
 				</div>
-			)}
+
+				{/* Unmatched Requests */}
+				<div>
+					<h4 className="text-lg font-bold mb-4 font-['Outfit']">
+						Unmatched Requests
+					</h4>
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+						{(statistics?.unmatched ?? []).length === 0 ? (
+							<div className="text-center text-[var(--text-muted)] py-4">
+								No unmatched requests
+							</div>
+						) : (
+							<div className="space-y-3">
+								{statistics?.unmatched.slice(0, 10).map((req, index) => (
+									<div
+										key={`${req.method}-${req.path}-${index}`}
+										className="flex items-center justify-between p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl"
+									>
+										<div className="flex items-center gap-2">
+											<MethodBadge method={req.method as HttpMethod} />
+											<span className="font-['JetBrains_Mono'] text-sm truncate max-w-[200px]">
+												{req.path}
+											</span>
+										</div>
+										<span className="text-amber-400 font-bold tabular-nums text-sm">
+											{req.count}x
+										</span>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }
 
 function ProjectDetailPage() {
 	const { id: projectId } = Route.useParams();
-	const { isAuthenticated, isLoading: authLoading, org } = useAuth();
+	const { isAuthenticated, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
 
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");
@@ -254,50 +333,13 @@ function ProjectDetailPage() {
 		enabled: isAuthenticated,
 	});
 
-	const { data: logsData } = useQuery({
-		queryKey: ["logs", projectId, { limit: 100 }],
-		queryFn: () => getRequestLogs(projectId, { limit: 100 }),
-		refetchInterval: 5000,
-		enabled: isAuthenticated && activeTab === "analytics",
-	});
-
 	const statsMap = new Map(
 		statistics?.endpoints.map((s) => [s.endpointId, s]) ?? [],
 	);
 
-	const totalRequests =
-		statistics?.endpoints.reduce((sum, e) => sum + e.requestCount, 0) ?? 0;
-	const unmatchedCount =
-		statistics?.unmatched.reduce((sum, u) => sum + u.count, 0) ?? 0;
-	const activeEndpoints =
-		statistics?.endpoints.filter((e) => e.requestCount > 0).length ?? 0;
-
-	const topEndpoints = [...(statistics?.endpoints ?? [])]
-		.sort((a, b) => b.requestCount - a.requestCount)
-		.slice(0, 5);
-	const maxEndpointCount = topEndpoints[0]?.requestCount ?? 0;
-
-	const mockUrl =
-		project && org
-			? `http://localhost:4000/mock/${org.slug}/${project.slug}`
-			: "";
-
-	function handleCopyUrl() {
-		navigator.clipboard.writeText(mockUrl);
-	}
-
 	function handleNewEndpoint() {
 		setSelectedEndpoint(null);
 		setPrefillData(null);
-		setEndpointModalOpen(true);
-	}
-
-	function handleCreateFromUnmatched(unmatched: UnmatchedRequest) {
-		setSelectedEndpoint(null);
-		setPrefillData({
-			method: unmatched.method as HttpMethod,
-			path: unmatched.path,
-		});
 		setEndpointModalOpen(true);
 	}
 
@@ -335,351 +377,158 @@ function ProjectDetailPage() {
 		);
 	}
 
-	const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
-		{
-			id: "endpoints",
-			label: "Endpoints",
-			icon: <Layers className="h-4 w-4" />,
-		},
-		{ id: "logs", label: "Logs", icon: <ScrollText className="h-4 w-4" /> },
-		{
-			id: "analytics",
-			label: "Analytics",
-			icon: <BarChart3 className="h-4 w-4" />,
-		},
-		{
-			id: "settings",
-			label: "Settings",
-			icon: <Settings className="h-4 w-4" />,
-		},
-	];
-
-	const colors = [
-		"var(--color-accent-1)",
-		"var(--color-accent-2)",
-		"var(--color-accent-3)",
+	const navItems: { id: TabId; label: string }[] = [
+		{ id: "endpoints", label: "Endpoints" },
+		{ id: "logs", label: "Logs" },
+		{ id: "analytics", label: "Analytics" },
+		{ id: "settings", label: "Settings" },
 	];
 
 	return (
-		<div className="min-h-screen bg-[var(--color-bg)]">
-			<Navbar />
+		<main className="flex-1 flex flex-col overflow-hidden">
+			{/* Header */}
+			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
+				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+					<Link
+						to="/dashboard"
+						className="hover:text-[var(--text-secondary)] transition-colors"
+					>
+						Projects
+					</Link>
+					<span>/</span>
+					<span className="text-[var(--text-primary)] font-medium">
+						{project.name}
+					</span>
+				</div>
+				<div className="flex items-center gap-4">
+					<Button onClick={handleNewEndpoint}>
+						<Plus className="h-4 w-4 mr-2" />
+						Create Endpoint
+					</Button>
+				</div>
+			</header>
 
-			<main className="relative z-10 mx-auto max-w-7xl px-6 py-8 md:px-12">
-				<Link
-					to="/dashboard"
-					className="inline-flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-white mb-6 transition-colors"
-				>
-					<ArrowLeft className="h-4 w-4" />
-					Back to Projects
-				</Link>
-
-				<div className="glass rounded-2xl overflow-hidden">
-					<div className="grid grid-cols-[280px_1fr] min-h-[600px]">
-						{/* Sidebar */}
-						<div className="border-r border-white/10 p-6">
-							<div className="mb-6">
-								<h2 className="text-lg font-bold mb-1">{project.name}</h2>
-								<div className="text-sm text-[var(--color-text-muted)]">
-									Production
-								</div>
-							</div>
-
-							<div className="mb-6">
-								<div className="flex items-center gap-2 mb-2">
-									<code className="text-xs bg-white/5 px-2 py-1 rounded font-mono text-[var(--color-text-muted)] truncate flex-1">
-										{mockUrl}
-									</code>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-7 w-7"
-										onClick={handleCopyUrl}
-									>
-										<Copy className="h-3 w-3" />
-									</Button>
-								</div>
-							</div>
-
-							<nav className="space-y-1">
-								{navItems.map((item) => (
-									<button
-										key={item.id}
-										type="button"
-										onClick={() => setActiveTab(item.id)}
-										className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-											activeTab === item.id
-												? "bg-white/10 text-white border border-white/10"
-												: "text-white/60 hover:bg-white/5 hover:text-white"
-										}`}
-									>
-										{item.icon}
-										{item.label}
-									</button>
-								))}
-							</nav>
-						</div>
-
-						{/* Main Content */}
-						<div className="p-6 overflow-y-auto">
-							{/* Unmatched Requests Banner */}
-							{statistics &&
-								statistics.unmatched.length > 0 &&
-								activeTab === "endpoints" && (
-									<div className="mb-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-										<div className="flex items-center gap-2 mb-3">
-											<AlertTriangle className="h-4 w-4 text-amber-500" />
-											<span className="text-sm font-medium text-amber-500">
-												{statistics.unmatched.length} unmatched request
-												{statistics.unmatched.length > 1 ? "s" : ""}
-											</span>
-										</div>
-										<div className="space-y-2">
-											{statistics.unmatched.slice(0, 5).map((u) => (
-												<div
-													key={`${u.method}-${u.path}`}
-													className="flex items-center gap-3 text-sm"
-												>
-													<MethodBadge method={u.method as HttpMethod} />
-													<span className="flex-1 font-mono text-[var(--color-text-muted)]">
-														{u.path}
-													</span>
-													<span className="text-xs text-[var(--color-text-subtle)]">
-														{u.count}x
-													</span>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="h-7 text-xs"
-														onClick={() => handleCreateFromUnmatched(u)}
-													>
-														<Plus className="h-3 w-3 mr-1" />
-														Create
-													</Button>
-												</div>
-											))}
-										</div>
-									</div>
-								)}
-
-							{/* Endpoints Tab */}
-							{activeTab === "endpoints" && (
-								<div>
-									<div className="flex justify-between items-center mb-6">
-										<h3 className="text-xl font-bold">Endpoints</h3>
-										<div className="flex gap-2">
-											<Button
-												variant="secondary"
-												onClick={() => setImportModalOpen(true)}
-												className="rounded-full"
-											>
-												Import Spec
-											</Button>
-											<Button
-												onClick={handleNewEndpoint}
-												className="bg-white text-black hover:bg-gray-200 rounded-full"
-											>
-												+ Add Endpoint
-											</Button>
-										</div>
-									</div>
-
-									{endpointsLoading ? (
-										<div className="space-y-3">
-											{[1, 2, 3].map((i) => (
-												<div
-													key={i}
-													className="h-16 rounded-xl bg-white/[0.02] animate-pulse"
-												/>
-											))}
-										</div>
-									) : endpoints.length === 0 ? (
-										<EmptyState
-											icon={RouteIcon}
-											title="No endpoints yet"
-											description="Create endpoints manually or import from an OpenAPI spec."
-											action={{
-												label: "Create Endpoint",
-												onClick: handleNewEndpoint,
-											}}
-										/>
-									) : (
-										<div className="space-y-3">
-											{endpoints.map((endpoint) => (
-												<EndpointRow
-													key={endpoint.id}
-													endpoint={endpoint}
-													projectId={projectId}
-													stat={statsMap.get(endpoint.id)}
-													onEdit={() => handleEditEndpoint(endpoint)}
-												/>
-											))}
-										</div>
-									)}
-								</div>
-							)}
-
-							{/* Logs Tab */}
-							{activeTab === "logs" && (
-								<div>
-									<h3 className="text-xl font-bold mb-6">Request Logs</h3>
-									<RequestLogTable projectId={projectId} />
-								</div>
-							)}
-
-							{/* Analytics Tab */}
-							{activeTab === "analytics" && (
-								<div>
-									<div className="flex justify-between items-center mb-6">
-										<h3 className="text-xl font-bold">Traffic Overview</h3>
-									</div>
-
-									{/* Stats Grid */}
-									<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-										<StatCard
-											label="Total Requests"
-											value={totalRequests.toLocaleString()}
-											color="white"
-										/>
-										<StatCard
-											label="Unmatched (404s)"
-											value={unmatchedCount}
-											subtext={
-												totalRequests > 0
-													? `${((unmatchedCount / totalRequests) * 100).toFixed(1)}% error rate`
-													: undefined
-											}
-											color="warning"
-										/>
-										<StatCard
-											label="Avg Latency"
-											value="—"
-											subtext="Coming soon"
-											color="accent-2"
-										/>
-										<StatCard
-											label="Active Endpoints"
-											value={`${activeEndpoints}/${endpoints.length}`}
-											subtext={
-												endpoints.length - activeEndpoints > 0
-													? `${endpoints.length - activeEndpoints} unused`
-													: undefined
-											}
-											color="accent-1"
-										/>
-									</div>
-
-									<div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-										{/* Live Log Preview */}
-										<div>
-											<h4 className="text-sm font-bold mb-4">
-												Live Request Log
-											</h4>
-											<div className="glass rounded-xl overflow-hidden">
-												<table className="w-full text-sm">
-													<thead className="bg-white/[0.02]">
-														<tr className="border-b border-white/10">
-															<th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-																Time
-															</th>
-															<th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-																Method
-															</th>
-															<th className="text-left px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-																Path
-															</th>
-															<th className="text-right px-4 py-3 text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-																Status
-															</th>
-														</tr>
-													</thead>
-													<tbody>
-														{logsData?.logs.slice(0, 5).map((log) => (
-															<tr
-																key={log.id}
-																className={`border-b border-white/5 ${log.status >= 400 ? "bg-[var(--color-warning)]/5" : ""}`}
-															>
-																<td className="px-4 py-3 font-mono text-[var(--color-text-muted)]">
-																	{new Date(log.createdAt).toLocaleTimeString()}
-																</td>
-																<td className="px-4 py-3">
-																	<MethodBadge
-																		method={log.method as HttpMethod}
-																	/>
-																</td>
-																<td className="px-4 py-3 font-mono">
-																	{log.path}
-																</td>
-																<td className="px-4 py-3 text-right">
-																	<span
-																		className={
-																			log.status >= 400
-																				? "text-[var(--color-warning)]"
-																				: "text-[var(--color-success)]"
-																		}
-																	>
-																		{log.status}
-																	</span>
-																</td>
-															</tr>
-														)) ?? (
-															<tr>
-																<td
-																	colSpan={4}
-																	className="px-4 py-8 text-center text-[var(--color-text-muted)]"
-																>
-																	No requests yet
-																</td>
-															</tr>
-														)}
-													</tbody>
-												</table>
-											</div>
-										</div>
-
-										{/* Top Endpoints */}
-										<div>
-											<h4 className="text-sm font-bold mb-4">Top Endpoints</h4>
-											<div className="glass rounded-xl p-4">
-												{topEndpoints.length === 0 ? (
-													<div className="text-center text-[var(--color-text-muted)] py-4">
-														No traffic yet
-													</div>
-												) : (
-													topEndpoints.map((stat, index) => {
-														const endpoint = endpoints.find(
-															(e) => e.id === stat.endpointId,
-														);
-														return (
-															<TopEndpointBar
-																key={stat.endpointId}
-																path={endpoint?.path ?? "Unknown"}
-																count={stat.requestCount}
-																maxCount={maxEndpointCount}
-																color={colors[index % colors.length]}
-																lastActive={stat.lastRequestAt}
-															/>
-														);
-													})
-												)}
-											</div>
-										</div>
-									</div>
-								</div>
-							)}
-
-							{/* Settings Tab */}
-							{activeTab === "settings" && (
-								<div>
-									<h3 className="text-xl font-bold mb-6">Settings</h3>
-									<div className="text-[var(--color-text-muted)]">
-										Project settings coming soon...
-									</div>
-								</div>
-							)}
+			{/* Content */}
+			<div className="flex-1 overflow-y-auto p-8">
+				<div className="max-w-7xl mx-auto">
+					{/* Project Title */}
+					<div className="mb-6">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+							{project.name}
+						</h1>
+						<div className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
+							{project.slug}
 						</div>
 					</div>
+
+					{/* Controls Bar */}
+					<div className="flex justify-between items-center mb-6 bg-[var(--bg-surface)] p-2 rounded-2xl border border-[var(--border-subtle)]">
+						<div className="flex items-center gap-1 bg-[rgba(0,0,0,0.3)] p-1 rounded-xl">
+							{navItems.map((item) => (
+								<button
+									key={item.id}
+									type="button"
+									onClick={() => setActiveTab(item.id)}
+									className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+										activeTab === item.id
+											? "bg-[var(--bg-surface-active)] text-[var(--text-primary)] shadow-[0_0_10px_rgba(0,0,0,0.2)]"
+											: "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+									}`}
+								>
+									{item.label}
+								</button>
+							))}
+						</div>
+						<div className="relative">
+							<svg
+								className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] w-4 h-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								aria-hidden="true"
+							>
+								<circle cx="11" cy="11" r="8" />
+								<line x1="21" y1="21" x2="16.65" y2="16.65" />
+							</svg>
+							<input
+								type="text"
+								placeholder="Search endpoints..."
+								className="bg-[rgba(0,0,0,0.3)] border border-[var(--border-subtle)] rounded-xl pl-10 pr-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] w-60 transition-all duration-200 focus:outline-none focus:border-[var(--glow-violet)] focus:shadow-[0_0_0_2px_rgba(139,92,246,0.2)]"
+							/>
+						</div>
+					</div>
+
+					{/* Endpoints Tab */}
+					{activeTab === "endpoints" && (
+						<div className="space-y-2">
+							{endpointsLoading ? (
+								<div className="space-y-3">
+									{[1, 2, 3].map((i) => (
+										<div
+											key={i}
+											className="h-16 rounded-xl bg-[var(--bg-surface)] animate-pulse"
+										/>
+									))}
+								</div>
+							) : endpoints.length === 0 ? (
+								<EmptyState
+									icon={RouteIcon}
+									title="No endpoints yet"
+									description="Create endpoints manually or import from an OpenAPI spec."
+									action={{
+										label: "Create Endpoint",
+										onClick: handleNewEndpoint,
+									}}
+								/>
+							) : (
+								<div className="space-y-2">
+									{endpoints.map((endpoint) => (
+										<EndpointRow
+											key={endpoint.id}
+											endpoint={endpoint}
+											projectId={projectId}
+											stat={statsMap.get(endpoint.id)}
+											onEdit={() => handleEditEndpoint(endpoint)}
+										/>
+									))}
+								</div>
+							)}
+						</div>
+					)}
+
+					{/* Logs Tab */}
+					{activeTab === "logs" && (
+						<div>
+							<h3 className="text-xl font-bold mb-6 font-['Outfit']">
+								Request Logs
+							</h3>
+							<RequestLogTable projectId={projectId} />
+						</div>
+					)}
+
+					{/* Analytics Tab */}
+					{activeTab === "analytics" && (
+						<ProjectAnalytics
+							projectId={projectId}
+							statistics={statistics}
+							endpoints={endpoints}
+						/>
+					)}
+
+					{/* Settings Tab */}
+					{activeTab === "settings" && (
+						<div>
+							<h3 className="text-xl font-bold mb-6 font-['Outfit']">
+								Settings
+							</h3>
+							<div className="text-[var(--text-muted)]">
+								Project settings coming soon...
+							</div>
+						</div>
+					)}
 				</div>
-			</main>
+			</div>
 
 			{/* Modals */}
 			<EndpointForm
@@ -695,6 +544,6 @@ function ProjectDetailPage() {
 				open={importModalOpen}
 				onOpenChange={setImportModalOpen}
 			/>
-		</div>
+		</main>
 	);
 }

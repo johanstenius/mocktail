@@ -53,7 +53,7 @@ function TabsList({
 	return (
 		<div
 			className={cn(
-				"inline-flex h-10 items-center gap-1 rounded-lg bg-white/5 p-1",
+				"inline-flex items-center gap-1 rounded-xl bg-[rgba(0,0,0,0.3)] p-1 border border-[var(--border-subtle)]",
 				className,
 			)}
 		>
@@ -79,10 +79,10 @@ function TabsTrigger({
 			type="button"
 			onClick={() => onValueChange(value)}
 			className={cn(
-				"inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+				"inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-1.5 text-sm font-medium transition-all duration-200",
 				isSelected
-					? "bg-white/10 text-white"
-					: "text-[var(--color-text-muted)] hover:text-white",
+					? "bg-[var(--bg-surface-active)] text-[var(--text-primary)] shadow-[0_0_10px_rgba(0,0,0,0.2)]"
+					: "text-[var(--text-muted)] hover:text-[var(--text-secondary)]",
 				className,
 			)}
 		>

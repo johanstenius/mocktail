@@ -1,0 +1,183 @@
+import * as endpointRepo from "../repositories/endpoint.repository";
+import * as projectRepo from "../repositories/project.repository";
+import * as userRepo from "../repositories/user.repository";
+import { conflict } from "../utils/errors";
+
+export async function markComplete(userId: string) {
+	await userRepo.markOnboardingComplete(userId);
+	return { success: true };
+}
+
+const SAMPLE_PROJECT_SLUG = "petstore-demo";
+
+const SAMPLE_ENDPOINTS = [
+	{
+		method: "GET",
+		path: "/pets",
+		status: 200,
+		body: JSON.stringify(
+			{
+				pets: [
+					{ id: 1, name: "Max", species: "dog", age: 3, status: "available" },
+					{ id: 2, name: "Bella", species: "cat", age: 2, status: "available" },
+					{ id: 3, name: "Charlie", species: "dog", age: 5, status: "adopted" },
+				],
+				total: 3,
+			},
+			null,
+			2,
+		),
+	},
+	{
+		method: "GET",
+		path: "/pets/:id",
+		status: 200,
+		body: JSON.stringify(
+			{
+				id: 1,
+				name: "Max",
+				species: "dog",
+				breed: "Golden Retriever",
+				age: 3,
+				status: "available",
+				description: "Friendly and playful golden retriever",
+				createdAt: "2024-01-15T10:30:00Z",
+			},
+			null,
+			2,
+		),
+	},
+	{
+		method: "POST",
+		path: "/pets",
+		status: 201,
+		body: JSON.stringify(
+			{
+				id: 4,
+				name: "Luna",
+				species: "cat",
+				breed: "Siamese",
+				age: 1,
+				status: "available",
+				createdAt: "2024-03-20T14:00:00Z",
+			},
+			null,
+			2,
+		),
+	},
+	{
+		method: "PUT",
+		path: "/pets/:id",
+		status: 200,
+		body: JSON.stringify(
+			{
+				id: 1,
+				name: "Max",
+				species: "dog",
+				breed: "Golden Retriever",
+				age: 4,
+				status: "adopted",
+				updatedAt: "2024-03-21T09:15:00Z",
+			},
+			null,
+			2,
+		),
+	},
+	{
+		method: "DELETE",
+		path: "/pets/:id",
+		status: 204,
+		body: "",
+	},
+	{
+		method: "GET",
+		path: "/users",
+		status: 200,
+		body: JSON.stringify(
+			{
+				users: [
+					{
+						id: 1,
+						name: "Alice Johnson",
+						email: "alice@example.com",
+						role: "admin",
+					},
+					{
+						id: 2,
+						name: "Bob Smith",
+						email: "bob@example.com",
+						role: "customer",
+					},
+				],
+				total: 2,
+			},
+			null,
+			2,
+		),
+	},
+	{
+		method: "GET",
+		path: "/users/:id",
+		status: 200,
+		body: JSON.stringify(
+			{
+				id: 1,
+				name: "Alice Johnson",
+				email: "alice@example.com",
+				role: "admin",
+				pets: [{ id: 3, name: "Charlie", species: "dog" }],
+				createdAt: "2024-01-01T00:00:00Z",
+			},
+			null,
+			2,
+		),
+	},
+];
+
+async function generateUniqueSlug(baseSlug: string, orgId: string) {
+	let slug = baseSlug;
+	let suffix = 0;
+	while (await projectRepo.findBySlugAndOrgId(slug, orgId)) {
+		suffix++;
+		slug = `${baseSlug}-${suffix}`;
+	}
+	return slug;
+}
+
+export type SampleProjectResult = {
+	project: { id: string; name: string; slug: string };
+	endpointsCreated: number;
+};
+
+export async function createSampleProject(
+	orgId: string,
+): Promise<SampleProjectResult> {
+	const slug = await generateUniqueSlug(SAMPLE_PROJECT_SLUG, orgId);
+
+	const project = await projectRepo.create({
+		name: "Petstore Demo",
+		slug,
+		orgId,
+	});
+
+	let endpointsCreated = 0;
+	for (const endpoint of SAMPLE_ENDPOINTS) {
+		await endpointRepo.create({
+			projectId: project.id,
+			method: endpoint.method,
+			path: endpoint.path,
+			status: endpoint.status,
+			headers: JSON.stringify({ "Content-Type": "application/json" }),
+			body: endpoint.body,
+			bodyType: "json",
+			delay: 0,
+			failRate: 0,
+		});
+		endpointsCreated++;
+	}
+
+	return {
+		project: { id: project.id, name: project.name, slug: project.slug },
+		endpointsCreated,
+	};
+}

@@ -97,14 +97,14 @@ function DialogContent({
 			<div
 				ref={contentRef}
 				className={cn(
-					"relative z-50 w-full max-w-lg rounded-2xl border border-white/10 bg-[var(--color-bg-subtle)] p-6 shadow-2xl",
+					"relative z-50 w-full max-w-lg rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] backdrop-blur-xl p-6 shadow-2xl",
 					className,
 				)}
 			>
 				<button
 					type="button"
 					onClick={() => onOpenChange(false)}
-					className="absolute right-4 top-4 rounded-lg p-1 text-[var(--color-text-subtle)] hover:bg-white/5 hover:text-white transition-colors"
+					className="absolute right-4 top-4 rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)] transition-colors"
 				>
 					<X className="h-4 w-4" />
 				</button>
@@ -132,7 +132,12 @@ function DialogTitle({
 	className?: string;
 }) {
 	return (
-		<h2 className={cn("text-lg font-semibold text-white", className)}>
+		<h2
+			className={cn(
+				"text-lg font-semibold text-[var(--text-primary)] font-['Outfit']",
+				className,
+			)}
+		>
 			{children}
 		</h2>
 	);
@@ -146,7 +151,7 @@ function DialogDescription({
 	className?: string;
 }) {
 	return (
-		<p className={cn("text-sm text-[var(--color-text-muted)]", className)}>
+		<p className={cn("text-sm text-[var(--text-secondary)]", className)}>
 			{children}
 		</p>
 	);
