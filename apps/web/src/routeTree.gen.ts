@@ -14,9 +14,11 @@ import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
 import { Route as RegisterRouteImport } from "./routes/register"
 import { Route as ProjectsRouteImport } from "./routes/projects"
 import { Route as LoginRouteImport } from "./routes/login"
+import { Route as InviteRouteImport } from "./routes/invite"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as BillingRouteImport } from "./routes/billing"
+import { Route as ApiKeysRouteImport } from "./routes/api-keys"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as ProjectIdRouteImport } from "./routes/project.$id"
@@ -46,6 +48,11 @@ const LoginRoute = LoginRouteImport.update({
   path: "/login",
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteRoute = InviteRouteImport.update({
+  id: "/invite",
+  path: "/invite",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: "/forgot-password",
   path: "/forgot-password",
@@ -59,6 +66,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const BillingRoute = BillingRouteImport.update({
   id: "/billing",
   path: "/billing",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiKeysRoute = ApiKeysRouteImport.update({
+  id: "/api-keys",
+  path: "/api-keys",
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -80,9 +92,11 @@ const ProjectIdRoute = ProjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/api-keys": typeof ApiKeysRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
@@ -93,9 +107,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/api-keys": typeof ApiKeysRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
@@ -107,9 +123,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/api-keys": typeof ApiKeysRoute
   "/billing": typeof BillingRoute
   "/dashboard": typeof DashboardRoute
   "/forgot-password": typeof ForgotPasswordRoute
+  "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
@@ -122,9 +140,11 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/analytics"
+    | "/api-keys"
     | "/billing"
     | "/dashboard"
     | "/forgot-password"
+    | "/invite"
     | "/login"
     | "/projects"
     | "/register"
@@ -135,9 +155,11 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/analytics"
+    | "/api-keys"
     | "/billing"
     | "/dashboard"
     | "/forgot-password"
+    | "/invite"
     | "/login"
     | "/projects"
     | "/register"
@@ -148,9 +170,11 @@ export interface FileRouteTypes {
     | "__root__"
     | "/"
     | "/analytics"
+    | "/api-keys"
     | "/billing"
     | "/dashboard"
     | "/forgot-password"
+    | "/invite"
     | "/login"
     | "/projects"
     | "/register"
@@ -162,9 +186,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  ApiKeysRoute: typeof ApiKeysRoute
   BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
   ProjectsRoute: typeof ProjectsRoute
   RegisterRoute: typeof RegisterRoute
@@ -210,6 +236,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/invite": {
+      id: "/invite"
+      path: "/invite"
+      fullPath: "/invite"
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/forgot-password": {
       id: "/forgot-password"
       path: "/forgot-password"
@@ -229,6 +262,13 @@ declare module "@tanstack/react-router" {
       path: "/billing"
       fullPath: "/billing"
       preLoaderRoute: typeof BillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/api-keys": {
+      id: "/api-keys"
+      path: "/api-keys"
+      fullPath: "/api-keys"
+      preLoaderRoute: typeof ApiKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/analytics": {
@@ -258,9 +298,11 @@ declare module "@tanstack/react-router" {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  ApiKeysRoute: ApiKeysRoute,
   BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
   ProjectsRoute: ProjectsRoute,
   RegisterRoute: RegisterRoute,

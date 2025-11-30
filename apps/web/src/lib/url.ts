@@ -1,8 +1,12 @@
 const MOCK_API_URL = "http://localhost:4000";
 
+export function getProjectBaseUrl(projectSlug: string): string {
+	return `${MOCK_API_URL}/mock/${projectSlug}`;
+}
+
 export function getMockUrl(projectSlug: string, endpointPath: string): string {
 	const path = endpointPath.startsWith("/") ? endpointPath : `/${endpointPath}`;
-	return `${MOCK_API_URL}/m/${projectSlug}${path}`;
+	return `${getProjectBaseUrl(projectSlug)}${path}`;
 }
 
 export function getCurlCommand(

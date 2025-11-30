@@ -112,6 +112,21 @@ export type AuthResponse = {
 	tokens: TokenResponse;
 };
 
+export type AcceptInviteResponse = {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+	user: {
+		id: string;
+		email: string;
+		orgId: string;
+		orgName: string;
+		orgSlug: string;
+		role: string;
+	};
+	isExistingUser: boolean;
+};
+
 export type MeResponse = {
 	id: string;
 	email: string;
@@ -210,4 +225,21 @@ export type ActivityItem = {
 export type SampleProjectResult = {
 	project: { id: string; name: string; slug: string };
 	endpointsCreated: number;
+};
+
+// API Keys
+export type ApiKey = {
+	id: string;
+	key: string;
+	name: string;
+	createdAt: string;
+};
+
+export type CreateApiKeyInput = {
+	name: string;
+};
+
+export type CreateApiKeyResponse = {
+	apiKey: ApiKey;
+	fullKey: string;
 };

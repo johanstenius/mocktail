@@ -1,3 +1,4 @@
+import { ApiKeyRowSkeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -267,12 +268,9 @@ function ApiKeysPage() {
 
 					{keysLoading ? (
 						<div className="space-y-3">
-							{[1, 2, 3].map((i) => (
-								<div
-									key={i}
-									className="h-20 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] animate-pulse"
-								/>
-							))}
+							<ApiKeyRowSkeleton />
+							<ApiKeyRowSkeleton />
+							<ApiKeyRowSkeleton />
 						</div>
 					) : apiKeys.length === 0 ? (
 						<div className="text-center py-12 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl">

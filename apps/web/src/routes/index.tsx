@@ -90,7 +90,7 @@ function LandingPage() {
 							<span className="text-[#c084fc]">await</span>{" "}
 							<span className="text-[#60a5fa]">fetch</span>(
 							<span className="text-[#86efac]">
-								'https://api.mocktail.dev/m/shop-v1/products'
+								'https://api.mocktail.dev/mock/shop-v1/products'
 							</span>
 							);
 						</div>

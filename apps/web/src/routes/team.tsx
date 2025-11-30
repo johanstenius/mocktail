@@ -1,3 +1,4 @@
+import { MemberRowSkeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -356,12 +357,9 @@ function TeamPage() {
 
 					{isLoading ? (
 						<div className="space-y-3">
-							{[1, 2, 3].map((i) => (
-								<div
-									key={i}
-									className="h-20 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] animate-pulse"
-								/>
-							))}
+							<MemberRowSkeleton />
+							<MemberRowSkeleton />
+							<MemberRowSkeleton />
 						</div>
 					) : (
 						<>

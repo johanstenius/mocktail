@@ -240,6 +240,7 @@ export type AcceptInviteResult = {
 		email: string;
 		orgId: string;
 		orgName: string;
+		orgSlug: string;
 		role: OrgRole;
 		emailVerifiedAt: string | null;
 	};
@@ -294,6 +295,7 @@ export async function acceptInvite(
 				email: invite.email,
 				orgId: invite.orgId,
 				orgName: invite.org.name,
+				orgSlug: invite.org.slug,
 				role: invite.role,
 				emailVerifiedAt: existingUser.emailVerifiedAt?.toISOString() ?? null,
 			},
@@ -330,6 +332,7 @@ export async function acceptInvite(
 			email: invite.email,
 			orgId: invite.orgId,
 			orgName: invite.org.name,
+			orgSlug: invite.org.slug,
 			role: invite.role,
 			emailVerifiedAt: null,
 		},

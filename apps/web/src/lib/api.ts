@@ -1,6 +1,10 @@
 import type {
+	AcceptInviteResponse,
 	ActivityItem,
+	ApiKey,
 	AuthResponse,
+	CreateApiKeyInput,
+	CreateApiKeyResponse,
 	CreateEndpointInput,
 	CreateInviteInput,
 	CreateProjectInput,
@@ -329,8 +333,8 @@ export async function getInviteByToken(token: string): Promise<InviteInfo> {
 export async function acceptInvite(
 	token: string,
 	password?: string,
-): Promise<AuthResponse> {
-	return fetchJson<AuthResponse>(`${API_BASE}/api/invites/accept`, {
+): Promise<AcceptInviteResponse> {
+	return fetchJson<AcceptInviteResponse>(`${API_BASE}/api/invites/accept`, {
 		method: "POST",
 		body: JSON.stringify({ token, password }),
 	});
@@ -388,4 +392,29 @@ export async function createSampleProject(): Promise<SampleProjectResult> {
 		`${API_BASE}/api/onboarding/sample-project`,
 		{ method: "POST" },
 	);
+}
+
+// API Keys
+export async function getApiKeys(): Promise<ApiKey[]> {
+	const data = await fetchJson<{ apiKeys: ApiKey[] }>(
+		`${API_BASE}/api/api-keys`,
+	);
+	return data.apiKeys;
+}
+
+export async function createApiKey(
+	input: CreateApiKeyInput,
+): Promise<CreateApiKeyResponse> {
+	return fetchJson<CreateApiKeyResponse>(`${API_BASE}/api/api-keys`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+}
+
+export async function deleteApiKey(id: string): Promise<void> {
+	const token = getAccessToken();
+	await fetch(`${API_BASE}/api/api-keys/${id}`, {
+		method: "DELETE",
+		headers: token ? { Authorization: `Bearer ${token}` } : {},
+	});
 }

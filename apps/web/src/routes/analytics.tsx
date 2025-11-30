@@ -1,4 +1,10 @@
 import { MethodBadge } from "@/components/method-badge";
+import {
+	ProjectStatBarSkeleton,
+	Skeleton,
+	StatCardSkeleton,
+	TableRowSkeleton,
+} from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { getProjects, getRequestLogs } from "@/lib/api";
@@ -214,9 +220,62 @@ function AnalyticsPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-7xl mx-auto">
 					{projectsLoading ? (
-						<div className="flex items-center justify-center py-20">
-							<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
-						</div>
+						<>
+							{/* Stats Grid Skeleton */}
+							<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+								<StatCardSkeleton />
+								<StatCardSkeleton />
+								<StatCardSkeleton />
+								<StatCardSkeleton />
+							</div>
+
+							<div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
+								{/* Live Log Skeleton */}
+								<div>
+									<Skeleton className="h-6 w-36 mb-4" />
+									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
+										<table className="w-full text-sm">
+											<thead className="bg-[rgba(0,0,0,0.3)]">
+												<tr className="border-b border-[var(--border-subtle)]">
+													<th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Time
+													</th>
+													<th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Project
+													</th>
+													<th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Method
+													</th>
+													<th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Path
+													</th>
+													<th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Status
+													</th>
+												</tr>
+											</thead>
+											<tbody>
+												<TableRowSkeleton columns={5} />
+												<TableRowSkeleton columns={5} />
+												<TableRowSkeleton columns={5} />
+												<TableRowSkeleton columns={5} />
+												<TableRowSkeleton columns={5} />
+											</tbody>
+										</table>
+									</div>
+								</div>
+
+								{/* Project Stats Skeleton */}
+								<div>
+									<Skeleton className="h-6 w-36 mb-4" />
+									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+										<ProjectStatBarSkeleton />
+										<ProjectStatBarSkeleton />
+										<ProjectStatBarSkeleton />
+									</div>
+								</div>
+							</div>
+						</>
 					) : projects.length === 0 ? (
 						<div className="text-center py-20">
 							<div className="text-[var(--text-muted)] mb-4">

@@ -1,3 +1,8 @@
+import {
+	ActivityItemSkeleton,
+	GlassStatCardSkeleton,
+	Skeleton,
+} from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import { WelcomeModal } from "@/components/welcome-modal";
 import {
@@ -78,6 +83,66 @@ function StatsGrid({ stats }: { stats: DashboardStats }) {
 				icon={Users}
 				accent="bg-[var(--glow-pink)]/20"
 			/>
+		</div>
+	);
+}
+
+function StatsGridSkeleton() {
+	return (
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<GlassStatCardSkeleton />
+			<GlassStatCardSkeleton />
+			<GlassStatCardSkeleton />
+			<GlassStatCardSkeleton />
+		</div>
+	);
+}
+
+function OnboardingChecklistSkeleton() {
+	return (
+		<div className="glass rounded-xl p-6">
+			<div className="flex items-center justify-between mb-4">
+				<Skeleton className="h-5 w-24" />
+				<Skeleton className="h-4 w-20" />
+			</div>
+			<Skeleton className="h-1.5 w-full rounded-full mb-6" />
+			<div className="space-y-3">
+				{[1, 2, 3, 4].map((i) => (
+					<div key={i} className="flex items-center justify-between py-2">
+						<div className="flex items-center gap-3">
+							<Skeleton className="w-5 h-5 rounded-full" />
+							<Skeleton className="h-4 w-40" />
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function ActivityFeedSkeleton() {
+	return (
+		<div className="glass rounded-xl p-6">
+			<Skeleton className="h-5 w-32 mb-4" />
+			<div className="space-y-1">
+				<ActivityItemSkeleton />
+				<ActivityItemSkeleton />
+				<ActivityItemSkeleton />
+				<ActivityItemSkeleton />
+				<ActivityItemSkeleton />
+			</div>
+		</div>
+	);
+}
+
+function QuickActionsSkeleton() {
+	return (
+		<div className="glass rounded-xl p-6">
+			<Skeleton className="h-5 w-28 mb-4" />
+			<div className="grid grid-cols-2 gap-3">
+				<Skeleton className="h-12 rounded-lg" />
+				<Skeleton className="h-12 rounded-lg" />
+			</div>
 		</div>
 	);
 }
@@ -323,7 +388,7 @@ function DashboardPage() {
 		enabled: isAuthenticated,
 	});
 
-	if (authLoading || statsLoading) {
+	if (authLoading) {
 		return (
 			<div className="flex-1 flex items-center justify-center">
 				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
@@ -335,6 +400,8 @@ function DashboardPage() {
 		navigate({ to: "/login" });
 		return null;
 	}
+
+	const isLoading = statsLoading;
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
@@ -357,18 +424,29 @@ function DashboardPage() {
 						</p>
 					</div>
 
-					{stats && <StatsGrid stats={stats} />}
+					{isLoading ? (
+						<StatsGridSkeleton />
+					) : (
+						stats && <StatsGrid stats={stats} />
+					)}
 
 					<div className="grid lg:grid-cols-3 gap-6">
 						<div className="lg:col-span-2 space-y-6">
-							{stats && (
-								<OnboardingChecklist stats={stats} projects={projects} />
+							{isLoading ? (
+								<>
+									<OnboardingChecklistSkeleton />
+									<ActivityFeedSkeleton />
+								</>
+							) : (
+								<>
+									{stats && (
+										<OnboardingChecklist stats={stats} projects={projects} />
+									)}
+									<ActivityFeed activity={activity} />
+								</>
 							)}
-							<ActivityFeed activity={activity} />
 						</div>
-						<div>
-							<QuickActions />
-						</div>
+						<div>{isLoading ? <QuickActionsSkeleton /> : <QuickActions />}</div>
 					</div>
 				</div>
 			</div>

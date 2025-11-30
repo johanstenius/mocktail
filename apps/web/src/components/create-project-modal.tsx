@@ -93,7 +93,7 @@ export function CreateProjectModal({
 							<p className="text-xs text-[var(--color-text-subtle)]">
 								Your mock API will be available at{" "}
 								<code className="rounded bg-white/5 px-1 py-0.5">
-									/m/{slug || "..."}/*
+									/mock/{slug || "..."}/*
 								</code>
 							</p>
 						</div>

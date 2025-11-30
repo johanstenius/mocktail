@@ -26,6 +26,7 @@ type AuthContextValue = AuthState & {
 	) => Promise<void>;
 	logout: () => Promise<void>;
 	setOnboardingComplete: () => void;
+	setTokens: (tokens: TokenResponse, user: AuthUser, org: AuthOrg) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -158,9 +159,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		});
 	}, []);
 
+	const setTokens = useCallback(
+		(tokens: TokenResponse, user: AuthUser, org: AuthOrg) => {
+			storeTokens(tokens);
+			setState({
+				user,
+				org,
+				hasCompletedOnboarding: true,
+				isLoading: false,
+				isAuthenticated: true,
+			});
+		},
+		[],
+	);
+
 	return (
 		<AuthContext.Provider
-			value={{ ...state, login, register, logout, setOnboardingComplete }}
+			value={{
+				...state,
+				login,
+				register,
+				logout,
+				setOnboardingComplete,
+				setTokens,
+			}}
 		>
 			{children}
 		</AuthContext.Provider>

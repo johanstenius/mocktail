@@ -1,3 +1,4 @@
+import { TierCardSkeleton, UsageBarSkeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -265,9 +266,25 @@ function BillingPage() {
 					</div>
 
 					{isLoading ? (
-						<div className="space-y-6">
-							<div className="h-48 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] animate-pulse" />
-							<div className="h-64 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] animate-pulse" />
+						<div className="space-y-8">
+							{/* Usage Section Skeleton */}
+							<div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
+								<div className="h-5 w-28 bg-[var(--bg-surface-active)] rounded animate-pulse mb-6" />
+								<div className="grid gap-6">
+									<UsageBarSkeleton />
+									<UsageBarSkeleton />
+									<UsageBarSkeleton />
+									<UsageBarSkeleton />
+								</div>
+							</div>
+
+							{/* Plans Section Skeleton */}
+							<div className="h-5 w-12 bg-[var(--bg-surface-active)] rounded animate-pulse mb-4" />
+							<div className="grid md:grid-cols-3 gap-6">
+								<TierCardSkeleton />
+								<TierCardSkeleton />
+								<TierCardSkeleton />
+							</div>
 						</div>
 					) : (
 						<>

@@ -4,6 +4,7 @@ import { EndpointForm } from "@/components/endpoint-form";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
 import { RequestLogTable } from "@/components/request-log-table";
+import { EndpointRowSkeleton, Skeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import {
 	deleteEndpoint,
@@ -12,7 +13,7 @@ import {
 	getProjectStatistics,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { getCurlCommand, getMockUrl } from "@/lib/url";
+import { getCurlCommand, getMockUrl, getProjectBaseUrl } from "@/lib/url";
 import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -411,9 +412,30 @@ function ProjectDetailPage() {
 
 	if (projectLoading) {
 		return (
-			<div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
-				<div className="text-[var(--color-text-muted)]">Loading...</div>
-			</div>
+			<main className="flex-1 flex flex-col overflow-hidden">
+				<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
+					<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
+						<Skeleton className="h-4 w-16" />
+						<span className="opacity-50">/</span>
+						<Skeleton className="h-4 w-24" />
+					</div>
+					<Skeleton className="h-9 w-36 rounded-lg" />
+				</header>
+				<div className="flex-1 overflow-y-auto p-8">
+					<div className="max-w-7xl mx-auto">
+						<div className="mb-6">
+							<Skeleton className="h-9 w-48 mb-2" />
+							<Skeleton className="h-7 w-64 rounded-lg" />
+						</div>
+						<Skeleton className="h-12 w-full rounded-2xl mb-6" />
+						<div className="space-y-2">
+							<EndpointRowSkeleton />
+							<EndpointRowSkeleton />
+							<EndpointRowSkeleton />
+						</div>
+					</div>
+				</div>
+			</main>
 		);
 	}
 
@@ -467,8 +489,17 @@ function ProjectDetailPage() {
 						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
 							{project.name}
 						</h1>
-						<div className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
-							{project.slug}
+						<div className="flex items-center gap-2">
+							<code className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm bg-[var(--bg-surface)] px-2 py-1 rounded-lg border border-[var(--border-subtle)]">
+								{getProjectBaseUrl(project.slug)}
+							</code>
+							<CopyButton
+								value={getProjectBaseUrl(project.slug)}
+								label="Copy base URL"
+								variant="ghost"
+								size="icon"
+								className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+							/>
 						</div>
 					</div>
 
@@ -514,13 +545,10 @@ function ProjectDetailPage() {
 					{activeTab === "endpoints" && (
 						<div className="space-y-2">
 							{endpointsLoading ? (
-								<div className="space-y-3">
-									{[1, 2, 3].map((i) => (
-										<div
-											key={i}
-											className="h-16 rounded-xl bg-[var(--bg-surface)] animate-pulse"
-										/>
-									))}
+								<div className="space-y-2">
+									<EndpointRowSkeleton />
+									<EndpointRowSkeleton />
+									<EndpointRowSkeleton />
 								</div>
 							) : endpoints.length === 0 ? (
 								<EmptyState

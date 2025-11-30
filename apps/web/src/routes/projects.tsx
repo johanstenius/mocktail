@@ -1,5 +1,6 @@
 import { CreateProjectModal } from "@/components/create-project-modal";
 import { EmptyState } from "@/components/empty-state";
+import { ProjectCardSkeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import {
 	createSampleProject,
@@ -52,7 +53,7 @@ function ProjectCard({
 						</h3>
 					</div>
 					<div className="text-sm text-[var(--text-secondary)] font-['JetBrains_Mono'] mt-0.5">
-						/m/{project.slug}
+						/mock/{project.slug}
 					</div>
 				</div>
 			</div>
@@ -102,18 +103,6 @@ function ProjectCard({
 						</Button>
 					)}
 				</div>
-			</div>
-		</div>
-	);
-}
-
-function ProjectSkeleton() {
-	return (
-		<div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 flex items-center gap-4">
-			<div className="h-10 w-10 rounded-xl bg-[var(--bg-surface-active)] animate-pulse" />
-			<div className="flex-1">
-				<div className="h-5 w-32 rounded bg-[var(--bg-surface-active)] animate-pulse mb-1" />
-				<div className="h-4 w-24 rounded bg-[var(--bg-surface-active)] animate-pulse" />
 			</div>
 		</div>
 	);
@@ -207,9 +196,9 @@ function ProjectsPage() {
 
 					{isLoading ? (
 						<div className="space-y-3">
-							<ProjectSkeleton />
-							<ProjectSkeleton />
-							<ProjectSkeleton />
+							<ProjectCardSkeleton />
+							<ProjectCardSkeleton />
+							<ProjectCardSkeleton />
 						</div>
 					) : projects.length === 0 ? (
 						<EmptyState
