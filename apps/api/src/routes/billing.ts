@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { logger } from "../lib/logger";
 import { authMiddleware, getAuth, requireRole } from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
@@ -111,7 +112,7 @@ billingRouter.post("/webhook", async (c) => {
 		await stripeService.handleWebhookEvent(payload, signature);
 		return c.json({ received: true });
 	} catch (err) {
-		console.error("[Billing Webhook] Error:", err);
+		logger.error({ err }, "webhook error");
 		return c.json({ error: "Webhook error" }, 400);
 	}
 });

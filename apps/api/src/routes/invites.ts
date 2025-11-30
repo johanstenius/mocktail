@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { logger } from "../lib/logger";
 import { authMiddleware, getAuth } from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
@@ -51,6 +52,8 @@ invitesRouter.openapi(createInviteRoute, async (c) => {
 	const inviter = await userRepo.findById(userId);
 
 	if (org && inviter) {
+		logger.info("invite sent");
+
 		await emailService.sendInviteEmail({
 			to: email,
 			orgName: org.name,
@@ -58,6 +61,8 @@ invitesRouter.openapi(createInviteRoute, async (c) => {
 			token,
 			role: inviteRole,
 		});
+	} else {
+		logger.info("no invite sent");
 	}
 
 	return c.json({ invite }, 201);

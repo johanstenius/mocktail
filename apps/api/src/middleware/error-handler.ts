@@ -1,6 +1,7 @@
 import type { ErrorHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
+import { logger } from "../lib/logger";
 import { ErrorCode } from "../utils/errors";
 
 type PrismaError = Error & { code?: string };
@@ -63,7 +64,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
 	}
 
 	// Unknown error
-	console.error("Unhandled error:", err);
+	logger.error({ err }, "unhandled error");
 	return c.json<ErrorResponse>(
 		{
 			error: "Internal server error",

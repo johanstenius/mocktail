@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { config } from "../config";
+import { logger } from "../lib/logger";
 import * as orgRepo from "../repositories/organization.repository";
 
 const stripe = config.stripeSecretKey
@@ -148,7 +149,7 @@ async function handleCheckoutCompleted(
 ): Promise<void> {
 	const orgId = session.metadata?.orgId;
 	if (!orgId) {
-		console.error("stripe checkout.session.completed missing orgId");
+		logger.error("checkout.session.completed missing orgId");
 		return;
 	}
 
@@ -162,7 +163,7 @@ async function handleCheckoutCompleted(
 		stripeSubscriptionId: subscriptionId ?? null,
 	});
 
-	console.log(`stripe org ${orgId} upgraded to PRO`);
+	logger.info({ orgId }, "org upgraded to PRO");
 }
 
 async function handleSubscriptionUpdated(
@@ -176,7 +177,7 @@ async function handleSubscriptionUpdated(
 	const org = await orgRepo.findByStripeCustomerId(customerId);
 
 	if (!org) {
-		console.error(`stripe no org found for customer ${customerId}`);
+		logger.error({ customerId }, "no org found for customer");
 		return;
 	}
 
@@ -192,7 +193,7 @@ async function handleSubscriptionUpdated(
 		stripeCurrentPeriodEnd: currentPeriodEnd,
 	});
 
-	console.log(`stripe subscription updated for org ${org.id}: ${tier}`);
+	logger.info({ orgId: org.id, tier }, "subscription updated");
 }
 
 async function handleSubscriptionDeleted(
@@ -206,7 +207,7 @@ async function handleSubscriptionDeleted(
 	const org = await orgRepo.findByStripeCustomerId(customerId);
 
 	if (!org) {
-		console.error(`stripe no org found for customer ${customerId}`);
+		logger.error({ customerId }, "no org found for customer");
 		return;
 	}
 
@@ -217,7 +218,7 @@ async function handleSubscriptionDeleted(
 		stripeCurrentPeriodEnd: null,
 	});
 
-	console.log(`stripe subscription deleted, org ${org.id} downgraded to FREE`);
+	logger.info({ orgId: org.id }, "subscription deleted, downgraded to FREE");
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
@@ -231,9 +232,9 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
 	const org = await orgRepo.findByStripeCustomerId(customerId);
 
 	if (!org) {
-		console.error(`stripe no org found for customer ${customerId}`);
+		logger.error({ customerId }, "no org found for customer");
 		return;
 	}
 
-	console.warn(`stripe payment failed for org ${org.id}`);
+	logger.warn({ orgId: org.id }, "payment failed");
 }

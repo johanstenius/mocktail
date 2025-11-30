@@ -1,9 +1,9 @@
 import { Resend } from "resend";
 import { config } from "../config";
+import { logger } from "../lib/logger";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
-
 const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 
 type SendInviteEmailParams = {
@@ -20,12 +20,12 @@ export async function sendInviteEmail(
 	const inviteUrl = `${config.appUrl}/invite?token=${params.token}`;
 
 	if (!resend) {
-		console.warn("resend not configured, invite url:", inviteUrl);
+		logger.error({ inviteUrl }, "resend not configured");
 		return;
 	}
 
-	await resend.emails.send({
-		from: "Mocktail <onboarding@resend.dev>",
+	const { data, error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
 		to: params.to,
 		subject: `Join ${params.orgName} on Mocktail`,
 		html: inviteEmailTemplate({
@@ -35,6 +35,10 @@ export async function sendInviteEmail(
 			inviteUrl,
 		}),
 	});
+
+	if (error) {
+		logger.error({ error, to: params.to }, "failed to send invite email");
+	}
 }
 
 type SendPasswordResetEmailParams = {
@@ -48,20 +52,22 @@ export async function sendPasswordResetEmail(
 	const resetUrl = `${config.appUrl}/reset-password?token=${params.token}`;
 
 	if (!resend) {
-		console.warn("resend not configured, reset url:", resetUrl);
+		logger.warn({ resetUrl }, "resend not configured");
 		return;
 	}
 
-	try {
-		const result = await resend.emails.send({
-			from: "Mocktail <onboarding@resend.dev>",
-			to: params.to,
-			subject: "Reset your password",
-			html: passwordResetEmailTemplate({ resetUrl }),
-		});
-		console.log("Password reset email sent:", result);
-	} catch (err) {
-		console.error("Failed to send password reset email:", err);
+	const { data, error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
+		to: params.to,
+		subject: "Reset your password",
+		html: passwordResetEmailTemplate({ resetUrl }),
+	});
+
+	if (error) {
+		logger.error(
+			{ error, to: params.to },
+			"failed to send password reset email",
+		);
 	}
 }
 
@@ -76,14 +82,18 @@ export async function sendVerificationEmail(
 	const verifyUrl = `${config.appUrl}/verify-email?token=${params.token}`;
 
 	if (!resend) {
-		console.warn("resend not configured, verify url:", verifyUrl);
+		logger.warn({ verifyUrl }, "resend not configured");
 		return;
 	}
 
-	await resend.emails.send({
-		from: "Mocktail <onboarding@resend.dev>",
+	const { data, error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
 		to: params.to,
 		subject: "Verify your email",
 		html: verifyEmailTemplate({ verifyUrl }),
 	});
+
+	if (error) {
+		logger.error({ error, to: params.to }, "failed to send verification email");
+	}
 }

@@ -1,8 +1,9 @@
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
+import { logger } from "./lib/logger";
 import { errorHandler } from "./middleware/error-handler";
+import { loggerMiddleware } from "./middleware/logger";
 import { apiKeysRouter } from "./routes/api-keys";
 import { authRouter } from "./routes/auth";
 import { billingRouter } from "./routes/billing";
@@ -23,7 +24,7 @@ const app = new OpenAPIHono();
 app.onError(errorHandler);
 
 // Middleware
-app.use("*", logger());
+app.use("*", loggerMiddleware());
 app.use("*", cors());
 
 // Health check
@@ -58,7 +59,7 @@ app.doc("/api/docs", {
 });
 
 const port = Number(process.env.PORT) || 4000;
-console.log(`Server running on http://localhost:${port}`);
+logger.info({ port }, "server started");
 
 serve({
 	fetch: app.fetch,
