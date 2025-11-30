@@ -1,4 +1,5 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { authMiddleware } from "../middleware/auth";
 import { errorSchema, projectIdParamSchema } from "../schemas/common";
 import { importResultSchema, importSpecSchema } from "../schemas/import";
 import * as importService from "../services/import.service";
@@ -6,6 +7,8 @@ import type { ImportedEndpoint } from "../services/import.service";
 import { badRequest, notFound } from "../utils/errors";
 
 export const importRouter = new OpenAPIHono();
+
+importRouter.use("*", authMiddleware());
 
 function parseJson(str: string): unknown {
 	try {

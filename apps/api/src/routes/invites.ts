@@ -17,6 +17,11 @@ import { quotaExceeded } from "../utils/errors";
 
 export const invitesRouter = new OpenAPIHono();
 
+// Auth for protected routes (list, create, delete)
+invitesRouter.use("/", authMiddleware());
+invitesRouter.use("/:inviteId", authMiddleware());
+
+// Public routes
 invitesRouter.openapi(getInviteByTokenRoute, async (c) => {
 	const { token } = c.req.valid("query");
 	const invite = await memberService.getInviteByToken(token);
@@ -28,9 +33,6 @@ invitesRouter.openapi(acceptInviteRoute, async (c) => {
 	const result = await memberService.acceptInvite(token, password);
 	return c.json(result, 201);
 });
-
-invitesRouter.use("/", authMiddleware());
-invitesRouter.use("/:inviteId", authMiddleware());
 
 invitesRouter.openapi(listInvitesRoute, async (c) => {
 	const { orgId } = getAuth(c);

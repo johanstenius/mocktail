@@ -16,7 +16,20 @@ import { badRequest, notFound } from "../utils/errors";
 
 export const billingRouter = new OpenAPIHono();
 
-billingRouter.use("*", authMiddleware());
+// Auth for all routes except webhook
+billingRouter.use("/usage", authMiddleware());
+billingRouter.use("/checkout", authMiddleware(), requireRole("admin", "owner"));
+billingRouter.use("/cancel", authMiddleware(), requireRole("admin", "owner"));
+billingRouter.use(
+	"/reactivate",
+	authMiddleware(),
+	requireRole("admin", "owner"),
+);
+billingRouter.use(
+	"/retry-payment",
+	authMiddleware(),
+	requireRole("admin", "owner"),
+);
 
 function toLimit(value: number): number | null {
 	return Number.isFinite(value) ? value : null;
@@ -63,7 +76,6 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 	});
 });
 
-billingRouter.use("/checkout", requireRole("admin", "owner"));
 billingRouter.openapi(createCheckoutRoute, async (c) => {
 	const auth = getAuth(c);
 
@@ -89,21 +101,18 @@ billingRouter.openapi(createCheckoutRoute, async (c) => {
 	return c.json(result);
 });
 
-billingRouter.use("/cancel", requireRole("admin", "owner"));
 billingRouter.openapi(cancelSubscriptionRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.cancelSubscription(auth.orgId);
 	return c.json({ success: true });
 });
 
-billingRouter.use("/reactivate", requireRole("admin", "owner"));
 billingRouter.openapi(reactivateSubscriptionRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.reactivateSubscription(auth.orgId);
 	return c.json({ success: true });
 });
 
-billingRouter.use("/retry-payment", requireRole("admin", "owner"));
 billingRouter.openapi(retryPaymentRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.retryPayment(auth.orgId);

@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
+import { authMiddleware } from "../middleware/auth";
 import {
 	errorSchema,
 	projectIdParamSchema,
@@ -15,6 +16,8 @@ import type { RequestLogModel } from "../services/request-log.service";
 import { notFound } from "../utils/errors";
 
 export const requestLogsRouter = new OpenAPIHono();
+
+requestLogsRouter.use("*", authMiddleware());
 
 function mapRequestLogToResponse(log: RequestLogModel) {
 	let requestHeaders: Record<string, string> = {};

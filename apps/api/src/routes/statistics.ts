@@ -1,10 +1,13 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { authMiddleware } from "../middleware/auth";
 import { errorSchema, projectIdParamSchema } from "../schemas/common";
 import { statisticsSchema } from "../schemas/statistics";
 import * as statisticsService from "../services/statistics.service";
 import { notFound } from "../utils/errors";
 
 export const statisticsRouter = new OpenAPIHono();
+
+statisticsRouter.use("*", authMiddleware());
 
 const getStatisticsRoute = createRoute({
 	method: "get",

@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
+import { authMiddleware } from "../middleware/auth";
 import {
 	endpointIdParamSchema,
 	errorSchema,
@@ -16,6 +17,8 @@ import * as limitsService from "../services/limits.service";
 import { conflict, notFound, quotaExceeded } from "../utils/errors";
 
 export const endpointsRouter = new OpenAPIHono();
+
+endpointsRouter.use("*", authMiddleware());
 
 function parseJson(str: string): unknown {
 	try {

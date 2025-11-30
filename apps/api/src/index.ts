@@ -31,7 +31,7 @@ app.use("*", cors());
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth routes (public)
+// Auth routes (public + protected)
 app.route("/api/auth", authRouter);
 
 // API routes

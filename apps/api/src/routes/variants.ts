@@ -1,5 +1,6 @@
 import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
 import { z } from "@hono/zod-openapi";
+import { authMiddleware } from "../middleware/auth";
 import {
 	endpointIdParamSchema,
 	errorSchema,
@@ -16,6 +17,8 @@ import type { VariantModel } from "../services/variant.service";
 import { badRequest, notFound } from "../utils/errors";
 
 export const variantsRouter = new OpenAPIHono();
+
+variantsRouter.use("*", authMiddleware());
 
 function parseJson(str: string): unknown {
 	try {
