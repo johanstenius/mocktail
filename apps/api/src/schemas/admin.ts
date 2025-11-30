@@ -1,4 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import { errorSchema } from "./common";
 
 const orgCleanupResultSchema = z.object({
 	orgId: z.string(),
@@ -28,9 +29,7 @@ export const runLogCleanupRoute = createRoute({
 		401: {
 			description: "Unauthorized",
 			content: {
-				"application/json": {
-					schema: z.object({ error: z.string() }),
-				},
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -71,9 +70,7 @@ export const listJobsRoute = createRoute({
 		401: {
 			description: "Unauthorized",
 			content: {
-				"application/json": {
-					schema: z.object({ error: z.string() }),
-				},
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -105,9 +102,7 @@ export const runGracePeriodRoute = createRoute({
 		401: {
 			description: "Unauthorized",
 			content: {
-				"application/json": {
-					schema: z.object({ error: z.string() }),
-				},
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},

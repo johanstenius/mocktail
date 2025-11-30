@@ -1,4 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import { errorSchema, messageSchema } from "./common";
 
 export const registerSchema = z.object({
 	email: z.string().email(),
@@ -53,10 +54,6 @@ export const meResponseSchema = z.object({
 	role: z.string(),
 });
 
-export const authErrorSchema = z.object({
-	error: z.string(),
-});
-
 export const forgotPasswordSchema = z.object({
 	email: z.string().email(),
 });
@@ -68,10 +65,6 @@ export const resetPasswordSchema = z.object({
 
 export const verifyEmailSchema = z.object({
 	token: z.string(),
-});
-
-export const messageResponseSchema = z.object({
-	message: z.string(),
 });
 
 // Route definitions
@@ -96,13 +89,13 @@ export const registerRoute = createRoute({
 		400: {
 			description: "Invalid input",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 		429: {
 			description: "Too many requests",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -129,13 +122,13 @@ export const loginRoute = createRoute({
 		401: {
 			description: "Invalid credentials",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 		429: {
 			description: "Too many requests",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -180,7 +173,7 @@ export const refreshRoute = createRoute({
 		401: {
 			description: "Invalid refresh token",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -200,7 +193,7 @@ export const meRoute = createRoute({
 		401: {
 			description: "Not authenticated",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -219,13 +212,13 @@ export const forgotPasswordRoute = createRoute({
 		200: {
 			description: "Password reset email sent",
 			content: {
-				"application/json": { schema: messageResponseSchema },
+				"application/json": { schema: messageSchema },
 			},
 		},
 		429: {
 			description: "Too many requests",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -244,13 +237,13 @@ export const resetPasswordRoute = createRoute({
 		200: {
 			description: "Password reset successful",
 			content: {
-				"application/json": { schema: messageResponseSchema },
+				"application/json": { schema: messageSchema },
 			},
 		},
 		429: {
 			description: "Too many requests",
 			content: {
-				"application/json": { schema: authErrorSchema },
+				"application/json": { schema: errorSchema },
 			},
 		},
 	},
@@ -264,7 +257,7 @@ export const sendVerificationRoute = createRoute({
 		200: {
 			description: "Verification email sent",
 			content: {
-				"application/json": { schema: messageResponseSchema },
+				"application/json": { schema: messageSchema },
 			},
 		},
 	},
@@ -283,7 +276,7 @@ export const verifyEmailRoute = createRoute({
 		200: {
 			description: "Email verified",
 			content: {
-				"application/json": { schema: messageResponseSchema },
+				"application/json": { schema: messageSchema },
 			},
 		},
 	},

@@ -1,4 +1,9 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import {
+	errorSchema,
+	inviteIdParamSchema,
+	memberIdParamSchema,
+} from "./common";
 
 export const orgRoleSchema = z.enum(["owner", "admin", "member"]);
 
@@ -69,11 +74,11 @@ export const listMembersRoute = createRoute({
 
 export const updateMemberRoute = createRoute({
 	method: "patch",
-	path: "/:memberId",
+	path: "/{memberId}",
 	tags: ["Members"],
 	summary: "Update member role",
 	request: {
-		params: z.object({ memberId: z.string() }),
+		params: memberIdParamSchema,
 		body: { content: { "application/json": { schema: updateMemberSchema } } },
 	},
 	responses: {
@@ -83,19 +88,27 @@ export const updateMemberRoute = createRoute({
 				"application/json": { schema: z.object({ member: memberSchema }) },
 			},
 		},
+		404: {
+			description: "Member not found",
+			content: { "application/json": { schema: errorSchema } },
+		},
 	},
 });
 
 export const deleteMemberRoute = createRoute({
 	method: "delete",
-	path: "/:memberId",
+	path: "/{memberId}",
 	tags: ["Members"],
 	summary: "Remove member",
 	request: {
-		params: z.object({ memberId: z.string() }),
+		params: memberIdParamSchema,
 	},
 	responses: {
 		204: { description: "Member removed" },
+		404: {
+			description: "Member not found",
+			content: { "application/json": { schema: errorSchema } },
+		},
 	},
 });
 
@@ -134,14 +147,18 @@ export const createInviteRoute = createRoute({
 
 export const deleteInviteRoute = createRoute({
 	method: "delete",
-	path: "/:inviteId",
+	path: "/{inviteId}",
 	tags: ["Invites"],
 	summary: "Revoke invite",
 	request: {
-		params: z.object({ inviteId: z.string() }),
+		params: inviteIdParamSchema,
 	},
 	responses: {
 		204: { description: "Invite revoked" },
+		404: {
+			description: "Invite not found",
+			content: { "application/json": { schema: errorSchema } },
+		},
 	},
 });
 
@@ -159,6 +176,10 @@ export const getInviteByTokenRoute = createRoute({
 			content: {
 				"application/json": { schema: z.object({ invite: inviteInfoSchema }) },
 			},
+		},
+		404: {
+			description: "Invite not found or expired",
+			content: { "application/json": { schema: errorSchema } },
 		},
 	},
 });
@@ -192,6 +213,14 @@ export const acceptInviteRoute = createRoute({
 		201: {
 			description: "Account created and invite accepted",
 			content: { "application/json": { schema: acceptInviteResponseSchema } },
+		},
+		400: {
+			description: "Invalid invite or missing password",
+			content: { "application/json": { schema: errorSchema } },
+		},
+		404: {
+			description: "Invite not found or expired",
+			content: { "application/json": { schema: errorSchema } },
 		},
 	},
 });

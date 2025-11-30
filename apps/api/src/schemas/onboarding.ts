@@ -1,4 +1,39 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import { successSchema } from "./common";
+
+export const createOrganizationSchema = z.object({
+	name: z.string().min(1).max(100),
+});
+
+export const createOrganizationRoute = createRoute({
+	method: "post",
+	path: "/create-organization",
+	tags: ["Onboarding"],
+	summary: "Create organization for OAuth users",
+	request: {
+		body: {
+			content: {
+				"application/json": { schema: createOrganizationSchema },
+			},
+		},
+	},
+	responses: {
+		201: {
+			description: "Organization created",
+			content: {
+				"application/json": {
+					schema: z.object({
+						org: z.object({
+							id: z.string(),
+							name: z.string(),
+							slug: z.string(),
+						}),
+					}),
+				},
+			},
+		},
+	},
+});
 
 export const completeOnboardingRoute = createRoute({
 	method: "post",
@@ -9,9 +44,7 @@ export const completeOnboardingRoute = createRoute({
 		200: {
 			description: "Onboarding completed",
 			content: {
-				"application/json": {
-					schema: z.object({ success: z.boolean() }),
-				},
+				"application/json": { schema: successSchema },
 			},
 		},
 	},
