@@ -70,6 +70,6 @@ export function create(input: CreateLogInput): Promise<RequestLogModel> {
 }
 
 export async function clearByProjectId(projectId: string): Promise<number> {
-	const result = await logRepo.deleteByProjectId(projectId);
+	const result = await logRepo.removeByProjectId(projectId);
 	return result.count;
 }

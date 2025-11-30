@@ -76,13 +76,13 @@ export function create(data: CreateLogData) {
 	return prisma.requestLog.create({ data });
 }
 
-export function deleteByProjectId(projectId: string) {
+export function removeByProjectId(projectId: string) {
 	return prisma.requestLog.deleteMany({
 		where: { projectId },
 	});
 }
 
-export async function deleteOlderThan(
+export async function removeOlderThan(
 	projectId: string,
 	cutoffDate: Date,
 	chunkSize = 1000,

@@ -1,5 +1,4 @@
 import * as endpointRepo from "../repositories/endpoint.repository";
-import * as orgMembershipRepo from "../repositories/org-membership.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as userRepo from "../repositories/user.repository";
@@ -12,7 +11,7 @@ import {
 import * as tokenService from "./token.service";
 
 export async function createOrganization(userId: string, orgName: string) {
-	const existingMembership = await orgMembershipRepo.findByUserId(userId);
+	const existingMembership = await orgRepo.findMembershipsByUserId(userId);
 	if (existingMembership.length > 0) {
 		throw conflict("User already has an organization");
 	}
@@ -25,7 +24,7 @@ export async function createOrganization(userId: string, orgName: string) {
 		ownerId: userId,
 	});
 
-	await orgMembershipRepo.create({
+	await orgRepo.createMembership({
 		userId,
 		orgId: org.id,
 		role: "owner",

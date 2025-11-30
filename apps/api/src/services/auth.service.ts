@@ -1,11 +1,8 @@
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 import { AUTH_CONFIG } from "../config/auth";
-import * as emailVerificationRepo from "../repositories/email-verification.repository";
-import * as orgMembershipRepo from "../repositories/org-membership.repository";
 import * as orgRepo from "../repositories/organization.repository";
-import * as passwordResetRepo from "../repositories/password-reset.repository";
-import * as refreshTokenRepo from "../repositories/refresh-token.repository";
+import * as tokenRepo from "../repositories/token.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
 	badRequest,
@@ -74,7 +71,7 @@ export async function register(
 		ownerId: user.id,
 	});
 
-	await orgMembershipRepo.create({
+	await orgRepo.createMembership({
 		userId: user.id,
 		orgId: org.id,
 		role: "owner",
@@ -104,7 +101,7 @@ export async function login(
 		throw forbidden("Email not verified", "EMAIL_NOT_VERIFIED");
 	}
 
-	const membership = await orgMembershipRepo.findByUserId(user.id);
+	const membership = await orgRepo.findMembershipsByUserId(user.id);
 	if (!membership.length) {
 		throw notFound("Organization");
 	}
@@ -117,7 +114,7 @@ export async function login(
 export async function logout(refreshToken: string): Promise<void> {
 	const payload = await tokenService.verifyRefreshToken(refreshToken);
 	if (payload) {
-		await refreshTokenRepo.deleteByToken(payload.tokenId).catch(() => {});
+		await tokenRepo.removeRefreshByToken(payload.tokenId).catch(() => {});
 	}
 }
 
@@ -127,17 +124,17 @@ export async function refresh(refreshToken: string): Promise<LoginResult> {
 		throw unauthorized("Invalid refresh token");
 	}
 
-	const storedToken = await refreshTokenRepo.findByToken(payload.tokenId);
+	const storedToken = await tokenRepo.findRefreshByToken(payload.tokenId);
 	if (!storedToken || storedToken.expiresAt < new Date()) {
 		throw unauthorized("Refresh token expired or revoked");
 	}
 
-	const membership = await orgMembershipRepo.findByUserId(payload.userId);
+	const membership = await orgRepo.findMembershipsByUserId(payload.userId);
 	if (!membership.length) {
 		throw notFound("Organization");
 	}
 
-	await refreshTokenRepo.deleteByToken(payload.tokenId);
+	await tokenRepo.removeRefreshByToken(payload.tokenId);
 
 	const org = membership[0].org;
 	const tokens = await tokenService.generateTokenPair(payload.userId, org.id);
@@ -158,7 +155,7 @@ export async function getCurrentUser(
 		throw notFound("Organization");
 	}
 
-	const membership = await orgMembershipRepo.findByUserAndOrg(userId, orgId);
+	const membership = await orgRepo.findMembershipByUserAndOrg(userId, orgId);
 	if (!membership) {
 		throw notFound("Membership");
 	}
@@ -189,7 +186,7 @@ async function createAndSendVerificationEmail(
 	const expiresAt = new Date();
 	expiresAt.setHours(expiresAt.getHours() + EMAIL_VERIFICATION_EXPIRY_HOURS);
 
-	await emailVerificationRepo.create({ userId, token, expiresAt });
+	await tokenRepo.createEmailVerification({ userId, token, expiresAt });
 	await emailService.sendVerificationEmail({ to: email, token });
 }
 
@@ -199,13 +196,13 @@ export async function forgotPassword(email: string): Promise<void> {
 		return;
 	}
 
-	await passwordResetRepo.deleteByUserId(user.id);
+	await tokenRepo.removePasswordResetByUserId(user.id);
 
 	const token = nanoid(32);
 	const expiresAt = new Date();
 	expiresAt.setHours(expiresAt.getHours() + PASSWORD_RESET_EXPIRY_HOURS);
 
-	await passwordResetRepo.create({ userId: user.id, token, expiresAt });
+	await tokenRepo.createPasswordReset({ userId: user.id, token, expiresAt });
 	await emailService.sendPasswordResetEmail({ to: email, token });
 }
 
@@ -213,14 +210,14 @@ export async function resetPassword(
 	token: string,
 	newPassword: string,
 ): Promise<void> {
-	const resetToken = await passwordResetRepo.findByToken(token);
+	const resetToken = await tokenRepo.findPasswordResetByToken(token);
 
 	if (!resetToken) {
 		throw notFound("Reset token");
 	}
 
 	if (resetToken.expiresAt < new Date()) {
-		await passwordResetRepo.deleteByToken(token);
+		await tokenRepo.removePasswordResetByToken(token);
 		throw badRequest("Reset token has expired");
 	}
 
@@ -244,25 +241,25 @@ export async function sendVerificationEmail(userId: string): Promise<void> {
 		throw badRequest("Email already verified");
 	}
 
-	await emailVerificationRepo.deleteByUserId(userId);
+	await tokenRepo.removeEmailVerificationByUserId(userId);
 
 	const token = nanoid(32);
 	const expiresAt = new Date();
 	expiresAt.setHours(expiresAt.getHours() + EMAIL_VERIFICATION_EXPIRY_HOURS);
 
-	await emailVerificationRepo.create({ userId, token, expiresAt });
+	await tokenRepo.createEmailVerification({ userId, token, expiresAt });
 	await emailService.sendVerificationEmail({ to: user.email, token });
 }
 
 export async function verifyEmail(token: string): Promise<void> {
-	const verificationToken = await emailVerificationRepo.findByToken(token);
+	const verificationToken = await tokenRepo.findEmailVerificationByToken(token);
 
 	if (!verificationToken) {
 		throw notFound("Verification token");
 	}
 
 	if (verificationToken.expiresAt < new Date()) {
-		await emailVerificationRepo.deleteByToken(token);
+		await tokenRepo.removeEmailVerificationByToken(token);
 		throw badRequest("Verification token has expired");
 	}
 

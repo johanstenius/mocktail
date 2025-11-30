@@ -41,7 +41,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 		projects: { used: org._count.projects, limit: limits.projects },
 		endpoints: {
 			used: totalEndpoints,
-			limit: limits.endpointsPerProject * org._count.projects,
+			limit: limits.endpointsPerProject * limits.projects,
 		},
 		members: {
 			used: org._count.members + pendingInvites,

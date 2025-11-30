@@ -1,9 +1,8 @@
 import { getLimits } from "../config/limits";
 import * as batchJobRepo from "../repositories/batch-job.repository";
-import * as emailVerificationRepo from "../repositories/email-verification.repository";
 import * as orgRepo from "../repositories/organization.repository";
-import * as passwordResetRepo from "../repositories/password-reset.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
+import * as tokenRepo from "../repositories/token.repository";
 import { logger } from "../utils/logger";
 
 export type OrgCleanupResult = {
@@ -38,7 +37,7 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 
 			let orgLogsDeleted = 0;
 			for (const project of org.projects) {
-				const deleted = await requestLogRepo.deleteOlderThan(
+				const deleted = await requestLogRepo.removeOlderThan(
 					project.id,
 					cutoffDate,
 				);
@@ -58,8 +57,8 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 
 		const [expiredVerificationTokens, expiredPasswordResets] =
 			await Promise.all([
-				emailVerificationRepo.deleteExpired(),
-				passwordResetRepo.deleteExpired(),
+				tokenRepo.removeExpiredEmailVerifications(),
+				tokenRepo.removeExpiredPasswordResets(),
 			]);
 
 		logger.info(

@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { config } from "../config";
 import * as orgRepo from "../repositories/organization.repository";
+import * as userRepo from "../repositories/user.repository";
 import { logger } from "../utils/logger";
 import { sendPaymentFailedEmail } from "./email.service";
 
@@ -307,5 +308,5 @@ async function getOrgOwnerEmail(
 	const org = await orgRepo.findById(orgId);
 	if (!org) return null;
 
-	return orgRepo.findOwnerEmail(org.ownerId);
+	return userRepo.findEmailById(org.ownerId);
 }

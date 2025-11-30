@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 import { AUTH_CONFIG } from "../config/auth";
 import * as inviteRepo from "../repositories/invite.repository";
-import * as orgMembershipRepo from "../repositories/org-membership.repository";
+import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import type {
 	InviteInfoResponse,
@@ -59,7 +59,7 @@ function toInviteResponse(i: InviteModel): InviteResponse {
 }
 
 export async function listMembers(orgId: string): Promise<MemberResponse[]> {
-	const memberships = await orgMembershipRepo.findByOrgId(orgId);
+	const memberships = await orgRepo.findMembershipsByOrgId(orgId);
 
 	return memberships.map((m) =>
 		toMemberResponse({
@@ -83,7 +83,7 @@ export async function updateMemberRole(
 		throw forbidden("Only owners can change roles");
 	}
 
-	const membership = await orgMembershipRepo.findById(membershipId);
+	const membership = await orgRepo.findMembershipById(membershipId);
 
 	if (!membership || membership.orgId !== orgId) {
 		throw notFound("Member");
@@ -101,7 +101,7 @@ export async function updateMemberRole(
 		throw badRequest("Cannot promote to owner");
 	}
 
-	const updated = await orgMembershipRepo.updateRole(membershipId, newRole);
+	const updated = await orgRepo.updateMembershipRole(membershipId, newRole);
 
 	return toMemberResponse({
 		id: updated.id,
@@ -118,7 +118,7 @@ export async function removeMember(
 	actorUserId: string,
 	orgId: string,
 ): Promise<void> {
-	const membership = await orgMembershipRepo.findById(membershipId);
+	const membership = await orgRepo.findMembershipById(membershipId);
 
 	if (!membership || membership.orgId !== orgId) {
 		throw notFound("Member");
@@ -132,7 +132,7 @@ export async function removeMember(
 		throw forbidden("Insufficient permissions to remove this member");
 	}
 
-	await orgMembershipRepo.deleteById(membershipId);
+	await orgRepo.removeMembership(membershipId);
 }
 
 export async function listInvites(orgId: string): Promise<InviteResponse[]> {
@@ -157,7 +157,7 @@ export async function createInvite(
 
 	const existingUser = await userRepo.findByEmail(email);
 	if (existingUser) {
-		const existingMembership = await orgMembershipRepo.findByUserAndOrg(
+		const existingMembership = await orgRepo.findMembershipByUserAndOrg(
 			existingUser.id,
 			orgId,
 		);
@@ -205,7 +205,7 @@ export async function revokeInvite(
 		throw notFound("Invite");
 	}
 
-	await inviteRepo.deleteById(inviteId);
+	await inviteRepo.remove(inviteId);
 }
 
 export async function getInviteByToken(
@@ -257,7 +257,7 @@ export async function acceptInvite(
 	}
 
 	if (invite.expiresAt < new Date()) {
-		await inviteRepo.deleteById(invite.id);
+		await inviteRepo.remove(invite.id);
 		throw badRequest("Invite has expired");
 	}
 
@@ -268,12 +268,12 @@ export async function acceptInvite(
 			throw badRequest("This invite is for a different email address");
 		}
 
-		const existingMembership = await orgMembershipRepo.findByUserAndOrg(
+		const existingMembership = await orgRepo.findMembershipByUserAndOrg(
 			existingUser.id,
 			invite.orgId,
 		);
 		if (existingMembership) {
-			await inviteRepo.deleteById(invite.id);
+			await inviteRepo.remove(invite.id);
 			throw conflict("Already a member of this organization");
 		}
 

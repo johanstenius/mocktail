@@ -1,6 +1,6 @@
 import { config } from "../config";
 import * as inviteRepo from "../repositories/invite.repository";
-import * as orgMembershipRepo from "../repositories/org-membership.repository";
+import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import { badRequest, unauthorized } from "../utils/errors";
 import { signOAuthPendingToken } from "./oauth-pending-token";
@@ -164,7 +164,7 @@ async function handleOAuthCallback(
 	);
 
 	if (existingOAuthUser) {
-		const membership = await orgMembershipRepo.findByUserId(
+		const membership = await orgRepo.findMembershipsByUserId(
 			existingOAuthUser.id,
 		);
 		if (membership.length === 0) {

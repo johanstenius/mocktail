@@ -1,4 +1,4 @@
-import type { Tier } from "@prisma/client";
+import type { OrgRole, Tier } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 export function findById(id: string) {
@@ -158,9 +158,52 @@ export function findAllWithProjectsForCleanup() {
 	});
 }
 
-export function findOwnerEmail(ownerId: string) {
-	return prisma.user.findUnique({
-		where: { id: ownerId },
-		select: { email: true },
+// Membership functions
+
+export function findMembershipByUserAndOrg(userId: string, orgId: string) {
+	return prisma.orgMembership.findUnique({
+		where: { userId_orgId: { userId, orgId } },
 	});
+}
+
+export function createMembership(data: {
+	userId: string;
+	orgId: string;
+	role: OrgRole;
+}) {
+	return prisma.orgMembership.create({ data });
+}
+
+export function findMembershipsByUserId(userId: string) {
+	return prisma.orgMembership.findMany({
+		where: { userId },
+		include: { org: true },
+	});
+}
+
+export function findMembershipsByOrgId(orgId: string) {
+	return prisma.orgMembership.findMany({
+		where: { orgId },
+		include: { user: { select: { email: true } } },
+		orderBy: { createdAt: "asc" },
+	});
+}
+
+export function findMembershipById(id: string) {
+	return prisma.orgMembership.findUnique({
+		where: { id },
+		include: { user: { select: { email: true } } },
+	});
+}
+
+export function updateMembershipRole(id: string, role: OrgRole) {
+	return prisma.orgMembership.update({
+		where: { id },
+		data: { role },
+		include: { user: { select: { email: true } } },
+	});
+}
+
+export function removeMembership(id: string) {
+	return prisma.orgMembership.delete({ where: { id } });
 }

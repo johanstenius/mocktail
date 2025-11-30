@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler } from "hono";
-import * as orgMembershipRepo from "../repositories/org-membership.repository";
+import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import * as tokenService from "../services/token.service";
 import { forbidden, unauthorized } from "../utils/errors";
@@ -30,7 +30,7 @@ export function authMiddleware(): MiddlewareHandler<{
 			throw unauthorized("Invalid or expired token");
 		}
 
-		const membership = await orgMembershipRepo.findByUserAndOrg(
+		const membership = await orgRepo.findMembershipByUserAndOrg(
 			payload.userId,
 			payload.orgId,
 		);

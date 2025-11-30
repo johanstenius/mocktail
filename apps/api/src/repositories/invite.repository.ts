@@ -45,15 +45,15 @@ export function create(data: CreateInviteInput) {
 	return prisma.orgInvite.create({ data });
 }
 
-export function deleteById(id: string) {
+export function remove(id: string) {
 	return prisma.orgInvite.delete({ where: { id } });
 }
 
-export function deleteByToken(token: string) {
+export function removeByToken(token: string) {
 	return prisma.orgInvite.delete({ where: { token } });
 }
 
-export function deleteExpired() {
+export function removeExpired() {
 	return prisma.orgInvite.deleteMany({
 		where: { expiresAt: { lt: new Date() } },
 	});

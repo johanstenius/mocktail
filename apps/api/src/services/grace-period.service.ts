@@ -1,5 +1,6 @@
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import * as orgRepo from "../repositories/organization.repository";
+import * as userRepo from "../repositories/user.repository";
 import { logger } from "../utils/logger";
 import { sendDowngradedEmail, sendPaymentReminderEmail } from "./email.service";
 
@@ -102,5 +103,5 @@ async function sendReminders(): Promise<{ orgId: string; orgName: string }[]> {
 async function getOrgOwnerEmail(
 	ownerId: string,
 ): Promise<{ email: string } | null> {
-	return orgRepo.findOwnerEmail(ownerId);
+	return userRepo.findEmailById(ownerId);
 }
