@@ -20,6 +20,9 @@
 	--glow-pink: #ec4899;
 	--glow-emerald: #10b981;
 
+	/* Accents */
+	--accent-primary: #8b5cf6; /* Violet */
+
 	/* Status */
 	--status-success: #10b981;
 	--status-success-dim: rgba(16, 185, 129, 0.2);
@@ -35,7 +38,7 @@
 	/* Radius */
 	--radius-sm: 6px;
 	--radius-md: 12px;
-	--radius-lg: 16px; /* Updated from 24px in fresh-concept to match app-concept broadly, or keep distinct? Let's stick to app-concept for app UI */
+	--radius-lg: 24px;
 	--radius-full: 9999px;
 
 	/* Sidebar Width */

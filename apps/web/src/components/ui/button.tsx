@@ -13,6 +13,8 @@ const buttonVariants = cva(
 					"bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] backdrop-blur-md hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)]",
 				ghost:
 					"text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]",
+				outline:
+					"border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)] hover:text-[var(--text-primary)]",
 				destructive:
 					"bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20",
 			},

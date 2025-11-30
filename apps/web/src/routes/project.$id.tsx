@@ -14,14 +14,23 @@ import { useAuth } from "@/lib/auth";
 import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, Plus, Route as RouteIcon, TrendingUp, Trash2 } from "lucide-react";
+import {
+	Loader2,
+	Plus,
+	Route as RouteIcon,
+	Trash2,
+	TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/projects/$id")({
+export const Route = createFileRoute("/project/$id")({
 	component: ProjectDetailPage,
 });
 
 type TabId = "endpoints" | "logs" | "analytics" | "settings";
+
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 function EndpointRow({
 	endpoint,
@@ -49,51 +58,72 @@ function EndpointRow({
 		<div
 			role="button"
 			tabIndex={0}
-			className="group flex items-center gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer"
+			className="group flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] hover:translate-x-1 transition-all cursor-pointer"
 			onClick={onEdit}
 			onKeyDown={(e) => e.key === "Enter" && onEdit()}
 		>
-			<MethodBadge method={endpoint.method} />
-			<span className="flex-1 font-['JetBrains_Mono'] text-sm text-[var(--text-primary)]">
-				{endpoint.path}
-			</span>
-			{stat && stat.requestCount > 0 && (
-				<span className="text-xs text-[var(--text-muted)] tabular-nums font-['JetBrains_Mono']">
-					{stat.requestCount} hits
-				</span>
-			)}
-			<div
-				className="flex items-center gap-1"
-				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
-			>
-				{showConfirm ? (
-					<>
+			<div className="flex items-center gap-6">
+				<div
+					onClick={(e) => e.stopPropagation()}
+					onKeyDown={(e) => e.stopPropagation()}
+				>
+					<Switch defaultChecked />
+				</div>
+				<div>
+					<div className="flex items-center gap-3 mb-1">
+						<h3 className="font-['Outfit'] font-semibold text-[var(--text-primary)]">
+							{endpoint.path}
+						</h3>
+					</div>
+					<div className="font-['JetBrains_Mono'] text-xs text-[var(--text-muted)]">
+						Status: {endpoint.status}
+					</div>
+				</div>
+			</div>
+			<div className="flex items-center gap-4">
+				<div className="flex gap-2">
+					<Badge variant="success">
+						<div className="w-1.5 h-1.5 rounded-full bg-current mr-1.5" />
+						Active
+					</Badge>
+					{stat && stat.requestCount > 0 && (
+						<Badge variant="default">{stat.requestCount} Hits</Badge>
+					)}
+				</div>
+
+				<div
+					className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+					onClick={(e) => e.stopPropagation()}
+					onKeyDown={(e) => e.stopPropagation()}
+				>
+					{showConfirm ? (
+						<>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => setShowConfirm(false)}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								size="sm"
+								onClick={() => deleteMutation.mutate()}
+							>
+								Delete
+							</Button>
+						</>
+					) : (
 						<Button
 							variant="ghost"
-							size="sm"
-							onClick={() => setShowConfirm(false)}
+							size="icon"
+							className="h-8 w-8 text-[var(--text-muted)] hover:text-red-400"
+							onClick={() => setShowConfirm(true)}
 						>
-							Cancel
+							<Trash2 className="h-4 w-4" />
 						</Button>
-						<Button
-							variant="destructive"
-							size="sm"
-							onClick={() => deleteMutation.mutate()}
-						>
-							Delete
-						</Button>
-					</>
-				) : (
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8 opacity-0 group-hover:opacity-100"
-						onClick={() => setShowConfirm(true)}
-					>
-						<Trash2 className="h-4 w-4" />
-					</Button>
-				)}
+					)}
+				</div>
 			</div>
 		</div>
 	);
@@ -176,11 +206,9 @@ function EndpointStatBar({
 }
 
 function ProjectAnalytics({
-	projectId,
 	statistics,
 	endpoints,
 }: {
-	projectId: string;
 	statistics: ProjectStatistics | undefined;
 	endpoints: Endpoint[];
 }) {
@@ -200,7 +228,9 @@ function ProjectAnalytics({
 
 	return (
 		<div>
-			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Traffic Overview</h3>
+			<h3 className="text-xl font-bold mb-6 font-['Outfit']">
+				Traffic Overview
+			</h3>
 
 			{/* Stats Grid */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -219,11 +249,7 @@ function ProjectAnalytics({
 					}
 					color="warning"
 				/>
-				<StatCard
-					label="Endpoints"
-					value={endpoints.length}
-					color="violet"
-				/>
+				<StatCard label="Endpoints" value={endpoints.length} color="violet" />
 				<StatCard
 					label="Avg Latency"
 					value="—"
@@ -388,20 +414,23 @@ function ProjectDetailPage() {
 		<main className="flex-1 flex flex-col overflow-hidden">
 			{/* Header */}
 			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
+				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
 					<Link
-						to="/dashboard"
+						to="/projects"
 						className="hover:text-[var(--text-secondary)] transition-colors"
 					>
 						Projects
 					</Link>
-					<span>/</span>
+					<span className="opacity-50">/</span>
 					<span className="text-[var(--text-primary)] font-medium">
 						{project.name}
 					</span>
 				</div>
 				<div className="flex items-center gap-4">
-					<Button onClick={handleNewEndpoint}>
+					<Button
+						onClick={handleNewEndpoint}
+						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+					>
 						<Plus className="h-4 w-4 mr-2" />
 						Create Endpoint
 					</Button>
@@ -509,11 +538,7 @@ function ProjectDetailPage() {
 
 					{/* Analytics Tab */}
 					{activeTab === "analytics" && (
-						<ProjectAnalytics
-							projectId={projectId}
-							statistics={statistics}
-							endpoints={endpoints}
-						/>
+						<ProjectAnalytics statistics={statistics} endpoints={endpoints} />
 					)}
 
 					{/* Settings Tab */}

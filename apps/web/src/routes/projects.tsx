@@ -37,7 +37,7 @@ function ProjectCard({
 	return (
 		<div className="group relative flex items-center justify-between p-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer">
 			<Link
-				to="/projects/$id"
+				to="/project/$id"
 				params={{ id: project.id }}
 				className="absolute inset-0 rounded-xl"
 			/>
@@ -158,7 +158,7 @@ function ProjectsPage() {
 		mutationFn: createSampleProject,
 		onSuccess: (result) => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
-			navigate({ to: "/projects/$id", params: { id: result.project.id } });
+			navigate({ to: "/project/$id", params: { id: result.project.id } });
 		},
 	});
 

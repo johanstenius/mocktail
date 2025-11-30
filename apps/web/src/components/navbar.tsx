@@ -23,9 +23,9 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 					{showNav && (
 						<div className="hidden md:flex items-center gap-6">
 							<Link
-								to="/dashboard"
+								to="/projects"
 								className={`text-sm font-medium transition-colors ${
-									isActive("/dashboard") || isActive("/projects")
+									isActive("/projects")
 										? "text-white"
 										: "text-white/60 hover:text-white"
 								}`}

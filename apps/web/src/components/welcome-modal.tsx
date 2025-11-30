@@ -31,7 +31,7 @@ export function WelcomeModal({ open, onOpenChange }: WelcomeModalProps) {
 			queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
 			setOnboardingComplete();
 			onOpenChange(false);
-			navigate({ to: "/projects/$id", params: { id: result.project.id } });
+			navigate({ to: "/project/$id", params: { id: result.project.id } });
 		},
 	});
 

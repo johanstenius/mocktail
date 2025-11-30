@@ -74,7 +74,7 @@ function ProjectStatBar({
 
 	return (
 		<Link
-			to="/projects/$id"
+			to="/project/$id"
 			params={{ id: projectId }}
 			className="block mb-4 last:mb-0 hover:opacity-80 transition-opacity"
 		>
@@ -135,8 +135,7 @@ function AnalyticsPage() {
 	}
 
 	allLogs.sort(
-		(a, b) =>
-			new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
 	);
 	const recentLogs = allLogs.slice(0, 10);
 
@@ -223,7 +222,7 @@ function AnalyticsPage() {
 							<div className="text-[var(--text-muted)] mb-4">
 								No projects yet
 							</div>
-							<Link to="/dashboard">
+							<Link to="/projects">
 								<Button>Create a Project</Button>
 							</Link>
 						</div>
@@ -312,7 +311,9 @@ function AnalyticsPage() {
 																</span>
 															</td>
 															<td className="px-4 py-3">
-																<MethodBadge method={log.method as HttpMethod} />
+																<MethodBadge
+																	method={log.method as HttpMethod}
+																/>
 															</td>
 															<td className="px-4 py-3 font-['JetBrains_Mono'] text-sm truncate max-w-[200px]">
 																{log.path}

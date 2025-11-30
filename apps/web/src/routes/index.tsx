@@ -47,80 +47,127 @@ function LandingPage() {
 			</header>
 
 			{/* Hero Section */}
-			<section className="container max-w-6xl mx-auto px-6 pt-44 pb-24 text-center">
-				<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[rgba(139,92,246,0.1)] border border-[rgba(139,92,246,0.2)] rounded-full text-[#a78bfa] text-sm font-medium mb-6">
-					OpenAPI import now available
-				</div>
-				<h1 className="text-7xl font-bold leading-tight mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
-					Mock APIs in
+			<section className="container max-w-6xl mx-auto px-6 pt-44 pb-24 text-center relative">
+				<h1 className="text-7xl font-bold leading-[1.1] mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent font-['Outfit'] tracking-tight">
+					Build frontends without
 					<br />
-					minutes.
+					waiting for backend.
 				</h1>
-				<p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-8">
-					Spin up realistic mock servers with auth, latency simulation, and
-					failure modes. No spec required.
+				<p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-8 leading-relaxed">
+					The local-first mock API server with built-in auth simulation. Import
+					OpenAPI specs, customize responses, and share with your team.
 				</p>
 				<div className="flex gap-4 justify-center mb-16">
 					<Link
 						to="/register"
-						className="h-12 px-7 rounded-full bg-[var(--glow-violet)] text-white font-semibold shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/10 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:bg-[#7c3aed] hover:-translate-y-0.5 transition-all flex items-center"
+						className="h-12 px-7 rounded-full bg-[var(--accent-primary)] text-white font-semibold shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/10 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:bg-[#7c3aed] hover:-translate-y-0.5 transition-all flex items-center font-['Inter']"
 					>
 						Start for Free
 					</Link>
 					<a
 						href="#docs"
-						className="h-12 px-7 rounded-full bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] font-semibold backdrop-blur-md hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)] transition-all flex items-center"
+						className="h-12 px-7 rounded-full bg-[rgba(255,255,255,0.05)] text-[var(--text-primary)] border border-[var(--border-subtle)] font-semibold backdrop-blur-md hover:bg-[rgba(255,255,255,0.1)] hover:border-[var(--border-highlight)] transition-all flex items-center font-['Inter']"
 					>
 						Read Documentation
 					</a>
 				</div>
 
 				{/* Code Preview */}
-				<div className="max-w-3xl mx-auto bg-[rgba(10,10,10,0.6)] border border-[var(--border-subtle)] rounded-2xl backdrop-blur-xl shadow-2xl overflow-hidden text-left">
+				<div className="max-w-3xl mx-auto bg-[rgba(10,10,10,0.6)] border border-[var(--border-subtle)] rounded-xl backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden text-left">
 					<div className="px-5 py-3 border-b border-[var(--border-subtle)] flex gap-2">
 						<div className="w-2.5 h-2.5 rounded-full bg-[var(--border-highlight)]" />
 						<div className="w-2.5 h-2.5 rounded-full bg-[var(--border-highlight)]" />
 						<div className="w-2.5 h-2.5 rounded-full bg-[var(--border-highlight)]" />
 					</div>
-					<div className="p-6 font-['JetBrains_Mono'] text-sm text-slate-200">
+					<div className="p-6 font-['JetBrains_Mono'] text-sm text-slate-200 leading-relaxed">
 						<div>
-							<span className="text-slate-500">
-								{"// Your mock server is live at:"}
+							<span className="text-[#64748b]">
+								{"// 1. Define your mock endpoint"}
 							</span>
 						</div>
 						<div>
-							<span className="text-slate-500">
-								{"// https://api.mocktail.dev/m/your-project"}
+							<span className="text-[#c084fc]">const</span> response ={" "}
+							<span className="text-[#c084fc]">await</span>{" "}
+							<span className="text-[#60a5fa]">fetch</span>(
+							<span className="text-[#86efac]">
+								'https://api.mocktail.dev/m/shop-v1/products'
 							</span>
+							);
 						</div>
 						<br />
 						<div>
-							<span className="text-purple-400">const</span> res ={" "}
-							<span className="text-purple-400">await</span>{" "}
-							<span className="text-blue-400">fetch</span>(
-							<span className="text-green-300">
-								'https://api.mocktail.dev/m/shop/products'
+							<span className="text-[#64748b]">
+								{"// 2. Get realistic data with auth simulation"}
 							</span>
-							, {"{"}
 						</div>
 						<div>
-							&nbsp;&nbsp;headers: {"{"}{" "}
-							<span className="text-green-300">'Authorization'</span>:{" "}
-							<span className="text-green-300">'Bearer sk_test_...'</span> {"}"}
+							<span className="text-[#c084fc]">const</span> data ={" "}
+							<span className="text-[#c084fc]">await</span> response.
+							<span className="text-[#60a5fa]">json</span>();
 						</div>
-						<div>{"}"});</div>
-						<br />
 						<div>
-							<span className="text-slate-500">
-								{"// Auth validated, latency simulated, response mocked"}
+							<span className="text-[#64748b]">
+								{"// { id: 'prod_123', name: 'Premium Plan', price: 2900 }"}
 							</span>
 						</div>
 					</div>
 				</div>
 			</section>
 
+			{/* Features Section */}
+			<section id="features" className="container max-w-6xl mx-auto px-6 py-24">
+				<div className="text-center mb-16">
+					<h2 className="text-4xl font-bold mb-4 font-['Outfit']">
+						Built for modern engineering teams.
+					</h2>
+					<p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+						Everything you need to mock APIs at scale, without the complexity.
+					</p>
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					{[
+						{
+							title: "Auth Simulation",
+							desc: "Test login flows with realistic JWTs and session management built-in.",
+							icon: "🔐",
+						},
+						{
+							title: "OpenAPI Import",
+							desc: "Generate endpoints instantly from your Swagger/OpenAPI specs.",
+							icon: "📄",
+						},
+						{
+							title: "Realistic Data",
+							desc: "Simulate latency, errors, and dynamic data with Faker.js templates.",
+							icon: "🎯",
+						},
+						{
+							title: "Team Sync",
+							desc: "Share mock APIs with your team and keep everyone in sync.",
+							icon: "🤝",
+						},
+					].map((feature) => (
+						<div
+							key={feature.title}
+							className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all group"
+						>
+							<div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
+								{feature.icon}
+							</div>
+							<h3 className="text-lg font-bold mb-2 font-['Outfit'] text-[var(--text-primary)]">
+								{feature.title}
+							</h3>
+							<p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+								{feature.desc}
+							</p>
+						</div>
+					))}
+				</div>
+			</section>
+
 			{/* Pricing Section */}
-			<section id="pricing" className="container max-w-6xl mx-auto px-6 py-20">
+			<section id="pricing" className="container max-w-6xl mx-auto px-6 pb-24">
 				<h2 className="text-4xl font-bold text-center mb-16 font-['Outfit']">
 					Simple, transparent pricing.
 				</h2>
@@ -140,33 +187,33 @@ function LandingPage() {
 							Perfect for side projects and indie hackers.
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span> 3
-								Projects
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span> 10k
-								Requests/mo
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								OpenAPI Import
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								Basic Auth Mocking
-							</li>
+							{[
+								"3 Projects",
+								"30 Endpoints",
+								"10,000 Requests/mo",
+								"3 Team Members",
+							].map((feature) => (
+								<li
+									key={feature}
+									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+								>
+									<span className="text-[var(--accent-primary)] text-lg">
+										✓
+									</span>{" "}
+									{feature}
+								</li>
+							))}
 						</ul>
 						<Link
 							to="/register"
-							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-all"
+							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
 						>
 							Start Free
 						</Link>
 					</div>
 
 					{/* Pro Tier */}
-					<div className="bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border border-[rgba(139,92,246,0.5)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 relative">
+					<div className="bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border border-[rgba(139,92,246,0.5)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-[var(--bg-surface)]">
 						<div className="absolute top-3 right-3 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
 							MOST POPULAR
 						</div>
@@ -180,25 +227,25 @@ function LandingPage() {
 							</span>
 						</div>
 						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							For teams building production integrations.
+							For growing teams shipping to production.
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								Unlimited Projects
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								500k Requests/mo
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span> JWT
-								/ API Key Auth
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								Latency & Chaos Modes
-							</li>
+							{[
+								"20 Projects",
+								"2,000 Endpoints",
+								"500,000 Requests/mo",
+								"Unlimited Team Members",
+							].map((feature) => (
+								<li
+									key={feature}
+									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+								>
+									<span className="text-[var(--accent-primary)] text-lg">
+										✓
+									</span>{" "}
+									{feature}
+								</li>
+							))}
 						</ul>
 						<Link
 							to="/register"
@@ -217,29 +264,29 @@ function LandingPage() {
 							Custom
 						</div>
 						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							For organizations needing control and scale.
+							Security and control for large organizations.
 						</p>
 						<ul className="space-y-3 mb-8 flex-grow">
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								Unlimited Everything
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span> SSO
-								/ SAML
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span>{" "}
-								Dedicated Support
-							</li>
-							<li className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-								<span className="text-[var(--glow-violet)] text-lg">✓</span> SLA
-								Guarantee
-							</li>
+							{[
+								"Unlimited Projects",
+								"Unlimited Endpoints",
+								"Unlimited Requests",
+								"SSO / SAML",
+							].map((feature) => (
+								<li
+									key={feature}
+									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+								>
+									<span className="text-[var(--accent-primary)] text-lg">
+										✓
+									</span>{" "}
+									{feature}
+								</li>
+							))}
 						</ul>
 						<a
 							href="#contact"
-							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] transition-all"
+							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
 						>
 							Contact Sales
 						</a>

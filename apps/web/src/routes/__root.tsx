@@ -9,9 +9,16 @@ function RootLayout() {
 	const location = useLocation();
 
 	// Show sidebar for app pages (not landing, auth pages)
-	const publicPaths = ["/", "/login", "/register", "/forgot-password", "/reset-password"];
+	const publicPaths = [
+		"/",
+		"/login",
+		"/register",
+		"/forgot-password",
+		"/reset-password",
+	];
 	const showSidebar = !publicPaths.some(
-		(path) => location.pathname === path || location.pathname.startsWith(`${path}?`),
+		(path) =>
+			location.pathname === path || location.pathname.startsWith(`${path}?`),
 	);
 
 	return (
