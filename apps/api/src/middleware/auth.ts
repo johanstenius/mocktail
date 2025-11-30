@@ -11,7 +11,7 @@ export type AuthContext = {
 	role: OrgRole;
 };
 
-type AuthVariables = {
+export type AuthVariables = {
 	auth: AuthContext;
 };
 

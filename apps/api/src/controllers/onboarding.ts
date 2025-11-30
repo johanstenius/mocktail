@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AuthVariables } from "../middleware/auth";
 import {
 	authMiddleware,
 	getAuth,
@@ -12,7 +13,7 @@ import {
 } from "../schemas/onboarding";
 import * as onboardingService from "../services/onboarding.service";
 
-export const onboardingRouter = new OpenAPIHono();
+export const onboardingRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 // Public route - no auth needed (uses OAuth pending token)
 onboardingRouter.openapi(completeOAuthOnboardingRoute, async (c) => {

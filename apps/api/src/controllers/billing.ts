@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AuthVariables } from "../middleware/auth";
 import {
 	authMiddleware,
 	getAuth,
@@ -19,7 +20,7 @@ import * as stripeService from "../services/stripe.service";
 import { badRequest, notFound } from "../utils/errors";
 import { logger } from "../utils/logger";
 
-export const billingRouter = new OpenAPIHono();
+export const billingRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 // Auth for all routes except webhook
 billingRouter.use("/usage", authMiddleware(), requireVerifiedEmail());

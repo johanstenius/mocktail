@@ -1,10 +1,11 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AuthVariables } from "../middleware/auth";
 import { authMiddleware, requireVerifiedEmail } from "../middleware/auth";
 import { getStatisticsRoute } from "../schemas/statistics";
 import * as statisticsService from "../services/statistics.service";
 import { notFound } from "../utils/errors";
 
-export const statisticsRouter = new OpenAPIHono();
+export const statisticsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 statisticsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 

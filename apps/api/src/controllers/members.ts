@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AuthVariables } from "../middleware/auth";
 import {
 	authMiddleware,
 	getAuth,
@@ -11,7 +12,7 @@ import {
 } from "../schemas/members";
 import * as memberService from "../services/member.service";
 
-export const membersRouter = new OpenAPIHono();
+export const membersRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 membersRouter.use("*", authMiddleware(), requireVerifiedEmail());
 

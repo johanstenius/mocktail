@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import type { AuthVariables } from "../middleware/auth";
 import { authMiddleware, getAuth } from "../middleware/auth";
 import {
 	checkAuthEmailRateLimit,
@@ -18,7 +19,7 @@ import {
 import * as authService from "../services/auth.service";
 import { rateLimited } from "../utils/errors";
 
-export const authRouter = new OpenAPIHono();
+export const authRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 const loginRateLimiter = createAuthRateLimiter({ ipLimit: 5 });
 const registerRateLimiter = createAuthRateLimiter({ ipLimit: 3 });

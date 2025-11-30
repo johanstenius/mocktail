@@ -88,7 +88,7 @@ export async function login(
 	password: string,
 ): Promise<LoginResult> {
 	const user = await userRepo.findByEmail(email);
-	if (!user) {
+	if (!user || !user.passwordHash) {
 		throw invalidCredentials();
 	}
 
