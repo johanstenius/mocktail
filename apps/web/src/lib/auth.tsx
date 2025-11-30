@@ -63,6 +63,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	});
 
 	const loadUser = useCallback(async () => {
+		// Check for OAuth callback tokens in URL
+		const params = new URLSearchParams(window.location.search);
+		const accessToken = params.get("access_token");
+		const refreshToken = params.get("refresh_token");
+		const expiresIn = params.get("expires_in");
+
+		if (accessToken && refreshToken && expiresIn) {
+			const tokens: TokenResponse = {
+				accessToken,
+				refreshToken,
+				expiresIn: Number(expiresIn),
+			};
+			storeTokens(tokens);
+			// Clean URL params
+			window.history.replaceState({}, document.title, window.location.pathname);
+		}
+
 		const tokens = getStoredTokens();
 		if (!tokens) {
 			setState({

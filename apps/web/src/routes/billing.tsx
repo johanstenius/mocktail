@@ -2,6 +2,13 @@ import { TierCardSkeleton, UsageBarSkeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	cancelSubscription,
 	createCheckoutSession,
 	getUsage,
@@ -11,7 +18,11 @@ import {
 import { useAuth } from "@/lib/auth";
 import type { Tier } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useNavigate,
+	useSearch,
+} from "@tanstack/react-router";
 import {
 	AlertCircle,
 	AlertTriangle,
@@ -22,11 +33,17 @@ import {
 	Sparkles,
 	Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
 	component: BillingPage,
+	validateSearch: (search: Record<string, unknown>) => {
+		const result: { success?: boolean; canceled?: boolean } = {};
+		if (search.success === "true") result.success = true;
+		if (search.canceled === "true") result.canceled = true;
+		return result;
+	},
 });
 
 const TIER_INFO: Record<
@@ -84,8 +101,9 @@ function UsageBar({
 	limit: number | null;
 	label: string;
 }) {
-	const percentage = limit ? Math.min((current / limit) * 100, 100) : 0;
-	const isNearLimit = limit ? percentage >= 80 : false;
+	const percentage =
+		limit !== null ? Math.min((current / limit) * 100, 100) : 0;
+	const isNearLimit = limit !== null ? percentage >= 80 : false;
 
 	return (
 		<div className="space-y-2">
@@ -95,7 +113,7 @@ function UsageBar({
 				</span>
 				<span className="text-[var(--text-primary)] font-['JetBrains_Mono']">
 					{current.toLocaleString()}
-					{limit ? ` / ${limit.toLocaleString()}` : " / Unlimited"}
+					{limit !== null ? ` / ${limit.toLocaleString()}` : " / Unlimited"}
 				</span>
 			</div>
 			<div className="h-2 bg-[var(--bg-surface-active)] rounded-full overflow-hidden">
@@ -105,7 +123,7 @@ function UsageBar({
 							? "bg-[var(--status-warning)]"
 							: "bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)]"
 					}`}
-					style={{ width: limit ? `${percentage}%` : "5%" }}
+					style={{ width: limit !== null ? `${percentage}%` : "5%" }}
 				/>
 			</div>
 		</div>
@@ -200,6 +218,53 @@ function TierCard({
 	);
 }
 
+type PaymentModalState = "processing" | "success" | "timeout" | null;
+
+function PaymentProcessingModal({
+	state,
+	onClose,
+}: {
+	state: PaymentModalState;
+	onClose: () => void;
+}) {
+	if (!state) return null;
+
+	return (
+		<Dialog open onOpenChange={(open) => !open && onClose()}>
+			<DialogContent className="sm:max-w-md bg-[var(--bg-surface)] border-[var(--border-subtle)]">
+				<DialogHeader>
+					<DialogTitle className="font-['Outfit']">
+						{state === "processing" && "Processing payment..."}
+						{state === "success" && "Welcome to Pro!"}
+						{state === "timeout" && "Payment received"}
+					</DialogTitle>
+					<DialogDescription className="font-['Inter']">
+						{state === "processing" && "Activating your Pro plan..."}
+						{state === "success" && "Your new limits are now active."}
+						{state === "timeout" &&
+							"Your upgrade is being processed. Refresh if your plan doesn't update shortly."}
+					</DialogDescription>
+				</DialogHeader>
+				<div className="flex justify-center py-8">
+					{state === "processing" && (
+						<Loader2 className="w-12 h-12 animate-spin text-[var(--glow-violet)]" />
+					)}
+					{state === "success" && (
+						<div className="w-12 h-12 rounded-full bg-[rgba(16,185,129,0.2)] flex items-center justify-center ring-1 ring-[var(--status-success)]/50">
+							<Check className="w-6 h-6 text-[var(--status-success)]" />
+						</div>
+					)}
+					{state === "timeout" && (
+						<div className="w-12 h-12 rounded-full bg-[rgba(245,158,11,0.2)] flex items-center justify-center ring-1 ring-[var(--status-warning)]/50">
+							<AlertCircle className="w-6 h-6 text-[var(--status-warning)]" />
+						</div>
+					)}
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
 function BillingPage() {
 	const {
 		isAuthenticated,
@@ -207,16 +272,60 @@ function BillingPage() {
 		isLoading: authLoading,
 	} = useAuth();
 	const navigate = useNavigate();
+	const { success, canceled } = useSearch({ from: "/billing" });
 	const queryClient = useQueryClient();
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+	const [modalState, setModalState] = useState<PaymentModalState>(null);
 
 	const isVerified = Boolean(emailVerifiedAt);
 
-	const { data: usage, isLoading: usageLoading } = useQuery({
+	const {
+		data: usage,
+		isLoading: usageLoading,
+		refetch,
+	} = useQuery({
 		queryKey: ["billing", "usage"],
 		queryFn: getUsage,
 		enabled: isAuthenticated && isVerified,
 	});
+
+	// Poll for tier upgrade when returning from successful payment
+	useEffect(() => {
+		if (!success || !usage) return;
+
+		// Already upgraded - show success briefly
+		if (usage.tier === "pro" || usage.tier === "enterprise") {
+			setModalState("success");
+			const timer = setTimeout(() => {
+				setModalState(null);
+				navigate({ to: "/billing", search: {} });
+			}, 2000);
+			return () => clearTimeout(timer);
+		}
+
+		// Poll for upgrade
+		setModalState("processing");
+		const startTime = Date.now();
+		const maxWaitTime = 15000;
+
+		const interval = setInterval(async () => {
+			const result = await refetch();
+
+			if (result.data?.tier === "pro" || result.data?.tier === "enterprise") {
+				setModalState("success");
+				clearInterval(interval);
+				setTimeout(() => {
+					setModalState(null);
+					navigate({ to: "/billing", search: {} });
+				}, 2000);
+			} else if (Date.now() - startTime > maxWaitTime) {
+				setModalState("timeout");
+				clearInterval(interval);
+			}
+		}, 2000);
+
+		return () => clearInterval(interval);
+	}, [success, usage, refetch, navigate]);
 
 	const upgradeMutation = useMutation({
 		mutationFn: createCheckoutSession,
@@ -285,6 +394,14 @@ function BillingPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
+			<PaymentProcessingModal
+				state={modalState}
+				onClose={() => {
+					setModalState(null);
+					navigate({ to: "/billing", search: {} });
+				}}
+			/>
+
 			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
 				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
 					<span className="text-[var(--text-primary)] font-medium">
@@ -354,6 +471,12 @@ function BillingPage() {
 											Reactivate Subscription
 										</Button>
 									</div>
+								</div>
+							)}
+
+							{canceled && (
+								<div className="mb-6 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-sm text-[var(--text-muted)] font-['Inter']">
+									Checkout was canceled. You can upgrade anytime.
 								</div>
 							)}
 
