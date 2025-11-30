@@ -1,5 +1,13 @@
+import { useAuth } from "@/lib/auth";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Logo } from "./logo";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 type NavItemProps = {
 	href: string;
@@ -31,6 +39,84 @@ function NavItem({ href, icon, label }: NavItemProps) {
 			</span>
 			{label}
 		</Link>
+	);
+}
+
+function getInitials(email: string): string {
+	const name = email.split("@")[0];
+	const parts = name.split(/[._-]/);
+	if (parts.length >= 2) {
+		return (parts[0][0] + parts[1][0]).toUpperCase();
+	}
+	return name.slice(0, 2).toUpperCase();
+}
+
+function UserMenu() {
+	const { user, org, logout } = useAuth();
+
+	if (!user) return null;
+
+	const initials = getInitials(user.email);
+
+	return (
+		<div className="mt-auto pt-6 border-t border-[var(--border-subtle)] px-2">
+			<DropdownMenu>
+				<DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors hover:bg-[var(--bg-surface-hover)] focus:outline-none">
+					<div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--glow-pink)] to-[var(--glow-violet)] flex items-center justify-center text-xs font-bold text-white shadow-lg">
+						{initials}
+					</div>
+					<div className="flex-1 overflow-hidden">
+						<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter'] truncate">
+							{user.email}
+						</div>
+						{org && (
+							<div className="text-xs text-[var(--text-muted)] font-['Inter'] truncate">
+								{org.name}
+							</div>
+						)}
+					</div>
+					<svg
+						className="w-4 h-4 text-[var(--text-muted)]"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						aria-hidden="true"
+					>
+						<path d="M6 9l6 6 6-6" />
+					</svg>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent side="top" align="start" className="w-56">
+					<div className="px-2 py-1.5">
+						<p className="text-sm font-medium text-[var(--text-primary)]">
+							{user.email}
+						</p>
+						{org && (
+							<p className="text-xs text-[var(--text-muted)]">{org.name}</p>
+						)}
+					</div>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem
+						onClick={logout}
+						className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
+					>
+						<svg
+							className="w-4 h-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							aria-hidden="true"
+						>
+							<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+							<polyline points="16 17 21 12 16 7" />
+							<line x1="21" y1="12" x2="9" y2="12" />
+						</svg>
+						Log out
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</div>
 	);
 }
 
@@ -154,19 +240,7 @@ export function Sidebar() {
 				/>
 			</div>
 
-			<div className="mt-auto flex items-center gap-3 pt-6 border-t border-[var(--border-subtle)] px-2">
-				<div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--glow-pink)] to-[var(--glow-violet)] flex items-center justify-center text-xs font-bold text-white shadow-lg">
-					JS
-				</div>
-				<div className="flex-1 overflow-hidden">
-					<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
-						Johan Stenius
-					</div>
-					<div className="text-xs text-[var(--text-muted)] font-['Inter']">
-						Acme Corp
-					</div>
-				</div>
-			</div>
+			<UserMenu />
 		</aside>
 	);
 }
