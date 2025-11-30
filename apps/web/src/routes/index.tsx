@@ -61,8 +61,8 @@ function LandingPage() {
 					waiting for backend.
 				</h1>
 				<p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-8 leading-relaxed">
-					The local-first mock API server with built-in auth simulation. Import
-					OpenAPI specs, customize responses, and share with your team.
+					The mock API server for modern teams. Import OpenAPI specs, simulate
+					real-world conditions, and ship faster together.
 				</p>
 				<div className="flex gap-4 justify-center mb-16">
 					<Link
@@ -104,7 +104,7 @@ function LandingPage() {
 						<br />
 						<div>
 							<span className="text-[#64748b]">
-								{"// 2. Get realistic data with auth simulation"}
+								{"// 2. Get realistic data instantly"}
 							</span>
 						</div>
 						<div>
@@ -135,23 +135,23 @@ function LandingPage() {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 					{[
 						{
-							title: "Auth Simulation",
-							desc: "Test login flows with realistic JWTs and session management built-in.",
-							icon: "🔐",
-						},
-						{
 							title: "OpenAPI Import",
 							desc: "Generate endpoints instantly from your Swagger/OpenAPI specs.",
 							icon: "📄",
 						},
 						{
-							title: "Realistic Data",
-							desc: "Simulate latency, errors, and dynamic data with Faker.js templates.",
+							title: "Chaos Engineering",
+							desc: "Simulate latency, errors, and failures to test your app's resilience.",
 							icon: "🎯",
 						},
 						{
-							title: "Team Sync",
-							desc: "Share mock APIs with your team and keep everyone in sync.",
+							title: "Dynamic Data",
+							desc: "Generate realistic fake data with templates. Names, emails, UUIDs, and more.",
+							icon: "✨",
+						},
+						{
+							title: "Team Collaboration",
+							desc: "Share mock APIs with your team. Everyone stays in sync.",
 							icon: "🤝",
 						},
 					].map((feature) => (
@@ -172,6 +172,55 @@ function LandingPage() {
 							</CardContent>
 						</Card>
 					))}
+				</div>
+			</section>
+
+			{/* How It Works Section */}
+			<section className="container max-w-6xl mx-auto px-6 py-24 border-t border-[var(--border-subtle)]">
+				<div className="text-center mb-16">
+					<h2 className="text-4xl font-bold mb-4 font-['Outfit']">
+						From zero to mock API in minutes.
+					</h2>
+					<p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
+						No backend required. No infrastructure to manage.
+					</p>
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+					<div className="text-center">
+						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
+							<span className="text-[var(--accent-primary)] font-bold">1</span>
+						</div>
+						<h3 className="text-lg font-semibold mb-2">Create a project</h3>
+						<p className="text-[var(--text-secondary)] text-sm">
+							Sign up and create a project. Import an OpenAPI spec or start from
+							scratch.
+						</p>
+					</div>
+
+					<div className="text-center">
+						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
+							<span className="text-[var(--accent-primary)] font-bold">2</span>
+						</div>
+						<h3 className="text-lg font-semibold mb-2">
+							Define your endpoints
+						</h3>
+						<p className="text-[var(--text-secondary)] text-sm">
+							Configure methods, paths, and response bodies. Add delays and
+							failure rates for testing.
+						</p>
+					</div>
+
+					<div className="text-center">
+						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
+							<span className="text-[var(--accent-primary)] font-bold">3</span>
+						</div>
+						<h3 className="text-lg font-semibold mb-2">Start building</h3>
+						<p className="text-[var(--text-secondary)] text-sm">
+							Use your API key to call endpoints. Monitor requests in real-time
+							with detailed logs.
+						</p>
+					</div>
 				</div>
 			</section>
 
