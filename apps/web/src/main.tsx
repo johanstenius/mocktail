@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
 	},
 });
 
-const router = createRouter({ routeTree });
+const router = createRouter({ routeTree, trailingSlash: "never" });
 
 declare module "@tanstack/react-router" {
 	interface Register {
@@ -42,7 +42,8 @@ if (rootElement) {
 							},
 							classNames: {
 								success: "!border-emerald-500/30 !bg-emerald-500/5",
-								error: "!border-[var(--color-error)]/30 !bg-[var(--color-error)]/5 !text-[var(--color-error)]",
+								error:
+									"!border-[var(--color-error)]/30 !bg-[var(--color-error)]/5 !text-[var(--color-error)]",
 								info: "!border-[var(--glow-violet)]/30 !bg-[var(--glow-violet)]/5",
 							},
 						}}

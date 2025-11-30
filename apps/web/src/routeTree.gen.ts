@@ -18,14 +18,23 @@ import { Route as OnboardingRouteImport } from "./routes/onboarding"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as InviteRouteImport } from "./routes/invite"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
-import { Route as DocsRouteImport } from "./routes/docs"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as CheckEmailRouteImport } from "./routes/check-email"
 import { Route as BillingRouteImport } from "./routes/billing"
 import { Route as AuditLogsRouteImport } from "./routes/audit-logs"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
 import { Route as IndexRouteImport } from "./routes/index"
+import { Route as DocsIndexRouteImport } from "./routes/docs/index"
 import { Route as ProjectIdRouteImport } from "./routes/project.$id"
+import { Route as DocsTemplatesRouteImport } from "./routes/docs/templates"
+import { Route as DocsRequestLogsRouteImport } from "./routes/docs/request-logs"
+import { Route as DocsRateLimitsRouteImport } from "./routes/docs/rate-limits"
+import { Route as DocsQuickstartRouteImport } from "./routes/docs/quickstart"
+import { Route as DocsOpenapiImportRouteImport } from "./routes/docs/openapi-import"
+import { Route as DocsErrorsRouteImport } from "./routes/docs/errors"
+import { Route as DocsEndpointsRouteImport } from "./routes/docs/endpoints"
+import { Route as DocsChaosEngineeringRouteImport } from "./routes/docs/chaos-engineering"
+import { Route as DocsAuthenticationRouteImport } from "./routes/docs/authentication"
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: "/verify-email",
@@ -72,11 +81,6 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: "/forgot-password",
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsRoute = DocsRouteImport.update({
-  id: "/docs",
-  path: "/docs",
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: "/dashboard",
   path: "/dashboard",
@@ -107,9 +111,59 @@ const IndexRoute = IndexRouteImport.update({
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: "/docs/",
+  path: "/docs/",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectIdRoute = ProjectIdRouteImport.update({
   id: "/project/$id",
   path: "/project/$id",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsTemplatesRoute = DocsTemplatesRouteImport.update({
+  id: "/docs/templates",
+  path: "/docs/templates",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRequestLogsRoute = DocsRequestLogsRouteImport.update({
+  id: "/docs/request-logs",
+  path: "/docs/request-logs",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRateLimitsRoute = DocsRateLimitsRouteImport.update({
+  id: "/docs/rate-limits",
+  path: "/docs/rate-limits",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsQuickstartRoute = DocsQuickstartRouteImport.update({
+  id: "/docs/quickstart",
+  path: "/docs/quickstart",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsOpenapiImportRoute = DocsOpenapiImportRouteImport.update({
+  id: "/docs/openapi-import",
+  path: "/docs/openapi-import",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsErrorsRoute = DocsErrorsRouteImport.update({
+  id: "/docs/errors",
+  path: "/docs/errors",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsEndpointsRoute = DocsEndpointsRouteImport.update({
+  id: "/docs/endpoints",
+  path: "/docs/endpoints",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsChaosEngineeringRoute = DocsChaosEngineeringRouteImport.update({
+  id: "/docs/chaos-engineering",
+  path: "/docs/chaos-engineering",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsAuthenticationRoute = DocsAuthenticationRouteImport.update({
+  id: "/docs/authentication",
+  path: "/docs/authentication",
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -120,7 +174,6 @@ export interface FileRoutesByFullPath {
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
-  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -130,7 +183,17 @@ export interface FileRoutesByFullPath {
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
   "/verify-email": typeof VerifyEmailRoute
+  "/docs/authentication": typeof DocsAuthenticationRoute
+  "/docs/chaos-engineering": typeof DocsChaosEngineeringRoute
+  "/docs/endpoints": typeof DocsEndpointsRoute
+  "/docs/errors": typeof DocsErrorsRoute
+  "/docs/openapi-import": typeof DocsOpenapiImportRoute
+  "/docs/quickstart": typeof DocsQuickstartRoute
+  "/docs/rate-limits": typeof DocsRateLimitsRoute
+  "/docs/request-logs": typeof DocsRequestLogsRoute
+  "/docs/templates": typeof DocsTemplatesRoute
   "/project/$id": typeof ProjectIdRoute
+  "/docs": typeof DocsIndexRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
@@ -139,7 +202,6 @@ export interface FileRoutesByTo {
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
-  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -149,7 +211,17 @@ export interface FileRoutesByTo {
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
   "/verify-email": typeof VerifyEmailRoute
+  "/docs/authentication": typeof DocsAuthenticationRoute
+  "/docs/chaos-engineering": typeof DocsChaosEngineeringRoute
+  "/docs/endpoints": typeof DocsEndpointsRoute
+  "/docs/errors": typeof DocsErrorsRoute
+  "/docs/openapi-import": typeof DocsOpenapiImportRoute
+  "/docs/quickstart": typeof DocsQuickstartRoute
+  "/docs/rate-limits": typeof DocsRateLimitsRoute
+  "/docs/request-logs": typeof DocsRequestLogsRoute
+  "/docs/templates": typeof DocsTemplatesRoute
   "/project/$id": typeof ProjectIdRoute
+  "/docs": typeof DocsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,7 +231,6 @@ export interface FileRoutesById {
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
-  "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
@@ -169,7 +240,17 @@ export interface FileRoutesById {
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
   "/verify-email": typeof VerifyEmailRoute
+  "/docs/authentication": typeof DocsAuthenticationRoute
+  "/docs/chaos-engineering": typeof DocsChaosEngineeringRoute
+  "/docs/endpoints": typeof DocsEndpointsRoute
+  "/docs/errors": typeof DocsErrorsRoute
+  "/docs/openapi-import": typeof DocsOpenapiImportRoute
+  "/docs/quickstart": typeof DocsQuickstartRoute
+  "/docs/rate-limits": typeof DocsRateLimitsRoute
+  "/docs/request-logs": typeof DocsRequestLogsRoute
+  "/docs/templates": typeof DocsTemplatesRoute
   "/project/$id": typeof ProjectIdRoute
+  "/docs/": typeof DocsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -180,7 +261,6 @@ export interface FileRouteTypes {
     | "/billing"
     | "/check-email"
     | "/dashboard"
-    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -190,7 +270,17 @@ export interface FileRouteTypes {
     | "/reset-password"
     | "/team"
     | "/verify-email"
+    | "/docs/authentication"
+    | "/docs/chaos-engineering"
+    | "/docs/endpoints"
+    | "/docs/errors"
+    | "/docs/openapi-import"
+    | "/docs/quickstart"
+    | "/docs/rate-limits"
+    | "/docs/request-logs"
+    | "/docs/templates"
     | "/project/$id"
+    | "/docs"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
@@ -199,7 +289,6 @@ export interface FileRouteTypes {
     | "/billing"
     | "/check-email"
     | "/dashboard"
-    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -209,7 +298,17 @@ export interface FileRouteTypes {
     | "/reset-password"
     | "/team"
     | "/verify-email"
+    | "/docs/authentication"
+    | "/docs/chaos-engineering"
+    | "/docs/endpoints"
+    | "/docs/errors"
+    | "/docs/openapi-import"
+    | "/docs/quickstart"
+    | "/docs/rate-limits"
+    | "/docs/request-logs"
+    | "/docs/templates"
     | "/project/$id"
+    | "/docs"
   id:
     | "__root__"
     | "/"
@@ -218,7 +317,6 @@ export interface FileRouteTypes {
     | "/billing"
     | "/check-email"
     | "/dashboard"
-    | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
@@ -228,7 +326,17 @@ export interface FileRouteTypes {
     | "/reset-password"
     | "/team"
     | "/verify-email"
+    | "/docs/authentication"
+    | "/docs/chaos-engineering"
+    | "/docs/endpoints"
+    | "/docs/errors"
+    | "/docs/openapi-import"
+    | "/docs/quickstart"
+    | "/docs/rate-limits"
+    | "/docs/request-logs"
+    | "/docs/templates"
     | "/project/$id"
+    | "/docs/"
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -238,7 +346,6 @@ export interface RootRouteChildren {
   BillingRoute: typeof BillingRoute
   CheckEmailRoute: typeof CheckEmailRoute
   DashboardRoute: typeof DashboardRoute
-  DocsRoute: typeof DocsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
@@ -248,7 +355,17 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TeamRoute: typeof TeamRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  DocsAuthenticationRoute: typeof DocsAuthenticationRoute
+  DocsChaosEngineeringRoute: typeof DocsChaosEngineeringRoute
+  DocsEndpointsRoute: typeof DocsEndpointsRoute
+  DocsErrorsRoute: typeof DocsErrorsRoute
+  DocsOpenapiImportRoute: typeof DocsOpenapiImportRoute
+  DocsQuickstartRoute: typeof DocsQuickstartRoute
+  DocsRateLimitsRoute: typeof DocsRateLimitsRoute
+  DocsRequestLogsRoute: typeof DocsRequestLogsRoute
+  DocsTemplatesRoute: typeof DocsTemplatesRoute
   ProjectIdRoute: typeof ProjectIdRoute
+  DocsIndexRoute: typeof DocsIndexRoute
 }
 
 declare module "@tanstack/react-router" {
@@ -316,13 +433,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    "/docs": {
-      id: "/docs"
-      path: "/docs"
-      fullPath: "/docs"
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     "/dashboard": {
       id: "/dashboard"
       path: "/dashboard"
@@ -365,11 +475,81 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/docs/": {
+      id: "/docs/"
+      path: "/docs"
+      fullPath: "/docs"
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/project/$id": {
       id: "/project/$id"
       path: "/project/$id"
       fullPath: "/project/$id"
       preLoaderRoute: typeof ProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/templates": {
+      id: "/docs/templates"
+      path: "/docs/templates"
+      fullPath: "/docs/templates"
+      preLoaderRoute: typeof DocsTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/request-logs": {
+      id: "/docs/request-logs"
+      path: "/docs/request-logs"
+      fullPath: "/docs/request-logs"
+      preLoaderRoute: typeof DocsRequestLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/rate-limits": {
+      id: "/docs/rate-limits"
+      path: "/docs/rate-limits"
+      fullPath: "/docs/rate-limits"
+      preLoaderRoute: typeof DocsRateLimitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/quickstart": {
+      id: "/docs/quickstart"
+      path: "/docs/quickstart"
+      fullPath: "/docs/quickstart"
+      preLoaderRoute: typeof DocsQuickstartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/openapi-import": {
+      id: "/docs/openapi-import"
+      path: "/docs/openapi-import"
+      fullPath: "/docs/openapi-import"
+      preLoaderRoute: typeof DocsOpenapiImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/errors": {
+      id: "/docs/errors"
+      path: "/docs/errors"
+      fullPath: "/docs/errors"
+      preLoaderRoute: typeof DocsErrorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/endpoints": {
+      id: "/docs/endpoints"
+      path: "/docs/endpoints"
+      fullPath: "/docs/endpoints"
+      preLoaderRoute: typeof DocsEndpointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/chaos-engineering": {
+      id: "/docs/chaos-engineering"
+      path: "/docs/chaos-engineering"
+      fullPath: "/docs/chaos-engineering"
+      preLoaderRoute: typeof DocsChaosEngineeringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/docs/authentication": {
+      id: "/docs/authentication"
+      path: "/docs/authentication"
+      fullPath: "/docs/authentication"
+      preLoaderRoute: typeof DocsAuthenticationRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -382,7 +562,6 @@ const rootRouteChildren: RootRouteChildren = {
   BillingRoute: BillingRoute,
   CheckEmailRoute: CheckEmailRoute,
   DashboardRoute: DashboardRoute,
-  DocsRoute: DocsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
@@ -392,7 +571,17 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TeamRoute: TeamRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  DocsAuthenticationRoute: DocsAuthenticationRoute,
+  DocsChaosEngineeringRoute: DocsChaosEngineeringRoute,
+  DocsEndpointsRoute: DocsEndpointsRoute,
+  DocsErrorsRoute: DocsErrorsRoute,
+  DocsOpenapiImportRoute: DocsOpenapiImportRoute,
+  DocsQuickstartRoute: DocsQuickstartRoute,
+  DocsRateLimitsRoute: DocsRateLimitsRoute,
+  DocsRequestLogsRoute: DocsRequestLogsRoute,
+  DocsTemplatesRoute: DocsTemplatesRoute,
   ProjectIdRoute: ProjectIdRoute,
+  DocsIndexRoute: DocsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

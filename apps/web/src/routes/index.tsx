@@ -7,6 +7,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { Database, FileJson, Users, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -56,9 +57,9 @@ function LandingPage() {
 			{/* Hero Section */}
 			<section className="container max-w-6xl mx-auto px-6 pt-44 pb-24 text-center relative">
 				<h1 className="text-7xl font-bold leading-[1.1] mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent font-['Outfit'] tracking-tight">
-					Build frontends without
+					Instant Mock APIs.
 					<br />
-					waiting for backend.
+					Ready in seconds.
 				</h1>
 				<p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-8 leading-relaxed">
 					The mock API server for modern teams. Import OpenAPI specs, simulate
@@ -137,22 +138,22 @@ function LandingPage() {
 						{
 							title: "OpenAPI Import",
 							desc: "Generate endpoints instantly from your Swagger/OpenAPI specs.",
-							icon: "📄",
+							icon: FileJson,
 						},
 						{
 							title: "Chaos Engineering",
 							desc: "Simulate latency, errors, and failures to test your app's resilience.",
-							icon: "🎯",
+							icon: Zap,
 						},
 						{
 							title: "Dynamic Data",
 							desc: "Generate realistic fake data with templates. Names, emails, UUIDs, and more.",
-							icon: "✨",
+							icon: Database,
 						},
 						{
 							title: "Team Collaboration",
 							desc: "Share mock APIs with your team. Everyone stays in sync.",
-							icon: "🤝",
+							icon: Users,
 						},
 					].map((feature) => (
 						<Card
@@ -160,8 +161,8 @@ function LandingPage() {
 							className="hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all group"
 						>
 							<CardHeader>
-								<div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
-									{feature.icon}
+								<div className="mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
+									<feature.icon className="w-10 h-10 text-[var(--accent-primary)] drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
 								</div>
 								<CardTitle className="text-lg">{feature.title}</CardTitle>
 							</CardHeader>
@@ -187,40 +188,43 @@ function LandingPage() {
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-					<div className="text-center">
-						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
-							<span className="text-[var(--accent-primary)] font-bold">1</span>
-						</div>
-						<h3 className="text-lg font-semibold mb-2">Create a project</h3>
-						<p className="text-[var(--text-secondary)] text-sm">
-							Sign up and create a project. Import an OpenAPI spec or start from
-							scratch.
-						</p>
-					</div>
-
-					<div className="text-center">
-						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
-							<span className="text-[var(--accent-primary)] font-bold">2</span>
-						</div>
-						<h3 className="text-lg font-semibold mb-2">
-							Define your endpoints
-						</h3>
-						<p className="text-[var(--text-secondary)] text-sm">
-							Configure methods, paths, and response bodies. Add delays and
-							failure rates for testing.
-						</p>
-					</div>
-
-					<div className="text-center">
-						<div className="w-12 h-12 rounded-full bg-[var(--accent-primary)]/10 border border-[var(--accent-primary)]/20 flex items-center justify-center mx-auto mb-4">
-							<span className="text-[var(--accent-primary)] font-bold">3</span>
-						</div>
-						<h3 className="text-lg font-semibold mb-2">Start building</h3>
-						<p className="text-[var(--text-secondary)] text-sm">
-							Use your API key to call endpoints. Monitor requests in real-time
-							with detailed logs.
-						</p>
-					</div>
+					{[
+						{
+							step: "1",
+							title: "Create a project",
+							desc: "Sign up and create a project. Import an OpenAPI spec or start from scratch.",
+						},
+						{
+							step: "2",
+							title: "Define your endpoints",
+							desc: "Configure methods, paths, and response bodies. Add delays and failure rates for testing.",
+						},
+						{
+							step: "3",
+							title: "Start building",
+							desc: "Use your API key to call endpoints. Monitor requests in real-time with detailed logs.",
+						},
+					].map((item) => (
+						<Card
+							key={item.step}
+							className="relative overflow-hidden border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)] transition-all duration-300 hover:-translate-y-1 group"
+						>
+							<div className="absolute top-0 right-0 p-32 bg-[var(--accent-primary)]/5 rounded-full blur-3xl -mr-16 -mt-16 transition-opacity opacity-0 group-hover:opacity-100" />
+							<CardHeader>
+								<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-violet-600 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(139,92,246,0.3)] group-hover:scale-110 transition-transform duration-300">
+									<span className="text-white font-bold font-['Outfit'] text-lg">
+										{item.step}
+									</span>
+								</div>
+								<CardTitle className="text-xl mb-2">{item.title}</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-[var(--text-secondary)] leading-relaxed">
+									{item.desc}
+								</p>
+							</CardContent>
+						</Card>
+					))}
 				</div>
 			</section>
 
