@@ -24,6 +24,35 @@ enum OAuthProvider {
   google
 }
 
+enum AuditAction {
+  // Org
+  org_created
+  org_updated
+  // Members
+  member_invited
+  member_joined
+  member_role_changed
+  member_removed
+  invite_cancelled
+  // Projects
+  project_created
+  project_updated
+  project_deleted
+  api_key_rotated
+  // Endpoints
+  endpoint_created
+  endpoint_updated
+  endpoint_deleted
+  // Variants
+  variant_created
+  variant_updated
+  variant_deleted
+  // Billing
+  subscription_created
+  subscription_updated
+  subscription_cancelled
+}
+
 model User {
   id                     String                   @id @default(cuid())
   email                  String                   @unique
@@ -40,6 +69,7 @@ model User {
   refreshTokens          RefreshToken[]
   passwordResets         PasswordResetToken[]
   emailVerifications     EmailVerificationToken[]
+  auditLogs              AuditLog[]               @relation("AuditActor")
 
   @@unique([oauthProvider, oauthId])
 }
@@ -65,6 +95,7 @@ model Organization {
   members                 OrgMembership[]
   projects                Project[]
   invites                 OrgInvite[]
+  auditLogs               AuditLog[]
 }
 
 model OrgMembership {
@@ -148,6 +179,10 @@ model ResponseVariant {
   rules     String @default("[]") // JSON: MatchRule[]
   ruleLogic String @default("and") // "and" | "or"
 
+  // Request validation
+  requestBodySchema String @default("{}") // JSON Schema
+  validationMode    String @default("none") // "none" | "warn" | "strict"
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -157,18 +192,19 @@ model ResponseVariant {
 }
 
 model RequestLog {
-  id              String   @id @default(cuid())
-  projectId       String
-  endpointId      String?
-  variantId       String? // Which variant was matched
-  method          String
-  path            String
-  status          Int
-  requestHeaders  String   @default("{}") // JSON string
-  requestBody     String?
-  responseBody    String?
-  duration        Int // ms
-  createdAt       DateTime @default(now())
+  id               String   @id @default(cuid())
+  projectId        String
+  endpointId       String?
+  variantId        String? // Which variant was matched
+  method           String
+  path             String
+  status           Int
+  requestHeaders   String   @default("{}") // JSON string
+  requestBody      String?
+  responseBody     String?
+  validationErrors String? // JSON array of error messages
+  duration         Int // ms
+  createdAt        DateTime @default(now())
 
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   endpoint Endpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
@@ -222,4 +258,24 @@ model BatchJob {
 
   @@index([type])
   @@index([startedAt])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  orgId      String
+  actorId    String?
+  action     AuditAction
+  targetType String?
+  targetId   String?
+  metadata   String      @default("{}")
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor User?        @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([actorId])
+  @@index([action])
 }

@@ -1,5 +1,7 @@
 import { nanoid } from "nanoid";
 import * as projectRepo from "../repositories/project.repository";
+import * as auditService from "./audit.service";
+import type { AuditContext } from "./audit.service";
 
 export type ProjectModel = {
 	id: string;
@@ -36,28 +38,70 @@ export function findBySlugAndOrgId(
 	return projectRepo.findBySlugAndOrgId(slug, orgId);
 }
 
-export async function create(data: {
-	name: string;
-	slug: string;
-	orgId: string;
-}): Promise<ProjectModel> {
+export async function create(
+	data: {
+		name: string;
+		slug: string;
+		orgId: string;
+	},
+	ctx?: AuditContext,
+): Promise<ProjectModel> {
 	const apiKey = `mk_${nanoid(24)}`;
-	return projectRepo.create({ ...data, apiKey });
+	const project = await projectRepo.create({ ...data, apiKey });
+
+	await auditService.log({
+		orgId: data.orgId,
+		action: "project_created",
+		targetType: "project",
+		targetId: project.id,
+		metadata: { name: project.name, slug: project.slug },
+		ctx,
+	});
+
+	return project;
 }
 
 export async function update(
 	id: string,
 	data: { name?: string; slug?: string },
+	ctx?: AuditContext,
 ): Promise<ProjectModel | null> {
 	const existing = await projectRepo.findById(id);
 	if (!existing) return null;
-	return projectRepo.update(id, data);
+
+	const updated = await projectRepo.update(id, data);
+	if (!updated) return null;
+
+	const diff = auditService.buildDiff(existing, data, ["name", "slug"]);
+	if (Object.keys(diff).length > 0) {
+		await auditService.log({
+			orgId: existing.orgId,
+			action: "project_updated",
+			targetType: "project",
+			targetId: id,
+			metadata: diff,
+			ctx,
+		});
+	}
+
+	return updated;
 }
 
-export async function remove(id: string): Promise<boolean> {
+export async function remove(id: string, ctx?: AuditContext): Promise<boolean> {
 	const existing = await projectRepo.findById(id);
 	if (!existing) return false;
+
 	await projectRepo.remove(id);
+
+	await auditService.log({
+		orgId: existing.orgId,
+		action: "project_deleted",
+		targetType: "project",
+		targetId: id,
+		metadata: { name: existing.name, slug: existing.slug },
+		ctx,
+	});
+
 	return true;
 }
 
@@ -65,9 +109,24 @@ export function findByApiKey(apiKey: string): Promise<ProjectModel | null> {
 	return projectRepo.findByApiKey(apiKey);
 }
 
-export async function rotateApiKey(id: string): Promise<ProjectModel | null> {
+export async function rotateApiKey(
+	id: string,
+	ctx?: AuditContext,
+): Promise<ProjectModel | null> {
 	const existing = await projectRepo.findById(id);
 	if (!existing) return null;
+
 	const newApiKey = `mk_${nanoid(24)}`;
-	return projectRepo.updateApiKey(id, newApiKey);
+	const updated = await projectRepo.updateApiKey(id, newApiKey);
+
+	await auditService.log({
+		orgId: existing.orgId,
+		action: "api_key_rotated",
+		targetType: "project",
+		targetId: id,
+		metadata: { projectName: existing.name },
+		ctx,
+	});
+
+	return updated;
 }

@@ -22,6 +22,7 @@ import { Route as DocsRouteImport } from "./routes/docs"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
 import { Route as CheckEmailRouteImport } from "./routes/check-email"
 import { Route as BillingRouteImport } from "./routes/billing"
+import { Route as AuditLogsRouteImport } from "./routes/audit-logs"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as ProjectIdRouteImport } from "./routes/project.$id"
@@ -91,6 +92,11 @@ const BillingRoute = BillingRouteImport.update({
   path: "/billing",
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuditLogsRoute = AuditLogsRouteImport.update({
+  id: "/audit-logs",
+  path: "/audit-logs",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: "/analytics",
   path: "/analytics",
@@ -110,6 +116,7 @@ const ProjectIdRoute = ProjectIdRouteImport.update({
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/audit-logs": typeof AuditLogsRoute
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/audit-logs": typeof AuditLogsRoute
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
+  "/audit-logs": typeof AuditLogsRoute
   "/billing": typeof BillingRoute
   "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/analytics"
+    | "/audit-logs"
     | "/billing"
     | "/check-email"
     | "/dashboard"
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/analytics"
+    | "/audit-logs"
     | "/billing"
     | "/check-email"
     | "/dashboard"
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | "__root__"
     | "/"
     | "/analytics"
+    | "/audit-logs"
     | "/billing"
     | "/check-email"
     | "/dashboard"
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AuditLogsRoute: typeof AuditLogsRoute
   BillingRoute: typeof BillingRoute
   CheckEmailRoute: typeof CheckEmailRoute
   DashboardRoute: typeof DashboardRoute
@@ -331,6 +344,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/audit-logs": {
+      id: "/audit-logs"
+      path: "/audit-logs"
+      fullPath: "/audit-logs"
+      preLoaderRoute: typeof AuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/analytics": {
       id: "/analytics"
       path: "/analytics"
@@ -358,6 +378,7 @@ declare module "@tanstack/react-router" {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AuditLogsRoute: AuditLogsRoute,
   BillingRoute: BillingRoute,
   CheckEmailRoute: CheckEmailRoute,
   DashboardRoute: DashboardRoute,

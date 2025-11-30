@@ -290,3 +290,54 @@ export type CompleteOAuthOnboardingResponse = {
 	user: { id: string; email: string };
 	org: { id: string; name: string; slug: string };
 };
+
+// Audit Log types
+export type AuditAction =
+	| "org_created"
+	| "org_updated"
+	| "member_invited"
+	| "member_joined"
+	| "member_role_changed"
+	| "member_removed"
+	| "invite_cancelled"
+	| "project_created"
+	| "project_updated"
+	| "project_deleted"
+	| "api_key_rotated"
+	| "endpoint_created"
+	| "endpoint_updated"
+	| "endpoint_deleted"
+	| "variant_created"
+	| "variant_updated"
+	| "variant_deleted"
+	| "subscription_created"
+	| "subscription_updated"
+	| "subscription_cancelled";
+
+export type AuditLog = {
+	id: string;
+	orgId: string;
+	actorId: string | null;
+	action: AuditAction;
+	targetType: string | null;
+	targetId: string | null;
+	metadata: Record<string, unknown>;
+	ipAddress: string | null;
+	userAgent: string | null;
+	createdAt: string;
+	actor: {
+		id: string;
+		email: string;
+		name: string | null;
+	} | null;
+};
+
+export type GetAuditLogsParams = {
+	limit?: number;
+	offset?: number;
+	action?: AuditAction;
+	actorId?: string;
+	targetType?: string;
+	from?: string;
+	to?: string;
+};

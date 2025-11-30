@@ -16,6 +16,8 @@ import {
 	canInviteMembers,
 	canRemoveMembers,
 } from "../utils/permissions";
+import * as auditService from "./audit.service";
+import type { AuditContext } from "./audit.service";
 import * as tokenService from "./token.service";
 
 const INVITE_EXPIRY_DAYS = 7;
@@ -78,6 +80,7 @@ export async function updateMemberRole(
 	actorRole: OrgRole,
 	actorUserId: string,
 	orgId: string,
+	ctx?: AuditContext,
 ): Promise<MemberResponse> {
 	if (!canChangeRoles(actorRole)) {
 		throw forbidden("Only owners can change roles");
@@ -101,7 +104,20 @@ export async function updateMemberRole(
 		throw badRequest("Cannot promote to owner");
 	}
 
+	const oldRole = membership.role;
 	const updated = await orgRepo.updateMembershipRole(membershipId, newRole);
+
+	await auditService.log({
+		orgId,
+		action: "member_role_changed",
+		targetType: "member",
+		targetId: membership.userId,
+		metadata: {
+			email: updated.user.email,
+			role: { old: oldRole, new: newRole },
+		},
+		ctx,
+	});
 
 	return toMemberResponse({
 		id: updated.id,
@@ -117,6 +133,7 @@ export async function removeMember(
 	actorRole: OrgRole,
 	actorUserId: string,
 	orgId: string,
+	ctx?: AuditContext,
 ): Promise<void> {
 	const membership = await orgRepo.findMembershipById(membershipId);
 
@@ -133,6 +150,15 @@ export async function removeMember(
 	}
 
 	await orgRepo.removeMembership(membershipId);
+
+	await auditService.log({
+		orgId,
+		action: "member_removed",
+		targetType: "member",
+		targetId: membership.userId,
+		metadata: { email: membership.user.email, role: membership.role },
+		ctx,
+	});
 }
 
 export async function listInvites(orgId: string): Promise<InviteResponse[]> {
@@ -146,6 +172,7 @@ export async function createInvite(
 	actorRole: OrgRole,
 	actorUserId: string,
 	orgId: string,
+	ctx?: AuditContext,
 ): Promise<{ invite: InviteResponse; token: string }> {
 	if (!canInviteMembers(actorRole)) {
 		throw forbidden("Insufficient permissions to invite members");
@@ -184,6 +211,15 @@ export async function createInvite(
 		invitedBy: actorUserId,
 	});
 
+	await auditService.log({
+		orgId,
+		action: "member_invited",
+		targetType: "invite",
+		targetId: invite.id,
+		metadata: { email, role },
+		ctx,
+	});
+
 	return {
 		invite: toInviteResponse(invite),
 		token,
@@ -194,6 +230,7 @@ export async function revokeInvite(
 	inviteId: string,
 	actorRole: OrgRole,
 	orgId: string,
+	ctx?: AuditContext,
 ): Promise<void> {
 	if (!canInviteMembers(actorRole)) {
 		throw forbidden("Insufficient permissions");
@@ -206,6 +243,15 @@ export async function revokeInvite(
 	}
 
 	await inviteRepo.remove(inviteId);
+
+	await auditService.log({
+		orgId,
+		action: "invite_cancelled",
+		targetType: "invite",
+		targetId: inviteId,
+		metadata: { email: invite.email, role: invite.role },
+		ctx,
+	});
 }
 
 export async function getInviteByToken(
@@ -249,6 +295,7 @@ export async function acceptInvite(
 	token: string,
 	password?: string,
 	currentUserId?: string,
+	ctx?: AuditContext,
 ): Promise<AcceptInviteResult> {
 	const invite = await inviteRepo.findByToken(token);
 
@@ -283,6 +330,15 @@ export async function acceptInvite(
 			invite.orgId,
 			invite.role,
 		);
+
+		await auditService.log({
+			orgId: invite.orgId,
+			action: "member_joined",
+			targetType: "member",
+			targetId: existingUser.id,
+			metadata: { email: invite.email, role: invite.role },
+			ctx: { ...ctx, actorId: existingUser.id },
+		});
 
 		const tokens = await tokenService.generateTokenPair(
 			existingUser.id,
@@ -323,6 +379,15 @@ export async function acceptInvite(
 		invite.orgId,
 		invite.role,
 	);
+
+	await auditService.log({
+		orgId: invite.orgId,
+		action: "member_joined",
+		targetType: "member",
+		targetId: result.user.id,
+		metadata: { email: invite.email, role: invite.role },
+		ctx: { ...ctx, actorId: result.user.id },
+	});
 
 	const tokens = await tokenService.generateTokenPair(
 		result.user.id,

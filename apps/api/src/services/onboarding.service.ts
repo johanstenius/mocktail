@@ -4,13 +4,19 @@ import * as projectRepo from "../repositories/project.repository";
 import * as userRepo from "../repositories/user.repository";
 import { conflict } from "../utils/errors";
 import { ensureUniqueOrgSlug, slugify } from "../utils/slug";
+import * as auditService from "./audit.service";
+import type { AuditContext } from "./audit.service";
 import {
 	type OAuthPendingPayload,
 	verifyOAuthPendingToken,
 } from "./oauth-pending-token";
 import * as tokenService from "./token.service";
 
-export async function createOrganization(userId: string, orgName: string) {
+export async function createOrganization(
+	userId: string,
+	orgName: string,
+	ctx?: AuditContext,
+) {
 	const existingMembership = await orgRepo.findMembershipsByUserId(userId);
 	if (existingMembership.length > 0) {
 		throw conflict("User already has an organization");
@@ -28,6 +34,15 @@ export async function createOrganization(userId: string, orgName: string) {
 		userId,
 		orgId: org.id,
 		role: "owner",
+	});
+
+	await auditService.log({
+		orgId: org.id,
+		action: "org_created",
+		targetType: "org",
+		targetId: org.id,
+		metadata: { name: org.name, slug: org.slug },
+		ctx: { ...ctx, actorId: userId },
 	});
 
 	return {
@@ -54,6 +69,7 @@ export type CompleteOAuthOnboardingResult = {
 export async function completeOAuthOnboarding(
 	oauthToken: string,
 	organizationName: string,
+	ctx?: AuditContext,
 ): Promise<CompleteOAuthOnboardingResult> {
 	const payload = await verifyOAuthPendingToken(oauthToken);
 
@@ -74,6 +90,15 @@ export async function completeOAuthOnboarding(
 	}
 
 	const { user, org } = result;
+
+	await auditService.log({
+		orgId: org.id,
+		action: "org_created",
+		targetType: "org",
+		targetId: org.id,
+		metadata: { name: org.name, slug: org.slug },
+		ctx: { ...ctx, actorId: user.id },
+	});
 
 	const tokens = await tokenService.generateTokenPair(user.id, org.id);
 

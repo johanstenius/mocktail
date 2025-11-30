@@ -7,6 +7,7 @@ export type TierLimits = {
 	monthlyRequests: number;
 	rateLimit: number;
 	requestLogRetentionDays: number;
+	auditLogRetentionDays: number;
 };
 
 export const TIER_LIMITS: Record<Tier, TierLimits> = {
@@ -17,6 +18,7 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 		monthlyRequests: 5_000,
 		rateLimit: 5,
 		requestLogRetentionDays: 3,
+		auditLogRetentionDays: 7,
 	},
 	pro: {
 		projects: 10,
@@ -25,6 +27,7 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 		monthlyRequests: 100_000,
 		rateLimit: 50,
 		requestLogRetentionDays: 30,
+		auditLogRetentionDays: 30,
 	},
 	enterprise: {
 		projects: Number.POSITIVE_INFINITY,
@@ -33,6 +36,7 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 		monthlyRequests: Number.POSITIVE_INFINITY,
 		rateLimit: 500,
 		requestLogRetentionDays: 90,
+		auditLogRetentionDays: 90,
 	},
 } as const;
 

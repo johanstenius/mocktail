@@ -80,3 +80,10 @@ export function countByProjectId(projectId: string) {
 		where: { projectId },
 	});
 }
+
+export function findByIdWithProject(id: string) {
+	return prisma.endpoint.findUnique({
+		where: { id },
+		include: { project: { select: { orgId: true } } },
+	});
+}

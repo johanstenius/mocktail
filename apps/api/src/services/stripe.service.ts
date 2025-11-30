@@ -3,6 +3,8 @@ import { config } from "../config";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import { logger } from "../utils/logger";
+import * as auditService from "./audit.service";
+import type { AuditContext } from "./audit.service";
 import { sendPaymentFailedEmail } from "./email.service";
 
 const stripe = config.stripeSecretKey
@@ -64,7 +66,10 @@ export async function createCheckoutSession(
 	return { url: session.url };
 }
 
-export async function cancelSubscription(orgId: string): Promise<void> {
+export async function cancelSubscription(
+	orgId: string,
+	ctx?: AuditContext,
+): Promise<void> {
 	if (!stripe) {
 		throw new Error("Stripe not configured");
 	}
@@ -90,9 +95,21 @@ export async function cancelSubscription(orgId: string): Promise<void> {
 		stripeCancelAtPeriodEnd: true,
 		stripeCurrentPeriodEnd: periodEnd,
 	});
+
+	await auditService.log({
+		orgId,
+		action: "subscription_cancelled",
+		targetType: "subscription",
+		targetId: org.stripeSubscriptionId,
+		metadata: { cancelAtPeriodEnd: periodEnd?.toISOString() },
+		ctx,
+	});
 }
 
-export async function reactivateSubscription(orgId: string): Promise<void> {
+export async function reactivateSubscription(
+	orgId: string,
+	ctx?: AuditContext,
+): Promise<void> {
 	if (!stripe) {
 		throw new Error("Stripe not configured");
 	}
@@ -109,6 +126,15 @@ export async function reactivateSubscription(orgId: string): Promise<void> {
 
 	await orgRepo.updateSubscription(orgId, {
 		stripeCancelAtPeriodEnd: false,
+	});
+
+	await auditService.log({
+		orgId,
+		action: "subscription_updated",
+		targetType: "subscription",
+		targetId: org.stripeSubscriptionId,
+		metadata: { action: "reactivated" },
+		ctx,
 	});
 }
 
@@ -182,6 +208,14 @@ async function handleCheckoutCompleted(
 		stripeSubscriptionId: subscriptionId ?? null,
 	});
 
+	await auditService.log({
+		orgId,
+		action: "subscription_created",
+		targetType: "subscription",
+		targetId: subscriptionId ?? undefined,
+		metadata: { tier: "pro" },
+	});
+
 	logger.info({ orgId }, "org upgraded to PRO");
 }
 
@@ -200,6 +234,7 @@ async function handleSubscriptionUpdated(
 		return;
 	}
 
+	const oldTier = org.tier;
 	const status = subscription.status;
 	const tier = status === "active" || status === "trialing" ? "pro" : "free";
 	const cancelAtPeriodEnd = subscription.cancel_at_period_end;
@@ -211,6 +246,20 @@ async function handleSubscriptionUpdated(
 		stripeCancelAtPeriodEnd: cancelAtPeriodEnd,
 		stripeCurrentPeriodEnd: currentPeriodEnd,
 	});
+
+	if (oldTier !== tier || org.stripeCancelAtPeriodEnd !== cancelAtPeriodEnd) {
+		await auditService.log({
+			orgId: org.id,
+			action: "subscription_updated",
+			targetType: "subscription",
+			targetId: subscription.id,
+			metadata: {
+				tier: { old: oldTier, new: tier },
+				status,
+				cancelAtPeriodEnd,
+			},
+		});
+	}
 
 	logger.info({ orgId: org.id, tier }, "subscription updated");
 }
@@ -235,6 +284,14 @@ async function handleSubscriptionDeleted(
 		stripeSubscriptionId: null,
 		stripeCancelAtPeriodEnd: false,
 		stripeCurrentPeriodEnd: null,
+	});
+
+	await auditService.log({
+		orgId: org.id,
+		action: "subscription_cancelled",
+		targetType: "subscription",
+		targetId: subscription.id,
+		metadata: { tier: { old: org.tier, new: "free" }, reason: "deleted" },
 	});
 
 	logger.info({ orgId: org.id }, "subscription deleted, downgraded to FREE");

@@ -1,6 +1,8 @@
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as variantRepo from "../repositories/variant.repository";
+import * as auditService from "./audit.service";
+import type { AuditContext } from "./audit.service";
 
 export type EndpointModel = {
 	id: string;
@@ -44,6 +46,7 @@ export function findById(
 export async function create(
 	projectId: string,
 	input: CreateEndpointInput,
+	ctx?: AuditContext,
 ): Promise<
 	{ endpoint: EndpointModel } | { error: "project_not_found" | "conflict" }
 > {
@@ -90,6 +93,15 @@ export async function create(
 		ruleLogic: "and",
 	});
 
+	await auditService.log({
+		orgId: project.orgId,
+		action: "endpoint_created",
+		targetType: "endpoint",
+		targetId: endpoint.id,
+		metadata: { method: input.method, path: input.path },
+		ctx,
+	});
+
 	return { endpoint };
 }
 
@@ -97,9 +109,13 @@ export async function update(
 	endpointId: string,
 	projectId: string,
 	input: UpdateEndpointInput,
+	ctx?: AuditContext,
 ): Promise<EndpointModel | null> {
 	const existing = await endpointRepo.findByIdAndProject(endpointId, projectId);
 	if (!existing) return null;
+
+	const project = await projectRepo.findById(projectId);
+	if (!project) return null;
 
 	const bodyType = input.bodyType ?? existing.bodyType;
 
@@ -119,15 +135,60 @@ export async function update(
 		...(input.failRate !== undefined && { failRate: input.failRate }),
 	});
 
+	const changedFields: string[] = [];
+	if (input.method && input.method !== existing.method)
+		changedFields.push("method");
+	if (input.path && input.path !== existing.path) changedFields.push("path");
+	if (input.status !== undefined && input.status !== existing.status)
+		changedFields.push("status");
+	if (input.bodyType && input.bodyType !== existing.bodyType)
+		changedFields.push("bodyType");
+	if (input.delay !== undefined && input.delay !== existing.delay)
+		changedFields.push("delay");
+	if (input.failRate !== undefined && input.failRate !== existing.failRate)
+		changedFields.push("failRate");
+	if (input.headers) changedFields.push("headers");
+	if (input.body !== undefined) changedFields.push("body");
+
+	if (changedFields.length > 0) {
+		await auditService.log({
+			orgId: project.orgId,
+			action: "endpoint_updated",
+			targetType: "endpoint",
+			targetId: endpointId,
+			metadata: {
+				method: endpoint?.method,
+				path: endpoint?.path,
+				changedFields,
+			},
+			ctx,
+		});
+	}
+
 	return endpoint;
 }
 
 export async function remove(
 	endpointId: string,
 	projectId: string,
+	ctx?: AuditContext,
 ): Promise<boolean> {
 	const existing = await endpointRepo.findByIdAndProject(endpointId, projectId);
 	if (!existing) return false;
+
+	const project = await projectRepo.findById(projectId);
+	if (!project) return false;
+
 	await endpointRepo.remove(endpointId);
+
+	await auditService.log({
+		orgId: project.orgId,
+		action: "endpoint_deleted",
+		targetType: "endpoint",
+		targetId: endpointId,
+		metadata: { method: existing.method, path: existing.path },
+		ctx,
+	});
+
 	return true;
 }

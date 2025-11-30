@@ -14,6 +14,7 @@ type AuthState = {
 	org: AuthOrg | null;
 	hasCompletedOnboarding: boolean;
 	emailVerifiedAt: string | null;
+	role: string | null;
 	isLoading: boolean;
 	isAuthenticated: boolean;
 };
@@ -27,7 +28,12 @@ type AuthContextValue = AuthState & {
 	) => Promise<void>;
 	logout: () => Promise<void>;
 	setOnboardingComplete: () => void;
-	setTokens: (tokens: TokenResponse, user: AuthUser, org: AuthOrg) => void;
+	setTokens: (
+		tokens: TokenResponse,
+		user: AuthUser,
+		org: AuthOrg,
+		role?: string,
+	) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -58,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		org: null,
 		hasCompletedOnboarding: true,
 		emailVerifiedAt: null,
+		role: null,
 		isLoading: true,
 		isAuthenticated: false,
 	});
@@ -87,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				org: null,
 				hasCompletedOnboarding: true,
 				emailVerifiedAt: null,
+				role: null,
 				isLoading: false,
 				isAuthenticated: false,
 			});
@@ -104,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
 				hasCompletedOnboarding: me.hasCompletedOnboarding,
 				emailVerifiedAt: me.emailVerifiedAt,
+				role: me.role,
 				isLoading: false,
 				isAuthenticated: true,
 			});
@@ -122,6 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
 					hasCompletedOnboarding: me.hasCompletedOnboarding,
 					emailVerifiedAt: me.emailVerifiedAt,
+					role: me.role,
 					isLoading: false,
 					isAuthenticated: true,
 				});
@@ -132,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					org: null,
 					hasCompletedOnboarding: true,
 					emailVerifiedAt: null,
+					role: null,
 					isLoading: false,
 					isAuthenticated: false,
 				});
@@ -152,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			org: response.org,
 			hasCompletedOnboarding: me.hasCompletedOnboarding,
 			emailVerifiedAt: me.emailVerifiedAt,
+			role: me.role,
 			isLoading: false,
 			isAuthenticated: true,
 		});
@@ -166,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				org: response.org,
 				hasCompletedOnboarding: false,
 				emailVerifiedAt: null,
+				role: "owner",
 				isLoading: false,
 				isAuthenticated: true,
 			});
@@ -188,19 +201,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			org: null,
 			hasCompletedOnboarding: true,
 			emailVerifiedAt: null,
+			role: null,
 			isLoading: false,
 			isAuthenticated: false,
 		});
 	}, []);
 
 	const setTokens = useCallback(
-		(tokens: TokenResponse, user: AuthUser, org: AuthOrg) => {
+		(tokens: TokenResponse, user: AuthUser, org: AuthOrg, role?: string) => {
 			storeTokens(tokens);
 			setState({
 				user,
 				org,
 				hasCompletedOnboarding: true,
 				emailVerifiedAt: user.emailVerifiedAt,
+				role: role ?? null,
 				isLoading: false,
 				isAuthenticated: true,
 			});

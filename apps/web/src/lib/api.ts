@@ -1,6 +1,7 @@
 import type {
 	AcceptInviteResponse,
 	ActivityItem,
+	AuditLog,
 	AuthResponse,
 	CompleteOAuthOnboardingResponse,
 	CreateEndpointInput,
@@ -9,6 +10,7 @@ import type {
 	CreateVariantInput,
 	DashboardStats,
 	Endpoint,
+	GetAuditLogsParams,
 	ImportResult,
 	ImportSpecInput,
 	Invite,
@@ -406,6 +408,53 @@ export async function reactivateSubscription(): Promise<void> {
 
 export async function retryPayment(): Promise<void> {
 	await fetchVoid(`${API_BASE}/api/billing/retry-payment`, { method: "POST" });
+}
+
+// Audit Logs
+export async function getAuditLogs(
+	params?: GetAuditLogsParams,
+): Promise<{ logs: AuditLog[]; total: number }> {
+	const searchParams = new URLSearchParams();
+	if (params?.limit) searchParams.set("limit", String(params.limit));
+	if (params?.offset) searchParams.set("offset", String(params.offset));
+	if (params?.action) searchParams.set("action", params.action);
+	if (params?.actorId) searchParams.set("actorId", params.actorId);
+	if (params?.targetType) searchParams.set("targetType", params.targetType);
+	if (params?.from) searchParams.set("from", params.from);
+	if (params?.to) searchParams.set("to", params.to);
+
+	const query = searchParams.toString();
+	const url = `${API_BASE}/api/audit-logs${query ? `?${query}` : ""}`;
+	return fetchJson<{ logs: AuditLog[]; total: number }>(url);
+}
+
+export async function exportAuditLogs(
+	format: "csv" | "json",
+	params?: GetAuditLogsParams,
+): Promise<Blob> {
+	const searchParams = new URLSearchParams();
+	searchParams.set("format", format);
+	if (params?.action) searchParams.set("action", params.action);
+	if (params?.actorId) searchParams.set("actorId", params.actorId);
+	if (params?.targetType) searchParams.set("targetType", params.targetType);
+	if (params?.from) searchParams.set("from", params.from);
+	if (params?.to) searchParams.set("to", params.to);
+
+	const token = getAccessToken();
+	const res = await fetch(
+		`${API_BASE}/api/audit-logs/export?${searchParams.toString()}`,
+		{
+			headers: token ? { Authorization: `Bearer ${token}` } : {},
+		},
+	);
+	if (!res.ok) {
+		const data = await res.json().catch(() => ({}));
+		throw new ApiError(
+			data.error ?? "Export failed",
+			data.code ?? "INTERNAL_ERROR",
+		);
+	}
+	return res.blob();
 }
 
 // Dashboard

@@ -1,4 +1,5 @@
 import { getLimits } from "../config/limits";
+import * as auditRepo from "../repositories/audit.repository";
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
@@ -10,6 +11,7 @@ export type OrgCleanupResult = {
 	orgName: string;
 	projectsProcessed: number;
 	logsDeleted: number;
+	auditLogsDeleted: number;
 };
 
 export type CleanupResult = {
@@ -32,26 +34,40 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 
 		for (const org of orgs) {
 			const limits = getLimits(org.tier);
-			const cutoffDate = new Date();
-			cutoffDate.setDate(cutoffDate.getDate() - limits.requestLogRetentionDays);
+
+			const requestLogCutoff = new Date();
+			requestLogCutoff.setDate(
+				requestLogCutoff.getDate() - limits.requestLogRetentionDays,
+			);
+
+			const auditLogCutoff = new Date();
+			auditLogCutoff.setDate(
+				auditLogCutoff.getDate() - limits.auditLogRetentionDays,
+			);
 
 			let orgLogsDeleted = 0;
 			for (const project of org.projects) {
 				const deleted = await requestLogRepo.removeOlderThan(
 					project.id,
-					cutoffDate,
+					requestLogCutoff,
 				);
 				orgLogsDeleted += deleted;
 			}
 
-			if (orgLogsDeleted > 0) {
+			const auditLogsDeleted = await auditRepo.removeOlderThan(
+				org.id,
+				auditLogCutoff,
+			);
+
+			if (orgLogsDeleted > 0 || auditLogsDeleted > 0) {
 				results.push({
 					orgId: org.id,
 					orgName: org.name,
 					projectsProcessed: org.projects.length,
 					logsDeleted: orgLogsDeleted,
+					auditLogsDeleted,
 				});
-				totalDeleted += orgLogsDeleted;
+				totalDeleted += orgLogsDeleted + auditLogsDeleted;
 			}
 		}
 
