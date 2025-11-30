@@ -1,4 +1,4 @@
-const MOCK_API_URL = import.meta.env.VITE_MOCK_API_URL || "http://localhost:4000";
+const MOCK_API_URL = "http://localhost:4000";
 
 export function getMockUrl(projectSlug: string, endpointPath: string): string {
 	const path = endpointPath.startsWith("/") ? endpointPath : `/${endpointPath}`;

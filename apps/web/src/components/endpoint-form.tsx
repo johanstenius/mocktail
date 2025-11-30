@@ -1,4 +1,5 @@
 import { createEndpoint, updateEndpoint } from "@/lib/api";
+import { getCurlCommand, getMockUrl } from "@/lib/url";
 import type {
 	BodyType,
 	CreateEndpointInput,
@@ -7,6 +8,7 @@ import type {
 } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { CopyButton } from "./copy-button";
 import { Button } from "./ui/button";
 import {
 	Dialog,
@@ -25,6 +27,7 @@ const COMMON_STATUS_CODES = [200, 201, 204, 400, 401, 403, 404, 500];
 
 type EndpointFormProps = {
 	projectId: string;
+	projectSlug?: string;
 	endpoint?: Endpoint;
 	prefill?: { method: HttpMethod; path: string };
 	open: boolean;
@@ -33,6 +36,7 @@ type EndpointFormProps = {
 
 export function EndpointForm({
 	projectId,
+	projectSlug,
 	endpoint,
 	prefill,
 	open,
@@ -165,9 +169,36 @@ export function EndpointForm({
 			<DialogContent className="max-w-2xl">
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
-						<DialogTitle>
-							{isEditing ? "Edit Endpoint" : "Create Endpoint"}
-						</DialogTitle>
+						<div className="flex items-center justify-between">
+							<DialogTitle>
+								{isEditing ? "Edit Endpoint" : "Create Endpoint"}
+							</DialogTitle>
+							{isEditing && projectSlug && (
+								<div className="flex items-center gap-2">
+									<CopyButton
+										value={getMockUrl(projectSlug, path)}
+										label="Copy URL"
+										variant="ghost"
+										size="sm"
+										className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+									>
+										URL
+									</CopyButton>
+									<CopyButton
+										value={getCurlCommand(
+											method,
+											getMockUrl(projectSlug, path),
+										)}
+										label="Copy cURL"
+										variant="ghost"
+										size="sm"
+										className="text-[var(--text-muted)] hover:text-[var(--text-primary)] font-['JetBrains_Mono'] text-xs"
+									>
+										cURL
+									</CopyButton>
+								</div>
+							)}
+						</div>
 					</DialogHeader>
 
 					<div className="space-y-6 py-4">

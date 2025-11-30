@@ -5,7 +5,6 @@ import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
 import { RequestLogTable } from "@/components/request-log-table";
 import { Button } from "@/components/ui/button";
-import { getCurlCommand, getMockUrl } from "@/lib/url";
 import {
 	deleteEndpoint,
 	getEndpoints,
@@ -13,6 +12,7 @@ import {
 	getProjectStatistics,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { getCurlCommand, getMockUrl } from "@/lib/url";
 import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -539,6 +539,7 @@ function ProjectDetailPage() {
 											key={endpoint.id}
 											endpoint={endpoint}
 											projectId={projectId}
+											projectSlug={project.slug}
 											stat={statsMap.get(endpoint.id)}
 											onEdit={() => handleEditEndpoint(endpoint)}
 										/>
@@ -580,6 +581,7 @@ function ProjectDetailPage() {
 			{/* Modals */}
 			<EndpointForm
 				projectId={projectId}
+				projectSlug={project.slug}
 				endpoint={selectedEndpoint ?? undefined}
 				prefill={prefillData ?? undefined}
 				open={endpointModalOpen}
