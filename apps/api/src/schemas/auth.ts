@@ -1,4 +1,4 @@
-import { z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
 
 export const registerSchema = z.object({
 	email: z.string().email(),
@@ -29,6 +29,7 @@ export const authResponseSchema = z.object({
 	user: z.object({
 		id: z.string(),
 		email: z.string(),
+		emailVerifiedAt: z.string().nullable(),
 	}),
 	org: z.object({
 		id: z.string(),
@@ -41,6 +42,7 @@ export const authResponseSchema = z.object({
 export const meResponseSchema = z.object({
 	id: z.string(),
 	email: z.string(),
+	emailVerifiedAt: z.string().nullable(),
 	hasCompletedOnboarding: z.boolean(),
 	org: z.object({
 		id: z.string(),
@@ -53,6 +55,238 @@ export const meResponseSchema = z.object({
 
 export const authErrorSchema = z.object({
 	error: z.string(),
+});
+
+export const forgotPasswordSchema = z.object({
+	email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+	token: z.string(),
+	password: z.string().min(8),
+});
+
+export const verifyEmailSchema = z.object({
+	token: z.string(),
+});
+
+export const messageResponseSchema = z.object({
+	message: z.string(),
+});
+
+// Route definitions
+export const registerRoute = createRoute({
+	method: "post",
+	path: "/register",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: {
+				"application/json": { schema: registerSchema },
+			},
+		},
+	},
+	responses: {
+		201: {
+			description: "User registered",
+			content: {
+				"application/json": { schema: authResponseSchema },
+			},
+		},
+		400: {
+			description: "Invalid input",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const loginRoute = createRoute({
+	method: "post",
+	path: "/login",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: {
+				"application/json": { schema: loginSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Login successful",
+			content: {
+				"application/json": { schema: authResponseSchema },
+			},
+		},
+		401: {
+			description: "Invalid credentials",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const logoutRoute = createRoute({
+	method: "post",
+	path: "/logout",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: {
+				"application/json": { schema: logoutSchema },
+			},
+		},
+	},
+	responses: {
+		204: {
+			description: "Logged out",
+		},
+	},
+});
+
+export const refreshRoute = createRoute({
+	method: "post",
+	path: "/refresh",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: {
+				"application/json": { schema: refreshSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Tokens refreshed",
+			content: {
+				"application/json": { schema: tokenResponseSchema },
+			},
+		},
+		401: {
+			description: "Invalid refresh token",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const meRoute = createRoute({
+	method: "get",
+	path: "/me",
+	tags: ["Auth"],
+	responses: {
+		200: {
+			description: "Current user",
+			content: {
+				"application/json": { schema: meResponseSchema },
+			},
+		},
+		401: {
+			description: "Not authenticated",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const forgotPasswordRoute = createRoute({
+	method: "post",
+	path: "/forgot-password",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: forgotPasswordSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Password reset email sent",
+			content: {
+				"application/json": { schema: messageResponseSchema },
+			},
+		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const resetPasswordRoute = createRoute({
+	method: "post",
+	path: "/reset-password",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: resetPasswordSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Password reset successful",
+			content: {
+				"application/json": { schema: messageResponseSchema },
+			},
+		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+	},
+});
+
+export const sendVerificationRoute = createRoute({
+	method: "post",
+	path: "/send-verification",
+	tags: ["Auth"],
+	responses: {
+		200: {
+			description: "Verification email sent",
+			content: {
+				"application/json": { schema: messageResponseSchema },
+			},
+		},
+	},
+});
+
+export const verifyEmailRoute = createRoute({
+	method: "post",
+	path: "/verify-email",
+	tags: ["Auth"],
+	request: {
+		body: {
+			content: { "application/json": { schema: verifyEmailSchema } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Email verified",
+			content: {
+				"application/json": { schema: messageResponseSchema },
+			},
+		},
+	},
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

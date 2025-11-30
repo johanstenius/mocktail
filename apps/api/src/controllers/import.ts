@@ -1,14 +1,13 @@
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import { authMiddleware } from "../middleware/auth";
-import { errorSchema, projectIdParamSchema } from "../schemas/common";
-import { importResultSchema, importSpecSchema } from "../schemas/import";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { authMiddleware, requireVerifiedEmail } from "../middleware/auth";
+import { importRoute } from "../schemas/import";
 import * as importService from "../services/import.service";
 import type { ImportedEndpoint } from "../services/import.service";
 import { badRequest, notFound } from "../utils/errors";
 
 export const importRouter = new OpenAPIHono();
 
-importRouter.use("*", authMiddleware());
+importRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function parseJson(str: string): unknown {
 	try {
@@ -37,48 +36,6 @@ function mapEndpointToResponse(endpoint: ImportedEndpoint) {
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};
 }
-
-const importRoute = createRoute({
-	method: "post",
-	path: "/",
-	tags: ["Import"],
-	request: {
-		params: projectIdParamSchema,
-		body: {
-			content: {
-				"application/json": {
-					schema: importSpecSchema,
-				},
-			},
-		},
-	},
-	responses: {
-		200: {
-			description: "Import result",
-			content: {
-				"application/json": {
-					schema: importResultSchema,
-				},
-			},
-		},
-		400: {
-			description: "Invalid spec",
-			content: {
-				"application/json": {
-					schema: errorSchema,
-				},
-			},
-		},
-		404: {
-			description: "Project not found",
-			content: {
-				"application/json": {
-					schema: errorSchema,
-				},
-			},
-		},
-	},
-});
 
 importRouter.openapi(importRoute, async (c) => {
 	const { projectId } = c.req.valid("param");

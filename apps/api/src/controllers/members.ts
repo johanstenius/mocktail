@@ -1,5 +1,9 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { authMiddleware, getAuth } from "../middleware/auth";
+import {
+	authMiddleware,
+	getAuth,
+	requireVerifiedEmail,
+} from "../middleware/auth";
 import {
 	deleteMemberRoute,
 	listMembersRoute,
@@ -9,7 +13,7 @@ import * as memberService from "../services/member.service";
 
 export const membersRouter = new OpenAPIHono();
 
-membersRouter.use("*", authMiddleware());
+membersRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 membersRouter.openapi(listMembersRoute, async (c) => {
 	const { orgId } = getAuth(c);

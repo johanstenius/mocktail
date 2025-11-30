@@ -1,5 +1,9 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { authMiddleware, getAuth } from "../middleware/auth";
+import {
+	authMiddleware,
+	getAuth,
+	requireVerifiedEmail,
+} from "../middleware/auth";
 import {
 	completeOnboardingRoute,
 	createSampleProjectRoute,
@@ -8,7 +12,7 @@ import * as onboardingService from "../services/onboarding.service";
 
 export const onboardingRouter = new OpenAPIHono();
 
-onboardingRouter.use("*", authMiddleware());
+onboardingRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 onboardingRouter.openapi(completeOnboardingRoute, async (c) => {
 	const { userId } = getAuth(c);

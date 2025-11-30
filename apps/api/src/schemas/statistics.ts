@@ -1,4 +1,5 @@
-import { z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
+import { errorSchema, projectIdParamSchema } from "./common";
 
 export const endpointStatSchema = z.object({
 	endpointId: z.string(),
@@ -17,6 +18,30 @@ export const statisticsSchema = z.object({
 	endpoints: z.array(endpointStatSchema),
 	unmatched: z.array(unmatchedRequestSchema),
 	avgLatency: z.number().nullable(),
+});
+
+// Route definitions
+export const getStatisticsRoute = createRoute({
+	method: "get",
+	path: "/",
+	tags: ["Statistics"],
+	request: {
+		params: projectIdParamSchema,
+	},
+	responses: {
+		200: {
+			description: "Project statistics",
+			content: {
+				"application/json": { schema: statisticsSchema },
+			},
+		},
+		404: {
+			description: "Project not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
 });
 
 export type StatisticsResponse = z.infer<typeof statisticsSchema>;

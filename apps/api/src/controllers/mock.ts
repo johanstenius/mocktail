@@ -2,7 +2,11 @@ import type { Context } from "hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { StatusCode } from "hono/utils/http-status";
-import { getMockProjectId, mockAuthMiddleware } from "../middleware/mock-auth";
+import {
+	getMockOrgId,
+	getMockProjectId,
+	mockAuthMiddleware,
+} from "../middleware/mock-auth";
 import { createMockRateLimiter } from "../middleware/rate-limit";
 import * as limitsService from "../services/limits.service";
 import * as mockService from "../services/mock.service";
@@ -46,14 +50,19 @@ async function extractBody(request: Request): Promise<unknown> {
 
 mockRouter.all("/*", async (c) => {
 	const projectId = getMockProjectId(c);
+	const orgId = getMockOrgId(c);
 
-	const quotaCheck = await limitsService.trackProjectRequest(projectId);
+	// Quota check (org-level)
+	const quotaCheck = await limitsService.trackRequest(orgId);
 	if (!quotaCheck.allowed) {
 		return c.json(
 			{ error: "Monthly request quota exceeded", code: "QUOTA_EXCEEDED" },
 			429,
 		);
 	}
+
+	// Track for analytics (project-level)
+	await limitsService.trackProjectRequest(projectId);
 
 	const startTime = Date.now();
 	const path = `/${c.req.path.split("/").slice(2).join("/")}`;

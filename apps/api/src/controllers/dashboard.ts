@@ -1,11 +1,15 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { authMiddleware, getAuth } from "../middleware/auth";
+import {
+	authMiddleware,
+	getAuth,
+	requireVerifiedEmail,
+} from "../middleware/auth";
 import { getActivityRoute, getDashboardStatsRoute } from "../schemas/dashboard";
 import * as dashboardService from "../services/dashboard.service";
 
 export const dashboardRouter = new OpenAPIHono();
 
-dashboardRouter.use("*", authMiddleware());
+dashboardRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 dashboardRouter.openapi(getDashboardStatsRoute, async (c) => {
 	const { orgId } = getAuth(c);

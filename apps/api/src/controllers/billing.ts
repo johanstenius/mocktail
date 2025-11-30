@@ -1,6 +1,11 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "../lib/logger";
-import { authMiddleware, getAuth, requireRole } from "../middleware/auth";
+import {
+	authMiddleware,
+	getAuth,
+	requireRole,
+	requireVerifiedEmail,
+} from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -17,17 +22,29 @@ import { badRequest, notFound } from "../utils/errors";
 export const billingRouter = new OpenAPIHono();
 
 // Auth for all routes except webhook
-billingRouter.use("/usage", authMiddleware());
-billingRouter.use("/checkout", authMiddleware(), requireRole("admin", "owner"));
-billingRouter.use("/cancel", authMiddleware(), requireRole("admin", "owner"));
+billingRouter.use("/usage", authMiddleware(), requireVerifiedEmail());
+billingRouter.use(
+	"/checkout",
+	authMiddleware(),
+	requireVerifiedEmail(),
+	requireRole("admin", "owner"),
+);
+billingRouter.use(
+	"/cancel",
+	authMiddleware(),
+	requireVerifiedEmail(),
+	requireRole("admin", "owner"),
+);
 billingRouter.use(
 	"/reactivate",
 	authMiddleware(),
+	requireVerifiedEmail(),
 	requireRole("admin", "owner"),
 );
 billingRouter.use(
 	"/retry-payment",
 	authMiddleware(),
+	requireVerifiedEmail(),
 	requireRole("admin", "owner"),
 );
 

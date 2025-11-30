@@ -1,6 +1,10 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { logger } from "../lib/logger";
-import { authMiddleware, getAuth } from "../middleware/auth";
+import {
+	authMiddleware,
+	getAuth,
+	requireVerifiedEmail,
+} from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -13,13 +17,12 @@ import {
 import * as emailService from "../services/email.service";
 import * as limitsService from "../services/limits.service";
 import * as memberService from "../services/member.service";
-import { quotaExceeded } from "../utils/errors";
 
 export const invitesRouter = new OpenAPIHono();
 
 // Auth for protected routes (list, create, delete)
-invitesRouter.use("/", authMiddleware());
-invitesRouter.use("/:inviteId", authMiddleware());
+invitesRouter.use("/", authMiddleware(), requireVerifiedEmail());
+invitesRouter.use("/:inviteId", authMiddleware(), requireVerifiedEmail());
 
 // Public routes
 invitesRouter.openapi(getInviteByTokenRoute, async (c) => {
@@ -44,10 +47,7 @@ invitesRouter.openapi(createInviteRoute, async (c) => {
 	const { orgId, userId, role } = getAuth(c);
 	const { email, role: inviteRole } = c.req.valid("json");
 
-	const limitCheck = await limitsService.checkMemberLimit(orgId);
-	if (!limitCheck.allowed) {
-		throw quotaExceeded(limitCheck.reason ?? "Team member limit reached");
-	}
+	await limitsService.requireMemberLimit(orgId);
 
 	const { invite, token } = await memberService.createInvite(
 		email,

@@ -1,23 +1,23 @@
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
+import { adminRouter } from "./controllers/admin";
+import { authRouter } from "./controllers/auth";
+import { billingRouter } from "./controllers/billing";
+import { dashboardRouter } from "./controllers/dashboard";
+import { endpointsRouter } from "./controllers/endpoints";
+import { importRouter } from "./controllers/import";
+import { invitesRouter } from "./controllers/invites";
+import { membersRouter } from "./controllers/members";
+import { mockRouter } from "./controllers/mock";
+import { onboardingRouter } from "./controllers/onboarding";
+import { projectsRouter } from "./controllers/projects";
+import { requestLogsRouter } from "./controllers/request-logs";
+import { statisticsRouter } from "./controllers/statistics";
+import { variantsRouter } from "./controllers/variants";
 import { logger } from "./lib/logger";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
-import { adminRouter } from "./routes/admin";
-import { authRouter } from "./routes/auth";
-import { billingRouter } from "./routes/billing";
-import { dashboardRouter } from "./routes/dashboard";
-import { endpointsRouter } from "./routes/endpoints";
-import { importRouter } from "./routes/import";
-import { invitesRouter } from "./routes/invites";
-import { membersRouter } from "./routes/members";
-import { mockRouter } from "./routes/mock";
-import { onboardingRouter } from "./routes/onboarding";
-import { projectsRouter } from "./routes/projects";
-import { requestLogsRouter } from "./routes/request-logs";
-import { statisticsRouter } from "./routes/statistics";
-import { variantsRouter } from "./routes/variants";
 
 const app = new OpenAPIHono();
 

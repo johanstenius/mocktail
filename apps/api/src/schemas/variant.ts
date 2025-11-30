@@ -1,4 +1,9 @@
-import { z } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
+import {
+	endpointIdParamSchema,
+	errorSchema,
+	variantIdParamSchema,
+} from "./common";
 import { bodyTypeSchema } from "./endpoint";
 
 export const matchTargetSchema = z.enum(["header", "query", "param", "body"]);
@@ -67,6 +72,161 @@ export const updateVariantSchema = z.object({
 
 export const reorderVariantsSchema = z.object({
 	variantIds: z.array(z.string()).min(1),
+});
+
+export const variantListSchema = z.object({
+	variants: z.array(variantSchema),
+});
+
+// Route definitions
+export const listVariantsRoute = createRoute({
+	method: "get",
+	path: "/",
+	tags: ["Variants"],
+	request: {
+		params: endpointIdParamSchema,
+	},
+	responses: {
+		200: {
+			description: "List of response variants",
+			content: {
+				"application/json": { schema: variantListSchema },
+			},
+		},
+	},
+});
+
+export const getVariantRoute = createRoute({
+	method: "get",
+	path: "/{variantId}",
+	tags: ["Variants"],
+	request: {
+		params: variantIdParamSchema,
+	},
+	responses: {
+		200: {
+			description: "Variant details",
+			content: {
+				"application/json": { schema: variantSchema },
+			},
+		},
+		404: {
+			description: "Variant not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
+});
+
+export const createVariantRoute = createRoute({
+	method: "post",
+	path: "/",
+	tags: ["Variants"],
+	request: {
+		params: endpointIdParamSchema,
+		body: {
+			content: {
+				"application/json": { schema: createVariantSchema },
+			},
+		},
+	},
+	responses: {
+		201: {
+			description: "Variant created",
+			content: {
+				"application/json": { schema: variantSchema },
+			},
+		},
+		404: {
+			description: "Endpoint not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
+});
+
+export const updateVariantRoute = createRoute({
+	method: "patch",
+	path: "/{variantId}",
+	tags: ["Variants"],
+	request: {
+		params: variantIdParamSchema,
+		body: {
+			content: {
+				"application/json": { schema: updateVariantSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Variant updated",
+			content: {
+				"application/json": { schema: variantSchema },
+			},
+		},
+		404: {
+			description: "Variant not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
+});
+
+export const deleteVariantRoute = createRoute({
+	method: "delete",
+	path: "/{variantId}",
+	tags: ["Variants"],
+	request: {
+		params: variantIdParamSchema,
+	},
+	responses: {
+		204: {
+			description: "Variant deleted",
+		},
+		400: {
+			description: "Cannot delete last variant",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+		404: {
+			description: "Variant not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
+});
+
+export const reorderVariantsRoute = createRoute({
+	method: "post",
+	path: "/reorder",
+	tags: ["Variants"],
+	request: {
+		params: endpointIdParamSchema,
+		body: {
+			content: {
+				"application/json": { schema: reorderVariantsSchema },
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Variants reordered",
+			content: {
+				"application/json": { schema: variantListSchema },
+			},
+		},
+		400: {
+			description: "Invalid variant IDs",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
 });
 
 export type VariantResponse = z.infer<typeof variantSchema>;
