@@ -1,5 +1,6 @@
 import type { Context, Next } from "hono";
 import { UNAUTHENTICATED_RATE_LIMIT, getLimits } from "../config/limits";
+import { rateLimited } from "../utils/errors";
 import { getApiKeyTier, hasApiKey } from "./api-key";
 
 type SlidingWindowEntry = {
@@ -88,10 +89,7 @@ export function createMockRateLimiter() {
 
 			if (!allowed) {
 				c.header("Retry-After", String(1));
-				return c.json(
-					{ error: "Too Many Requests", code: "RATE_LIMIT_EXCEEDED" },
-					429,
-				);
+				throw rateLimited();
 			}
 			await next();
 			return;
@@ -110,10 +108,7 @@ export function createMockRateLimiter() {
 
 		if (!allowed) {
 			c.header("Retry-After", String(1));
-			return c.json(
-				{ error: "Too Many Requests", code: "RATE_LIMIT_EXCEEDED" },
-				429,
-			);
+			throw rateLimited();
 		}
 
 		await next();

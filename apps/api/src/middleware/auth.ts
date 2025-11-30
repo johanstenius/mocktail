@@ -2,6 +2,7 @@ import type { OrgRole } from "@prisma/client";
 import type { Context, MiddlewareHandler } from "hono";
 import * as orgMembershipRepo from "../repositories/org-membership.repository";
 import * as tokenService from "../services/token.service";
+import { forbidden, unauthorized } from "../utils/errors";
 
 export type AuthContext = {
 	userId: string;
@@ -19,13 +20,13 @@ export function authMiddleware(): MiddlewareHandler<{
 	return async (c, next) => {
 		const authHeader = c.req.header("Authorization");
 		if (!authHeader?.startsWith("Bearer ")) {
-			return c.json({ error: "Missing or invalid authorization header" }, 401);
+			throw unauthorized("Missing or invalid authorization header");
 		}
 
 		const token = authHeader.slice(7);
 		const payload = await tokenService.verifyAccessToken(token);
 		if (!payload) {
-			return c.json({ error: "Invalid or expired token" }, 401);
+			throw unauthorized("Invalid or expired token");
 		}
 
 		const membership = await orgMembershipRepo.findByUserAndOrg(
@@ -33,7 +34,7 @@ export function authMiddleware(): MiddlewareHandler<{
 			payload.orgId,
 		);
 		if (!membership) {
-			return c.json({ error: "Not a member of this organization" }, 403);
+			throw forbidden("Not a member of this organization");
 		}
 
 		c.set("auth", {
@@ -52,11 +53,11 @@ export function requireRole(
 	return async (c, next) => {
 		const auth = c.get("auth");
 		if (!auth) {
-			return c.json({ error: "Not authenticated" }, 401);
+			throw unauthorized("Not authenticated");
 		}
 
 		if (!roles.includes(auth.role)) {
-			return c.json({ error: "Insufficient permissions" }, 403);
+			throw forbidden("Insufficient permissions");
 		}
 
 		await next();

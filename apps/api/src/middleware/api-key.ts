@@ -1,6 +1,7 @@
 import type { Tier } from "@prisma/client";
 import type { Context, Next } from "hono";
 import { validateApiKey } from "../services/api-key.service";
+import { unauthorized } from "../utils/errors";
 
 export type ApiKeyContext = {
 	orgId: string;
@@ -11,13 +12,13 @@ export async function apiKeyMiddleware(c: Context, next: Next) {
 	const apiKey = c.req.header("X-API-Key");
 
 	if (!apiKey) {
-		return c.json({ error: "No API key provided" }, 401);
+		throw unauthorized("No API key provided");
 	}
 
 	const result = await validateApiKey(apiKey);
 
 	if (!result) {
-		return c.json({ error: "Invalid API key" }, 401);
+		throw unauthorized("Invalid API key");
 	}
 
 	c.set("apiKeyOrg", result.orgId);
