@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { config } from "../config";
 import { logger } from "../lib/logger";
 import * as orgRepo from "../repositories/organization.repository";
+import { sendPaymentFailedEmail } from "./email.service";
 
 const stripe = config.stripeSecretKey
 	? new Stripe(config.stripeSecretKey)
@@ -110,6 +111,20 @@ export async function reactivateSubscription(orgId: string): Promise<void> {
 	});
 }
 
+export async function retryPayment(orgId: string): Promise<void> {
+	if (!stripe) {
+		throw new Error("Stripe not configured");
+	}
+
+	const org = await orgRepo.findById(orgId);
+
+	if (!org?.lastFailedInvoiceId) {
+		throw new Error("No failed invoice found");
+	}
+
+	await stripe.invoices.pay(org.lastFailedInvoiceId);
+}
+
 export async function handleWebhookEvent(
 	payload: string,
 	signature: string,
@@ -140,6 +155,9 @@ export async function handleWebhookEvent(
 			break;
 		case "invoice.payment_failed":
 			await handlePaymentFailed(event.data.object);
+			break;
+		case "invoice.payment_succeeded":
+			await handlePaymentSucceeded(event.data.object);
 			break;
 	}
 }
@@ -236,5 +254,63 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
 		return;
 	}
 
-	logger.warn({ orgId: org.id }, "payment failed");
+	if (org.paymentFailedAt) {
+		logger.info({ orgId: org.id }, "payment failed again, already in grace");
+		return;
+	}
+
+	await orgRepo.updateSubscription(org.id, {
+		paymentFailedAt: new Date(),
+		lastFailedInvoiceId: invoice.id,
+	});
+
+	const owner = await getOrgOwnerEmail(org.id);
+	if (owner) {
+		await sendPaymentFailedEmail({
+			to: owner.email,
+			orgName: org.name,
+			graceDays: 7,
+		});
+	}
+
+	logger.warn({ orgId: org.id }, "payment failed, grace period started");
+}
+
+async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+	const customerId =
+		typeof invoice.customer === "string"
+			? invoice.customer
+			: invoice.customer?.id;
+
+	if (!customerId) return;
+
+	const org = await orgRepo.findByStripeCustomerId(customerId);
+
+	if (!org) {
+		logger.error({ customerId }, "no org found for customer");
+		return;
+	}
+
+	if (!org.paymentFailedAt) return;
+
+	await orgRepo.updateSubscription(org.id, {
+		paymentFailedAt: null,
+		lastFailedInvoiceId: null,
+	});
+
+	logger.info({ orgId: org.id }, "payment succeeded, grace period cleared");
+}
+
+async function getOrgOwnerEmail(
+	orgId: string,
+): Promise<{ email: string } | null> {
+	const org = await orgRepo.findById(orgId);
+	if (!org) return null;
+
+	const { prisma } = await import("../repositories/db/prisma");
+	const owner = await prisma.user.findUnique({
+		where: { id: org.ownerId },
+		select: { email: true },
+	});
+	return owner;
 }

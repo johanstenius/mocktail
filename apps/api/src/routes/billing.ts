@@ -8,6 +8,7 @@ import {
 	createCheckoutRoute,
 	getUsageRoute,
 	reactivateSubscriptionRoute,
+	retryPaymentRoute,
 } from "../schemas/billing";
 import * as limitsService from "../services/limits.service";
 import * as stripeService from "../services/stripe.service";
@@ -34,6 +35,7 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 			requests: { current: 0, limit: 10000 },
 			cancelAtPeriodEnd: false,
 			currentPeriodEnd: null,
+			paymentFailedAt: null,
 		});
 	}
 
@@ -57,6 +59,7 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 		},
 		cancelAtPeriodEnd: usage.cancelAtPeriodEnd,
 		currentPeriodEnd: usage.currentPeriodEnd?.toISOString() ?? null,
+		paymentFailedAt: usage.paymentFailedAt?.toISOString() ?? null,
 	});
 });
 
@@ -97,6 +100,13 @@ billingRouter.use("/reactivate", requireRole("admin", "owner"));
 billingRouter.openapi(reactivateSubscriptionRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.reactivateSubscription(auth.orgId);
+	return c.json({ success: true });
+});
+
+billingRouter.use("/retry-payment", requireRole("admin", "owner"));
+billingRouter.openapi(retryPaymentRoute, async (c) => {
+	const auth = getAuth(c);
+	await stripeService.retryPayment(auth.orgId);
 	return c.json({ success: true });
 });
 

@@ -17,6 +17,7 @@ import { onboardingRouter } from "./routes/onboarding";
 import { projectsRouter } from "./routes/projects";
 import { requestLogsRouter } from "./routes/request-logs";
 import { statisticsRouter } from "./routes/statistics";
+import { variantsRouter } from "./routes/variants";
 
 const app = new OpenAPIHono();
 
@@ -36,6 +37,10 @@ app.route("/api/auth", authRouter);
 // API routes
 app.route("/api/projects", projectsRouter);
 app.route("/api/projects/:projectId/endpoints", endpointsRouter);
+app.route(
+	"/api/projects/:projectId/endpoints/:endpointId/variants",
+	variantsRouter,
+);
 app.route("/api/projects/:projectId/import", importRouter);
 app.route("/api/projects/:projectId/logs", requestLogsRouter);
 app.route("/api/projects/:projectId/statistics", statisticsRouter);

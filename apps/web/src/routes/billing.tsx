@@ -6,6 +6,7 @@ import {
 	createCheckoutSession,
 	getUsage,
 	reactivateSubscription,
+	retryPayment,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { Tier } from "@/types";
@@ -13,9 +14,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	AlertCircle,
+	AlertTriangle,
 	Check,
 	CreditCard,
 	Loader2,
+	RefreshCw,
 	Sparkles,
 	Zap,
 } from "lucide-react";
@@ -242,6 +245,17 @@ function BillingPage() {
 		},
 	});
 
+	const retryPaymentMutation = useMutation({
+		mutationFn: retryPayment,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["billing", "usage"] });
+			toast.success("Payment successful!");
+		},
+		onError: () => {
+			toast.error("Payment failed. Please update your payment method.");
+		},
+	});
+
 	if (authLoading) {
 		return (
 			<div className="flex-1 flex items-center justify-center">
@@ -327,6 +341,45 @@ function BillingPage() {
 												<Loader2 className="mr-2 h-3 w-3 animate-spin" />
 											)}
 											Reactivate Subscription
+										</Button>
+									</div>
+								</div>
+							)}
+
+							{usage?.paymentFailedAt && (
+								<div className="mb-6 p-4 rounded-xl bg-[rgba(245,158,11,0.1)] border border-[var(--status-warning)]/30 flex items-start gap-3">
+									<AlertTriangle className="h-5 w-5 text-[var(--status-warning)] mt-0.5" />
+									<div className="flex-1">
+										<p className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+											Payment failed
+										</p>
+										<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+											{(() => {
+												const failedDate = new Date(usage.paymentFailedAt);
+												const now = new Date();
+												const daysPassed = Math.floor(
+													(now.getTime() - failedDate.getTime()) /
+														(1000 * 60 * 60 * 24),
+												);
+												const daysRemaining = Math.max(0, 7 - daysPassed);
+												return daysRemaining > 0
+													? `You have ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} to update your payment method before your account is downgraded to Free.`
+													: "Your account will be downgraded soon. Please update your payment method.";
+											})()}
+										</p>
+										<Button
+											variant="secondary"
+											size="sm"
+											className="mt-2"
+											onClick={() => retryPaymentMutation.mutate()}
+											disabled={retryPaymentMutation.isPending}
+										>
+											{retryPaymentMutation.isPending ? (
+												<Loader2 className="mr-2 h-3 w-3 animate-spin" />
+											) : (
+												<RefreshCw className="mr-2 h-3 w-3" />
+											)}
+											Retry Payment
 										</Button>
 									</div>
 								</div>

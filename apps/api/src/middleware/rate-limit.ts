@@ -97,5 +97,94 @@ export function createMockRateLimiter() {
 	};
 }
 
+const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+type AuthRateLimitConfig = {
+	ipLimit: number;
+	emailLimit?: number;
+	getEmail?: (c: Context) => string | undefined;
+};
+
+export function createAuthRateLimiter(config: AuthRateLimitConfig) {
+	startCleanupInterval();
+
+	return async function authRateLimiter(c: Context, next: Next) {
+		const ip = getClientIp(c);
+		const ipKey = `auth:ip:${c.req.path}:${ip}`;
+
+		const ipCheck = checkRateLimitWithWindow(
+			ipKey,
+			config.ipLimit,
+			AUTH_WINDOW_MS,
+		);
+
+		if (!ipCheck.allowed) {
+			setRateLimitHeaders(c, config.ipLimit, 0, ipCheck.resetAt);
+			c.header("Retry-After", String(Math.ceil(AUTH_WINDOW_MS / 1000)));
+			throw rateLimited("Too many requests. Please try again later.");
+		}
+
+		if (config.emailLimit && config.getEmail) {
+			const email = config.getEmail(c);
+			if (email) {
+				const emailKey = `auth:email:${c.req.path}:${email.toLowerCase()}`;
+				const emailCheck = checkRateLimitWithWindow(
+					emailKey,
+					config.emailLimit,
+					AUTH_WINDOW_MS,
+				);
+
+				if (!emailCheck.allowed) {
+					setRateLimitHeaders(c, config.emailLimit, 0, emailCheck.resetAt);
+					c.header("Retry-After", String(Math.ceil(AUTH_WINDOW_MS / 1000)));
+					throw rateLimited("Too many requests. Please try again later.");
+				}
+			}
+		}
+
+		setRateLimitHeaders(c, config.ipLimit, ipCheck.remaining, ipCheck.resetAt);
+
+		await next();
+	};
+}
+
+function checkRateLimitWithWindow(
+	key: string,
+	limit: number,
+	windowMs: number,
+): { allowed: boolean; remaining: number; resetAt: number } {
+	const now = Date.now();
+	const windowStart = now - windowMs;
+
+	let entry = rateLimitStore.get(key);
+	if (!entry) {
+		entry = { timestamps: [], lastCleanup: now };
+		rateLimitStore.set(key, entry);
+	}
+
+	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
+	entry.lastCleanup = now;
+
+	const remaining = Math.max(0, limit - entry.timestamps.length);
+	const resetAt = Math.ceil((now + windowMs) / 1000);
+
+	if (entry.timestamps.length >= limit) {
+		return { allowed: false, remaining: 0, resetAt };
+	}
+
+	entry.timestamps.push(now);
+	return { allowed: true, remaining: remaining - 1, resetAt };
+}
+
+export function checkAuthEmailRateLimit(
+	path: string,
+	email: string,
+	limit: number,
+): { allowed: boolean; remaining: number; resetAt: number } {
+	startCleanupInterval();
+	const key = `auth:email:${path}:${email.toLowerCase()}`;
+	return checkRateLimitWithWindow(key, limit, AUTH_WINDOW_MS);
+}
+
 // TODO: Replace with Redis for multi-instance deployment
 export { rateLimitStore };

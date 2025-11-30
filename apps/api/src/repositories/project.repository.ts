@@ -27,7 +27,12 @@ export function findByIdWithEndpoints(id: string, method?: string) {
 	return prisma.project.findUnique({
 		where: { id },
 		include: {
-			endpoints: method ? { where: { method } } : true,
+			endpoints: {
+				where: method ? { method } : undefined,
+				include: {
+					variants: { orderBy: { priority: "asc" } },
+				},
+			},
 		},
 	});
 }

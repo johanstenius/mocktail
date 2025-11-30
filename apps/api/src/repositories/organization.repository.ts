@@ -56,6 +56,8 @@ export type SubscriptionUpdate = {
 	stripeSubscriptionId?: string | null;
 	stripeCancelAtPeriodEnd?: boolean;
 	stripeCurrentPeriodEnd?: Date | null;
+	paymentFailedAt?: Date | null;
+	lastFailedInvoiceId?: string | null;
 };
 
 export function updateSubscription(orgId: string, data: SubscriptionUpdate) {
@@ -78,6 +80,41 @@ export function resetMonthlyRequests(orgId: string) {
 		data: {
 			monthlyRequests: 0,
 			requestResetAt: new Date(),
+		},
+	});
+}
+
+export function findOrgsWithExpiredGrace(graceDays: number) {
+	const cutoff = new Date();
+	cutoff.setDate(cutoff.getDate() - graceDays);
+
+	return prisma.organization.findMany({
+		where: {
+			paymentFailedAt: { lt: cutoff },
+			tier: "pro",
+		},
+	});
+}
+
+export function findOrgsNeedingReminder(reminderDay: number) {
+	const startOfWindow = new Date();
+	startOfWindow.setDate(startOfWindow.getDate() - reminderDay);
+	startOfWindow.setHours(0, 0, 0, 0);
+
+	const endOfWindow = new Date();
+	endOfWindow.setDate(endOfWindow.getDate() - reminderDay + 1);
+	endOfWindow.setHours(0, 0, 0, 0);
+
+	return prisma.organization.findMany({
+		where: {
+			paymentFailedAt: {
+				gte: startOfWindow,
+				lt: endOfWindow,
+			},
+			tier: "pro",
+		},
+		include: {
+			owner: { select: { email: true } },
 		},
 	});
 }

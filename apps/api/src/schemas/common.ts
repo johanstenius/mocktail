@@ -23,3 +23,9 @@ export const requestLogIdParamSchema = z.object({
 	projectId: z.string(),
 	id: z.string(),
 });
+
+export const variantIdParamSchema = z.object({
+	projectId: z.string(),
+	endpointId: z.string(),
+	variantId: z.string(),
+});

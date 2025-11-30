@@ -1,8 +1,11 @@
 import { Resend } from "resend";
 import { config } from "../config";
 import { logger } from "../lib/logger";
+import { downgradedEmailTemplate } from "../templates/emails/downgraded";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
+import { paymentFailedEmailTemplate } from "../templates/emails/payment-failed";
+import { paymentReminderEmailTemplate } from "../templates/emails/payment-reminder";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
 
 const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
@@ -96,5 +99,105 @@ export async function sendVerificationEmail(
 
 	if (error) {
 		logger.error({ error, to: params.to }, "failed to send verification email");
+	}
+}
+
+type SendPaymentFailedEmailParams = {
+	to: string;
+	orgName: string;
+	graceDays: number;
+};
+
+export async function sendPaymentFailedEmail(
+	params: SendPaymentFailedEmailParams,
+): Promise<void> {
+	const billingUrl = `${config.appUrl}/billing`;
+
+	if (!resend) {
+		logger.warn({ billingUrl }, "resend not configured");
+		return;
+	}
+
+	const { error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
+		to: params.to,
+		subject: `Payment failed for ${params.orgName}`,
+		html: paymentFailedEmailTemplate({
+			orgName: params.orgName,
+			graceDays: params.graceDays,
+			billingUrl,
+		}),
+	});
+
+	if (error) {
+		logger.error(
+			{ error, to: params.to },
+			"failed to send payment failed email",
+		);
+	}
+}
+
+type SendPaymentReminderEmailParams = {
+	to: string;
+	orgName: string;
+	daysRemaining: number;
+};
+
+export async function sendPaymentReminderEmail(
+	params: SendPaymentReminderEmailParams,
+): Promise<void> {
+	const billingUrl = `${config.appUrl}/billing`;
+
+	if (!resend) {
+		logger.warn({ billingUrl }, "resend not configured");
+		return;
+	}
+
+	const { error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
+		to: params.to,
+		subject: `${params.daysRemaining} days left to update payment`,
+		html: paymentReminderEmailTemplate({
+			orgName: params.orgName,
+			daysRemaining: params.daysRemaining,
+			billingUrl,
+		}),
+	});
+
+	if (error) {
+		logger.error(
+			{ error, to: params.to },
+			"failed to send payment reminder email",
+		);
+	}
+}
+
+type SendDowngradedEmailParams = {
+	to: string;
+	orgName: string;
+};
+
+export async function sendDowngradedEmail(
+	params: SendDowngradedEmailParams,
+): Promise<void> {
+	const billingUrl = `${config.appUrl}/billing`;
+
+	if (!resend) {
+		logger.warn({ billingUrl }, "resend not configured");
+		return;
+	}
+
+	const { error } = await resend.emails.send({
+		from: "Mocktail <noreply@mocktail.stenius.me>",
+		to: params.to,
+		subject: `${params.orgName} downgraded to Free`,
+		html: downgradedEmailTemplate({
+			orgName: params.orgName,
+			billingUrl,
+		}),
+	});
+
+	if (error) {
+		logger.error({ error, to: params.to }, "failed to send downgraded email");
 	}
 }

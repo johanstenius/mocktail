@@ -11,7 +11,9 @@ import {
 	listInvitesRoute,
 } from "../schemas/members";
 import * as emailService from "../services/email.service";
+import * as limitsService from "../services/limits.service";
 import * as memberService from "../services/member.service";
+import { quotaExceeded } from "../utils/errors";
 
 export const invitesRouter = new OpenAPIHono();
 
@@ -39,6 +41,11 @@ invitesRouter.openapi(listInvitesRoute, async (c) => {
 invitesRouter.openapi(createInviteRoute, async (c) => {
 	const { orgId, userId, role } = getAuth(c);
 	const { email, role: inviteRole } = c.req.valid("json");
+
+	const limitCheck = await limitsService.checkMemberLimit(orgId);
+	if (!limitCheck.allowed) {
+		throw quotaExceeded(limitCheck.reason ?? "Team member limit reached");
+	}
 
 	const { invite, token } = await memberService.createInvite(
 		email,

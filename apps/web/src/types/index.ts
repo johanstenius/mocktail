@@ -1,6 +1,57 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 export type BodyType = "static" | "template";
 
+// Variant types
+export type MatchTarget = "header" | "query" | "param" | "body";
+export type MatchOperator =
+	| "equals"
+	| "not_equals"
+	| "contains"
+	| "not_contains"
+	| "exists"
+	| "not_exists";
+export type RuleLogic = "and" | "or";
+
+export type MatchRule = {
+	target: MatchTarget;
+	key: string;
+	operator: MatchOperator;
+	value?: string;
+};
+
+export type Variant = {
+	id: string;
+	endpointId: string;
+	name: string;
+	priority: number;
+	isDefault: boolean;
+	status: number;
+	headers: Record<string, string>;
+	body: unknown;
+	bodyType: BodyType;
+	delay: number;
+	failRate: number;
+	rules: MatchRule[];
+	ruleLogic: RuleLogic;
+	createdAt: string;
+	updatedAt: string;
+};
+
+export type CreateVariantInput = {
+	name?: string;
+	isDefault?: boolean;
+	status?: number;
+	headers?: Record<string, string>;
+	body?: unknown;
+	bodyType?: BodyType;
+	delay?: number;
+	failRate?: number;
+	rules?: MatchRule[];
+	ruleLogic?: RuleLogic;
+};
+
+export type UpdateVariantInput = Partial<CreateVariantInput>;
+
 export type Project = {
 	id: string;
 	name: string;
@@ -86,6 +137,7 @@ export type UnmatchedRequest = {
 export type ProjectStatistics = {
 	endpoints: EndpointStat[];
 	unmatched: UnmatchedRequest[];
+	avgLatency: number | null;
 };
 
 // Auth types
@@ -199,6 +251,7 @@ export type Usage = {
 	requests: UsageItem;
 	cancelAtPeriodEnd: boolean;
 	currentPeriodEnd: string | null;
+	paymentFailedAt: string | null;
 };
 
 // Dashboard types

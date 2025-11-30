@@ -17,6 +17,7 @@ export type UnmatchedRequest = {
 export type ProjectStatistics = {
 	endpoints: EndpointStat[];
 	unmatched: UnmatchedRequest[];
+	avgLatency: number | null;
 };
 
 export async function getProjectStatistics(
@@ -25,9 +26,10 @@ export async function getProjectStatistics(
 	const project = await projectRepo.findById(projectId);
 	if (!project) return null;
 
-	const [endpointStats, unmatchedStats] = await Promise.all([
+	const [endpointStats, unmatchedStats, latencyStats] = await Promise.all([
 		logRepo.getEndpointStats(projectId),
 		logRepo.getUnmatchedRequests(projectId),
+		logRepo.getAvgLatency(projectId),
 	]);
 
 	const endpoints: EndpointStat[] = endpointStats.map((stat) => ({
@@ -43,5 +45,9 @@ export async function getProjectStatistics(
 		lastRequestAt: stat._max.createdAt,
 	}));
 
-	return { endpoints, unmatched };
+	const avgLatency = latencyStats._avg.duration
+		? Math.round(latencyStats._avg.duration)
+		: null;
+
+	return { endpoints, unmatched, avgLatency };
 }

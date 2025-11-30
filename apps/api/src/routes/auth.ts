@@ -1,6 +1,10 @@
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { authMiddleware, getAuth } from "../middleware/auth";
 import {
+	checkAuthEmailRateLimit,
+	createAuthRateLimiter,
+} from "../middleware/rate-limit";
+import {
 	authErrorSchema,
 	authResponseSchema,
 	loginSchema,
@@ -11,13 +15,20 @@ import {
 	tokenResponseSchema,
 } from "../schemas/auth";
 import * as authService from "../services/auth.service";
+import { rateLimited } from "../utils/errors";
 
 export const authRouter = new OpenAPIHono();
+
+const loginRateLimiter = createAuthRateLimiter({ ipLimit: 5 });
+const registerRateLimiter = createAuthRateLimiter({ ipLimit: 3 });
+const forgotPasswordRateLimiter = createAuthRateLimiter({ ipLimit: 3 });
+const resetPasswordRateLimiter = createAuthRateLimiter({ ipLimit: 5 });
 
 const registerRoute = createRoute({
 	method: "post",
 	path: "/register",
 	tags: ["Auth"],
+	middleware: [registerRateLimiter],
 	request: {
 		body: {
 			content: {
@@ -34,6 +45,12 @@ const registerRoute = createRoute({
 		},
 		400: {
 			description: "Invalid input",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
+		429: {
+			description: "Too many requests",
 			content: {
 				"application/json": { schema: authErrorSchema },
 			},
@@ -67,6 +84,7 @@ const loginRoute = createRoute({
 	method: "post",
 	path: "/login",
 	tags: ["Auth"],
+	middleware: [loginRateLimiter],
 	request: {
 		body: {
 			content: {
@@ -87,11 +105,23 @@ const loginRoute = createRoute({
 				"application/json": { schema: authErrorSchema },
 			},
 		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
 	},
 });
 
 authRouter.openapi(loginRoute, async (c) => {
 	const { email, password } = c.req.valid("json");
+
+	const emailCheck = checkAuthEmailRateLimit("/auth/login", email, 5);
+	if (!emailCheck.allowed) {
+		throw rateLimited("Too many login attempts. Please try again later.");
+	}
+
 	const result = await authService.login(email, password);
 	const userWithOrg = await authService.getCurrentUser(
 		result.userId,
@@ -201,6 +231,7 @@ const forgotPasswordRoute = createRoute({
 	method: "post",
 	path: "/forgot-password",
 	tags: ["Auth"],
+	middleware: [forgotPasswordRateLimiter],
 	request: {
 		body: {
 			content: { "application/json": { schema: forgotPasswordSchema } },
@@ -215,11 +246,23 @@ const forgotPasswordRoute = createRoute({
 				},
 			},
 		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
+			},
+		},
 	},
 });
 
 authRouter.openapi(forgotPasswordRoute, async (c) => {
 	const { email } = c.req.valid("json");
+
+	const emailCheck = checkAuthEmailRateLimit("/auth/forgot-password", email, 3);
+	if (!emailCheck.allowed) {
+		throw rateLimited("Too many requests. Please try again later.");
+	}
+
 	await authService.forgotPassword(email);
 	return c.json({ message: "If an account exists, a reset email was sent" });
 });
@@ -233,6 +276,7 @@ const resetPasswordRoute = createRoute({
 	method: "post",
 	path: "/reset-password",
 	tags: ["Auth"],
+	middleware: [resetPasswordRateLimiter],
 	request: {
 		body: {
 			content: { "application/json": { schema: resetPasswordSchema } },
@@ -245,6 +289,12 @@ const resetPasswordRoute = createRoute({
 				"application/json": {
 					schema: z.object({ message: z.string() }),
 				},
+			},
+		},
+		429: {
+			description: "Too many requests",
+			content: {
+				"application/json": { schema: authErrorSchema },
 			},
 		},
 	},

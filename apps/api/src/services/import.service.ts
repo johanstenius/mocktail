@@ -1,5 +1,6 @@
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as projectRepo from "../repositories/project.repository";
+import * as variantRepo from "../repositories/variant.repository";
 import { parseSpec } from "./openapi-parser";
 import { extractEndpoints } from "./spec-extractor";
 
@@ -91,6 +92,22 @@ export async function importSpec(
 			delay: 0,
 			failRate: 0,
 		});
+
+		await variantRepo.create({
+			endpointId: created.id,
+			name: "Default",
+			priority: 0,
+			isDefault: true,
+			status: ep.status,
+			headers: JSON.stringify({ "Content-Type": "application/json" }),
+			body: JSON.stringify(ep.body),
+			bodyType: "static",
+			delay: 0,
+			failRate: 0,
+			rules: "[]",
+			ruleLogic: "and",
+		});
+
 		createdEndpoints.push(created);
 	}
 

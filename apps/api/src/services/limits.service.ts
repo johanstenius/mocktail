@@ -19,6 +19,7 @@ export type UsageData = {
 	requests: { used: number; limit: number };
 	cancelAtPeriodEnd: boolean;
 	currentPeriodEnd: Date | null;
+	paymentFailedAt: Date | null;
 };
 
 export async function getUsage(orgId: string): Promise<UsageData | null> {
@@ -58,6 +59,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 		requests: { used: org.monthlyRequests, limit: limits.monthlyRequests },
 		cancelAtPeriodEnd: org.stripeCancelAtPeriodEnd,
 		currentPeriodEnd: org.stripeCurrentPeriodEnd,
+		paymentFailedAt: org.paymentFailedAt,
 	};
 }
 
@@ -105,6 +107,34 @@ export async function checkMemberLimit(
 	}
 
 	return { allowed: true, current: count, limit: limits.teamMembers };
+}
+
+export async function checkEndpointLimit(
+	projectId: string,
+): Promise<LimitCheckResult> {
+	const project = await projectRepo.findByIdWithOrg(projectId);
+	if (!project) {
+		return {
+			allowed: false,
+			reason: "Project not found",
+			current: 0,
+			limit: 0,
+		};
+	}
+
+	const limits = getLimits(project.org.tier);
+	const count = await prisma.endpoint.count({ where: { projectId } });
+
+	if (count >= limits.endpointsPerProject) {
+		return {
+			allowed: false,
+			reason: `Endpoint limit reached (${limits.endpointsPerProject} per project)`,
+			current: count,
+			limit: limits.endpointsPerProject,
+		};
+	}
+
+	return { allowed: true, current: count, limit: limits.endpointsPerProject };
 }
 
 export async function trackRequest(

@@ -3,6 +3,7 @@ import { prisma } from "./db/prisma";
 type CreateLogData = {
 	projectId: string;
 	endpointId: string | null;
+	variantId: string | null;
 	method: string;
 	path: string;
 	status: number;
@@ -123,5 +124,12 @@ export function getUnmatchedRequests(projectId: string) {
 		_count: { id: true },
 		_max: { createdAt: true },
 		orderBy: { _count: { id: "desc" } },
+	});
+}
+
+export function getAvgLatency(projectId: string) {
+	return prisma.requestLog.aggregate({
+		where: { projectId },
+		_avg: { duration: true },
 	});
 }

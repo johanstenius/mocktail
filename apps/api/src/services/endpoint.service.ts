@@ -1,5 +1,6 @@
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as projectRepo from "../repositories/project.repository";
+import * as variantRepo from "../repositories/variant.repository";
 
 export type EndpointModel = {
 	id: string;
@@ -56,19 +57,37 @@ export async function create(
 	);
 	if (existing) return { error: "conflict" };
 
+	const bodyString =
+		input.bodyType === "template"
+			? String(input.body)
+			: JSON.stringify(input.body);
+	const headersString = JSON.stringify(input.headers);
+
 	const endpoint = await endpointRepo.create({
 		projectId,
 		method: input.method,
 		path: input.path,
 		status: input.status,
-		headers: JSON.stringify(input.headers),
-		body:
-			input.bodyType === "template"
-				? String(input.body)
-				: JSON.stringify(input.body),
+		headers: headersString,
+		body: bodyString,
 		bodyType: input.bodyType,
 		delay: input.delay,
 		failRate: input.failRate,
+	});
+
+	await variantRepo.create({
+		endpointId: endpoint.id,
+		name: "Default",
+		priority: 0,
+		isDefault: true,
+		status: input.status,
+		headers: headersString,
+		body: bodyString,
+		bodyType: input.bodyType,
+		delay: input.delay,
+		failRate: input.failRate,
+		rules: "[]",
+		ruleLogic: "and",
 	});
 
 	return { endpoint };

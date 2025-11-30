@@ -8,9 +8,10 @@ import {
 	projectSchema,
 	updateProjectSchema,
 } from "../schemas/project";
+import * as limitsService from "../services/limits.service";
 import * as projectService from "../services/project.service";
 import type { ProjectModel } from "../services/project.service";
-import { conflict, notFound } from "../utils/errors";
+import { conflict, notFound, quotaExceeded } from "../utils/errors";
 
 export const projectsRouter = new OpenAPIHono();
 
@@ -127,6 +128,11 @@ const createProjectRoute = createRoute({
 projectsRouter.openapi(createProjectRoute, async (c) => {
 	const auth = getAuth(c);
 	const body = c.req.valid("json");
+
+	const limitCheck = await limitsService.checkProjectLimit(auth.orgId);
+	if (!limitCheck.allowed) {
+		throw quotaExceeded(limitCheck.reason ?? "Project limit reached");
+	}
 
 	const existing = await projectService.findBySlugAndOrgId(
 		body.slug,

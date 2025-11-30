@@ -1,5 +1,6 @@
 import { CopyButton } from "@/components/copy-button";
 import { EndpointForm } from "@/components/endpoint-form";
+import { EndpointPanel } from "@/components/endpoint-panel";
 import { ImportDropzone } from "@/components/import-dropzone";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
@@ -43,13 +44,15 @@ function EndpointRow({
 	projectId,
 	apiKey,
 	stat,
-	onEdit,
+	variantCount,
+	onClick,
 }: {
 	endpoint: Endpoint;
 	projectId: string;
 	apiKey: string;
 	stat?: { requestCount: number };
-	onEdit: () => void;
+	variantCount?: number;
+	onClick: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const queryClient = useQueryClient();
@@ -73,8 +76,8 @@ function EndpointRow({
 			role="button"
 			tabIndex={0}
 			className="group flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] hover:translate-x-1 transition-all cursor-pointer"
-			onClick={onEdit}
-			onKeyDown={(e) => e.key === "Enter" && onEdit()}
+			onClick={onClick}
+			onKeyDown={(e) => e.key === "Enter" && onClick()}
 		>
 			<div className="flex items-center gap-4">
 				<MethodBadge method={endpoint.method} className="w-16 justify-center" />
@@ -88,6 +91,14 @@ function EndpointRow({
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
+				{variantCount !== undefined && variantCount > 1 && (
+					<Badge
+						variant="outline"
+						className="border-[var(--glow-violet)]/30 text-[var(--glow-violet)]"
+					>
+						{variantCount} variants
+					</Badge>
+				)}
 				{stat && stat.requestCount > 0 && (
 					<Badge variant="default">{stat.requestCount} Hits</Badge>
 				)}
@@ -268,8 +279,14 @@ function ProjectAnalytics({
 				<StatCard label="Endpoints" value={endpoints.length} color="violet" />
 				<StatCard
 					label="Avg Latency"
-					value="—"
-					subtext="Coming soon"
+					value={
+						statistics?.avgLatency != null ? `${statistics.avgLatency}ms` : "—"
+					}
+					subtext={
+						statistics?.avgLatency != null
+							? "across all requests"
+							: "No data yet"
+					}
 					color="blue"
 				/>
 			</div>
@@ -472,6 +489,7 @@ function ProjectDetailPage() {
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");
 	const [endpointModalOpen, setEndpointModalOpen] = useState(false);
 	const [importModalOpen, setImportModalOpen] = useState(false);
+	const [endpointPanelOpen, setEndpointPanelOpen] = useState(false);
 	const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(
 		null,
 	);
@@ -504,14 +522,13 @@ function ProjectDetailPage() {
 	);
 
 	function handleNewEndpoint() {
-		setSelectedEndpoint(null);
 		setPrefillData(null);
 		setEndpointModalOpen(true);
 	}
 
-	function handleEditEndpoint(endpoint: Endpoint) {
+	function handleEndpointClick(endpoint: Endpoint) {
 		setSelectedEndpoint(endpoint);
-		setEndpointModalOpen(true);
+		setEndpointPanelOpen(true);
 	}
 
 	if (authLoading) {
@@ -704,7 +721,7 @@ function ProjectDetailPage() {
 											projectId={projectId}
 											apiKey={project.apiKey}
 											stat={statsMap.get(endpoint.id)}
-											onEdit={() => handleEditEndpoint(endpoint)}
+											onClick={() => handleEndpointClick(endpoint)}
 										/>
 									))}
 								</div>
@@ -738,7 +755,6 @@ function ProjectDetailPage() {
 			<EndpointForm
 				projectId={projectId}
 				apiKey={project.apiKey}
-				endpoint={selectedEndpoint ?? undefined}
 				prefill={prefillData ?? undefined}
 				open={endpointModalOpen}
 				onOpenChange={setEndpointModalOpen}
@@ -748,6 +764,14 @@ function ProjectDetailPage() {
 				projectId={projectId}
 				open={importModalOpen}
 				onOpenChange={setImportModalOpen}
+			/>
+
+			<EndpointPanel
+				projectId={projectId}
+				apiKey={project.apiKey}
+				endpoint={selectedEndpoint}
+				open={endpointPanelOpen}
+				onOpenChange={setEndpointPanelOpen}
 			/>
 		</main>
 	);

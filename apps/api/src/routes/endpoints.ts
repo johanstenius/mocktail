@@ -12,7 +12,8 @@ import {
 } from "../schemas/endpoint";
 import * as endpointService from "../services/endpoint.service";
 import type { EndpointModel } from "../services/endpoint.service";
-import { conflict, notFound } from "../utils/errors";
+import * as limitsService from "../services/limits.service";
+import { conflict, notFound, quotaExceeded } from "../utils/errors";
 
 export const endpointsRouter = new OpenAPIHono();
 
@@ -155,6 +156,11 @@ const createEndpointRoute = createRoute({
 endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	const { projectId } = c.req.valid("param");
 	const body = c.req.valid("json");
+
+	const limitCheck = await limitsService.checkEndpointLimit(projectId);
+	if (!limitCheck.allowed) {
+		throw quotaExceeded(limitCheck.reason ?? "Endpoint limit reached");
+	}
 
 	const result = await endpointService.create(projectId, {
 		method: body.method,

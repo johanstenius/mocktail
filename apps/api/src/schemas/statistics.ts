@@ -16,6 +16,7 @@ export const unmatchedRequestSchema = z.object({
 export const statisticsSchema = z.object({
 	endpoints: z.array(endpointStatSchema),
 	unmatched: z.array(unmatchedRequestSchema),
+	avgLatency: z.number().nullable(),
 });
 
 export type StatisticsResponse = z.infer<typeof statisticsSchema>;

@@ -15,6 +15,7 @@ export const usageSchema = z.object({
 	requests: usageItemSchema,
 	cancelAtPeriodEnd: z.boolean(),
 	currentPeriodEnd: z.string().nullable(),
+	paymentFailedAt: z.string().nullable(),
 });
 
 export type UsageResponse = z.infer<typeof usageSchema>;
@@ -76,6 +77,19 @@ export const reactivateSubscriptionRoute = createRoute({
 	responses: {
 		200: {
 			description: "Subscription reactivated",
+			content: { "application/json": { schema: successResponseSchema } },
+		},
+	},
+});
+
+export const retryPaymentRoute = createRoute({
+	method: "post",
+	path: "/retry-payment",
+	tags: ["Billing"],
+	summary: "Retry failed payment",
+	responses: {
+		200: {
+			description: "Payment retry initiated",
 			content: { "application/json": { schema: successResponseSchema } },
 		},
 	},

@@ -1,7 +1,12 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { Context, Next } from "hono";
 import * as batchJobRepo from "../repositories/batch-job.repository";
-import { listJobsRoute, runLogCleanupRoute } from "../schemas/admin";
+import {
+	listJobsRoute,
+	runGracePeriodRoute,
+	runLogCleanupRoute,
+} from "../schemas/admin";
+import * as gracePeriodService from "../services/grace-period.service";
 import * as retentionService from "../services/retention.service";
 import { unauthorized } from "../utils/errors";
 
@@ -44,4 +49,9 @@ adminRouter.openapi(listJobsRoute, async (c) => {
 			endedAt: j.endedAt?.toISOString() ?? null,
 		})),
 	});
+});
+
+adminRouter.openapi(runGracePeriodRoute, async (c) => {
+	const result = await gracePeriodService.processGracePeriods();
+	return c.json(result);
 });

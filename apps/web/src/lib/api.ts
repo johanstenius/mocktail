@@ -5,6 +5,7 @@ import type {
 	CreateEndpointInput,
 	CreateInviteInput,
 	CreateProjectInput,
+	CreateVariantInput,
 	DashboardStats,
 	Endpoint,
 	ImportResult,
@@ -22,7 +23,9 @@ import type {
 	SampleProjectResult,
 	TokenResponse,
 	UpdateEndpointInput,
+	UpdateVariantInput,
 	Usage,
+	Variant,
 } from "@/types";
 import { ApiError } from "./errors";
 
@@ -365,6 +368,15 @@ export async function reactivateSubscription(): Promise<void> {
 	});
 }
 
+export async function retryPayment(): Promise<void> {
+	await fetchJson<{ success: boolean }>(
+		`${API_BASE}/api/billing/retry-payment`,
+		{
+			method: "POST",
+		},
+	);
+}
+
 // Dashboard
 export async function getDashboardStats(): Promise<DashboardStats> {
 	return fetchJson<DashboardStats>(`${API_BASE}/api/dashboard/stats`);
@@ -404,4 +416,84 @@ export async function rotateProjectApiKey(projectId: string): Promise<Project> {
 			method: "POST",
 		},
 	);
+}
+
+// Variants
+export async function getVariants(
+	projectId: string,
+	endpointId: string,
+): Promise<Variant[]> {
+	const data = await fetchJson<{ variants: Variant[] }>(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants`,
+	);
+	return data.variants;
+}
+
+export async function getVariant(
+	projectId: string,
+	endpointId: string,
+	variantId: string,
+): Promise<Variant> {
+	return fetchJson<Variant>(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+	);
+}
+
+export async function createVariant(
+	projectId: string,
+	endpointId: string,
+	input: CreateVariantInput,
+): Promise<Variant> {
+	return fetchJson<Variant>(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants`,
+		{
+			method: "POST",
+			body: JSON.stringify(input),
+		},
+	);
+}
+
+export async function updateVariant(
+	projectId: string,
+	endpointId: string,
+	variantId: string,
+	input: UpdateVariantInput,
+): Promise<Variant> {
+	return fetchJson<Variant>(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+		{
+			method: "PATCH",
+			body: JSON.stringify(input),
+		},
+	);
+}
+
+export async function deleteVariant(
+	projectId: string,
+	endpointId: string,
+	variantId: string,
+): Promise<void> {
+	const token = getAccessToken();
+	await fetch(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+		{
+			method: "DELETE",
+			headers: token ? { Authorization: `Bearer ${token}` } : {},
+		},
+	);
+}
+
+export async function reorderVariants(
+	projectId: string,
+	endpointId: string,
+	variantIds: string[],
+): Promise<Variant[]> {
+	const data = await fetchJson<{ variants: Variant[] }>(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/reorder`,
+		{
+			method: "POST",
+			body: JSON.stringify({ variantIds }),
+		},
+	);
+	return data.variants;
 }

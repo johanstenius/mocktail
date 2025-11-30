@@ -5,7 +5,6 @@ import {
 	StatCardSkeleton,
 	TableRowSkeleton,
 } from "@/components/skeleton";
-import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { getProjects, getRequestLogs } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -160,6 +159,12 @@ function AnalyticsPage() {
 		0,
 	);
 	const totalUnmatched = recentLogs.filter((l) => l.status === 404).length;
+	const avgLatency =
+		allLogs.length > 0
+			? Math.round(
+					allLogs.reduce((sum, l) => sum + l.duration, 0) / allLogs.length,
+				)
+			: null;
 	const maxProjectRequests = Math.max(
 		...projectStats.map((p) => p.requestCount),
 		1,
@@ -276,15 +281,6 @@ function AnalyticsPage() {
 								</div>
 							</div>
 						</>
-					) : projects.length === 0 ? (
-						<div className="text-center py-20">
-							<div className="text-[var(--text-muted)] mb-4">
-								No projects yet
-							</div>
-							<Link to="/projects">
-								<Button>Create a Project</Button>
-							</Link>
-						</div>
 					) : (
 						<>
 							{/* Stats Grid */}
@@ -311,8 +307,12 @@ function AnalyticsPage() {
 								/>
 								<StatCard
 									label="Avg Latency"
-									value="—"
-									subtext="Coming soon"
+									value={avgLatency !== null ? `${avgLatency}ms` : "—"}
+									subtext={
+										avgLatency !== null
+											? "across recent requests"
+											: "No data yet"
+									}
 									color="blue"
 								/>
 							</div>
@@ -342,13 +342,16 @@ function AnalyticsPage() {
 													<th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
 														Status
 													</th>
+													<th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">
+														Duration
+													</th>
 												</tr>
 											</thead>
 											<tbody>
 												{recentLogs.length === 0 ? (
 													<tr>
 														<td
-															colSpan={5}
+															colSpan={6}
 															className="px-4 py-12 text-center text-[var(--text-muted)]"
 														>
 															No requests yet. Make some requests to your mock
@@ -388,6 +391,9 @@ function AnalyticsPage() {
 																	{log.status}
 																</span>
 															</td>
+															<td className="px-4 py-3 text-right font-['JetBrains_Mono'] text-xs text-[var(--text-muted)]">
+																{log.duration}ms
+															</td>
 														</tr>
 													))
 												)}
@@ -404,7 +410,7 @@ function AnalyticsPage() {
 									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 										{projectStats.length === 0 ? (
 											<div className="text-center text-[var(--text-muted)] py-4">
-												No projects yet
+												No traffic data
 											</div>
 										) : (
 											projectStats

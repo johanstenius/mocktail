@@ -48,6 +48,8 @@ model Organization {
   stripeSubscriptionId    String?
   stripeCancelAtPeriodEnd Boolean         @default(false)
   stripeCurrentPeriodEnd  DateTime?
+  paymentFailedAt         DateTime?
+  lastFailedInvoiceId     String?
   // Relations
   owner                   User            @relation("OrgOwner", fields: [ownerId], references: [id])
   members                 OrgMembership[]
@@ -107,36 +109,67 @@ model Project {
 }
 
 model Endpoint {
-  id          String   @id @default(cuid())
-  projectId   String
-  method      String   // GET, POST, PUT, DELETE, PATCH
-  path        String   // /users, /users/:id
-  status      Int      @default(200)
-  headers     String   @default("{}") // JSON string
-  body        String   @default("{}") // JSON string
-  bodyType    String   @default("static") // "static" | "template"
-  delay       Int      @default(0) // ms
-  failRate    Int      @default(0) // 0-100 percentage
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  projectId String
+  method    String // GET, POST, PUT, DELETE, PATCH
+  path      String // /users, /users/:id
+  // Legacy fields - kept for backwards compat during migration
+  status   Int?    @default(200)
+  headers  String? @default("{}")
+  body     String? @default("{}")
+  bodyType String? @default("static")
+  delay    Int?    @default(0)
+  failRate Int?    @default(0)
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  variants    ResponseVariant[]
   requestLogs RequestLog[]
 
   @@unique([projectId, method, path])
+}
+
+model ResponseVariant {
+  id         String  @id @default(cuid())
+  endpointId String
+  name       String  @default("Default")
+  priority   Int     @default(0) // Lower = higher priority
+  isDefault  Boolean @default(false)
+
+  // Response config
+  status   Int    @default(200)
+  headers  String @default("{}") // JSON string
+  body     String @default("{}") // JSON string
+  bodyType String @default("static") // "static" | "template"
+  delay    Int    @default(0) // ms
+  failRate Int    @default(0) // 0-100 percentage
+
+  // Match rules
+  rules     String @default("[]") // JSON: MatchRule[]
+  ruleLogic String @default("and") // "and" | "or"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  endpoint Endpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId, priority])
 }
 
 model RequestLog {
   id              String   @id @default(cuid())
   projectId       String
   endpointId      String?
+  variantId       String? // Which variant was matched
   method          String
   path            String
   status          Int
   requestHeaders  String   @default("{}") // JSON string
   requestBody     String?
   responseBody    String?
-  duration        Int      // ms
+  duration        Int // ms
   createdAt       DateTime @default(now())
 
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)

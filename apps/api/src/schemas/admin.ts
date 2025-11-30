@@ -78,3 +78,37 @@ export const listJobsRoute = createRoute({
 		},
 	},
 });
+
+const orgSummarySchema = z.object({
+	orgId: z.string(),
+	orgName: z.string(),
+});
+
+const graceResultSchema = z.object({
+	jobId: z.string(),
+	downgraded: z.array(orgSummarySchema),
+	reminders: z.array(orgSummarySchema),
+});
+
+export type GraceResultResponse = z.infer<typeof graceResultSchema>;
+
+export const runGracePeriodRoute = createRoute({
+	method: "post",
+	path: "/jobs/grace-period",
+	tags: ["Admin"],
+	summary: "Process grace periods (downgrade expired, send reminders)",
+	responses: {
+		200: {
+			description: "Grace period job completed",
+			content: { "application/json": { schema: graceResultSchema } },
+		},
+		401: {
+			description: "Unauthorized",
+			content: {
+				"application/json": {
+					schema: z.object({ error: z.string() }),
+				},
+			},
+		},
+	},
+});
