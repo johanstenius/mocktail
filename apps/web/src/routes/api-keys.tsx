@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Copy, Key, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/api-keys")({
 	component: ApiKeysPage,
@@ -23,10 +24,12 @@ export const Route = createFileRoute("/api-keys")({
 function ApiKeyRow({
 	apiKey,
 	canDelete,
+	isOwn,
 	onDelete,
 }: {
 	apiKey: ApiKey;
 	canDelete: boolean;
+	isOwn: boolean;
 	onDelete: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -38,8 +41,15 @@ function ApiKeyRow({
 					<Key className="h-4 w-4 text-[var(--glow-violet)]" />
 				</div>
 				<div>
-					<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
-						{apiKey.name}
+					<div className="flex items-center gap-2">
+						<span className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+							{apiKey.name}
+						</span>
+						{isOwn && (
+							<span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--glow-violet)]/20 text-[var(--glow-violet)] font-medium">
+								yours
+							</span>
+						)}
 					</div>
 					<div className="text-xs text-[var(--text-muted)] font-['JetBrains_Mono']">
 						{apiKey.key}
@@ -97,9 +107,11 @@ function CreateApiKeyModal({
 		onSuccess: (data) => {
 			queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
 			setCreatedKey(data.fullKey);
+			toast.success("API key created");
 		},
 		onError: (err: Error) => {
 			setError(err.message);
+			toast.error("Failed to create API key");
 		},
 	});
 
@@ -216,6 +228,10 @@ function ApiKeysPage() {
 		mutationFn: deleteApiKey,
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["apiKeys"] });
+			toast.success("API key deleted");
+		},
+		onError: () => {
+			toast.error("Failed to delete API key");
 		},
 	});
 
@@ -234,7 +250,12 @@ function ApiKeysPage() {
 
 	const currentMember = members.find((m) => m.userId === user?.id);
 	const currentRole: OrgRole = currentMember?.role ?? "member";
-	const canManage = currentRole === "owner" || currentRole === "admin";
+	const isAdmin = currentRole === "owner" || currentRole === "admin";
+
+	function canDeleteKey(apiKey: ApiKey): boolean {
+		if (isAdmin) return true;
+		return apiKey.createdBy === user?.id;
+	}
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
@@ -244,15 +265,13 @@ function ApiKeysPage() {
 						API Keys
 					</span>
 				</div>
-				{canManage && (
-					<Button
-						onClick={() => setCreateModalOpen(true)}
-						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-					>
-						<Plus className="h-4 w-4 mr-2" />
-						Create API Key
-					</Button>
-				)}
+				<Button
+					onClick={() => setCreateModalOpen(true)}
+					className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+				>
+					<Plus className="h-4 w-4 mr-2" />
+					Create API Key
+				</Button>
 			</header>
 
 			<div className="flex-1 overflow-y-auto p-8">
@@ -281,12 +300,10 @@ function ApiKeysPage() {
 							<p className="text-[var(--text-muted)] mb-4 font-['Inter']">
 								Create an API key to access your mock endpoints programmatically
 							</p>
-							{canManage && (
-								<Button onClick={() => setCreateModalOpen(true)}>
-									<Plus className="h-4 w-4 mr-2" />
-									Create API Key
-								</Button>
-							)}
+							<Button onClick={() => setCreateModalOpen(true)}>
+								<Plus className="h-4 w-4 mr-2" />
+								Create API Key
+							</Button>
 						</div>
 					) : (
 						<div className="space-y-3">
@@ -294,7 +311,8 @@ function ApiKeysPage() {
 								<ApiKeyRow
 									key={apiKey.id}
 									apiKey={apiKey}
-									canDelete={canManage}
+									canDelete={canDeleteKey(apiKey)}
+									isOwn={apiKey.createdBy === user?.id}
 									onDelete={() => deleteMutation.mutate(apiKey.id)}
 								/>
 							))}

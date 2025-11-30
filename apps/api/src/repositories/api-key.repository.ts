@@ -4,6 +4,7 @@ export type CreateApiKeyInput = {
 	key: string;
 	name: string;
 	orgId: string;
+	createdBy: string;
 };
 
 export function findByOrgId(orgId: string) {

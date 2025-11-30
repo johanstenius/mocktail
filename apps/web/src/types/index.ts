@@ -232,6 +232,7 @@ export type ApiKey = {
 	id: string;
 	key: string;
 	name: string;
+	createdBy: string | null;
 	createdAt: string;
 };
 

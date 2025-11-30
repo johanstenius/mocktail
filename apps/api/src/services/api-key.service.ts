@@ -10,12 +10,14 @@ export type ApiKeyModel = {
 	id: string;
 	key: string;
 	name: string;
+	createdBy: string | null;
 	createdAt: Date;
 };
 
 export type CreateApiKeyInput = {
 	name: string;
 	orgId: string;
+	createdBy: string;
 };
 
 export async function listApiKeys(orgId: string): Promise<ApiKeyModel[]> {
@@ -24,6 +26,7 @@ export async function listApiKeys(orgId: string): Promise<ApiKeyModel[]> {
 		id: k.id,
 		key: maskKey(k.key),
 		name: k.name,
+		createdBy: k.createdBy,
 		createdAt: k.createdAt,
 	}));
 }
@@ -36,6 +39,7 @@ export async function createApiKey(
 		key,
 		name: input.name,
 		orgId: input.orgId,
+		createdBy: input.createdBy,
 	});
 
 	return {
@@ -43,18 +47,30 @@ export async function createApiKey(
 		key: maskKey(apiKey.key),
 		fullKey: key,
 		name: apiKey.name,
+		createdBy: apiKey.createdBy,
 		createdAt: apiKey.createdAt,
 	};
 }
 
-export async function deleteApiKey(id: string, orgId: string): Promise<void> {
-	const keys = await apiKeyRepo.findByOrgId(orgId);
-	const key = keys.find((k) => k.id === id);
+export type DeleteApiKeyInput = {
+	id: string;
+	orgId: string;
+	userId: string;
+	isAdmin: boolean;
+};
+
+export async function deleteApiKey(input: DeleteApiKeyInput): Promise<void> {
+	const keys = await apiKeyRepo.findByOrgId(input.orgId);
+	const key = keys.find((k) => k.id === input.id);
 	if (!key) {
 		throw new Error("API Key not found");
 	}
 
-	await apiKeyRepo.remove(id);
+	if (!input.isAdmin && key.createdBy !== input.userId) {
+		throw new Error("Cannot delete API key created by another user");
+	}
+
+	await apiKeyRepo.remove(input.id);
 	apiKeyCache.delete(key.key);
 }
 

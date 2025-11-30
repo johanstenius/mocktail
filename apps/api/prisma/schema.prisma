@@ -147,6 +147,7 @@ model ApiKey {
   key       String       @unique
   name      String
   orgId     String
+  createdBy String?
   createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }
