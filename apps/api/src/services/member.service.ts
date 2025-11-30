@@ -1,11 +1,8 @@
-import type { OrgRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 import { AUTH_CONFIG } from "../config/auth";
 import * as inviteRepo from "../repositories/invite.repository";
 import * as orgMembershipRepo from "../repositories/org-membership.repository";
-import * as orgRepo from "../repositories/organization.repository";
-import * as refreshTokenRepo from "../repositories/refresh-token.repository";
 import * as userRepo from "../repositories/user.repository";
 import type {
 	InviteInfoResponse,
@@ -14,6 +11,7 @@ import type {
 } from "../schemas/members";
 import { badRequest, conflict, forbidden, notFound } from "../utils/errors";
 import {
+	type OrgRole,
 	canChangeRoles,
 	canInviteMembers,
 	canRemoveMembers,
@@ -286,7 +284,10 @@ export async function acceptInvite(
 			invite.role,
 		);
 
-		const tokens = await generateTokenPair(existingUser.id, invite.orgId);
+		const tokens = await tokenService.generateTokenPair(
+			existingUser.id,
+			invite.orgId,
+		);
 
 		return {
 			...tokens,
@@ -323,7 +324,10 @@ export async function acceptInvite(
 		invite.role,
 	);
 
-	const tokens = await generateTokenPair(result.user.id, invite.orgId);
+	const tokens = await tokenService.generateTokenPair(
+		result.user.id,
+		invite.orgId,
+	);
 
 	return {
 		...tokens,
@@ -337,25 +341,5 @@ export async function acceptInvite(
 			emailVerifiedAt: null,
 		},
 		isExistingUser: false,
-	};
-}
-
-async function generateTokenPair(userId: string, orgId: string) {
-	const tokenId = tokenService.generateRefreshTokenId();
-	const expiresAt = new Date(
-		Date.now() + AUTH_CONFIG.refreshTokenExpiry * 1000,
-	);
-
-	await refreshTokenRepo.create({ userId, token: tokenId, expiresAt });
-
-	const [accessToken, refreshToken] = await Promise.all([
-		tokenService.generateAccessToken(userId, orgId),
-		tokenService.generateRefreshToken(userId, tokenId),
-	]);
-
-	return {
-		accessToken,
-		refreshToken,
-		expiresIn: AUTH_CONFIG.accessTokenExpiry,
 	};
 }

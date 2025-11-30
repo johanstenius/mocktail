@@ -201,15 +201,21 @@ function TierCard({
 }
 
 function BillingPage() {
-	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const {
+		isAuthenticated,
+		emailVerifiedAt,
+		isLoading: authLoading,
+	} = useAuth();
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+	const isVerified = Boolean(emailVerifiedAt);
+
 	const { data: usage, isLoading: usageLoading } = useQuery({
 		queryKey: ["billing", "usage"],
 		queryFn: getUsage,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const upgradeMutation = useMutation({
@@ -266,6 +272,11 @@ function BillingPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

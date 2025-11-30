@@ -110,15 +110,21 @@ function ProjectCard({
 }
 
 function ProjectsPage() {
-	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const {
+		isAuthenticated,
+		emailVerifiedAt,
+		isLoading: authLoading,
+	} = useAuth();
 	const navigate = useNavigate();
 	const [createModalOpen, setCreateModalOpen] = useState(false);
 	const queryClient = useQueryClient();
 
+	const isVerified = Boolean(emailVerifiedAt);
+
 	const { data: projects = [], isLoading } = useQuery({
 		queryKey: ["projects"],
 		queryFn: getProjects,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const endpointQueries = useQueries({
@@ -170,6 +176,11 @@ function ProjectsPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

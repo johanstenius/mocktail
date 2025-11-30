@@ -1,6 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, projectIdParamSchema } from "./common";
 import { endpointSchema } from "./endpoint";
+import { errorSchema, projectIdParamSchema } from "./shared";
 
 export const importSpecSchema = z.object({
 	spec: z.union([z.string(), z.record(z.unknown())]),

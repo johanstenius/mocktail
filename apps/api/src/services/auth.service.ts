@@ -10,37 +10,16 @@ import * as userRepo from "../repositories/user.repository";
 import {
 	badRequest,
 	conflict,
+	forbidden,
 	invalidCredentials,
 	notFound,
 	unauthorized,
 } from "../utils/errors";
+import { ensureUniqueOrgSlug, slugify } from "../utils/slug";
 import * as emailService from "./email.service";
 import * as tokenService from "./token.service";
 
-function slugify(text: string): string {
-	return text
-		.toLowerCase()
-		.trim()
-		.replace(/[^\w\s-]/g, "")
-		.replace(/[\s_-]+/g, "-")
-		.replace(/^-+|-+$/g, "");
-}
-
-async function ensureUniqueOrgSlug(baseSlug: string): Promise<string> {
-	let slug = baseSlug || "org";
-	let suffix = 0;
-	while (await orgRepo.findBySlug(slug)) {
-		suffix++;
-		slug = `${baseSlug}-${suffix}`;
-	}
-	return slug;
-}
-
-export type TokenPair = {
-	accessToken: string;
-	refreshToken: string;
-	expiresIn: number;
-};
+export type TokenPair = tokenService.TokenPair;
 
 export type RegisterResult = {
 	tokens: TokenPair;
@@ -57,6 +36,7 @@ export type LoginResult = {
 export type UserWithOrg = {
 	id: string;
 	email: string;
+	emailVerifiedAt: Date | null;
 	hasCompletedOnboarding: boolean;
 	org: {
 		id: string;
@@ -100,7 +80,9 @@ export async function register(
 		role: "owner",
 	});
 
-	const tokens = await generateTokenPair(user.id, org.id);
+	await createAndSendVerificationEmail(user.id, email);
+
+	const tokens = await tokenService.generateTokenPair(user.id, org.id);
 	return { tokens, userId: user.id, orgId: org.id };
 }
 
@@ -118,13 +100,17 @@ export async function login(
 		throw invalidCredentials();
 	}
 
+	if (!user.emailVerifiedAt) {
+		throw forbidden("Email not verified", "EMAIL_NOT_VERIFIED");
+	}
+
 	const membership = await orgMembershipRepo.findByUserId(user.id);
 	if (!membership.length) {
 		throw notFound("Organization");
 	}
 
 	const org = membership[0].org;
-	const tokens = await generateTokenPair(user.id, org.id);
+	const tokens = await tokenService.generateTokenPair(user.id, org.id);
 	return { tokens, userId: user.id, orgId: org.id };
 }
 
@@ -154,7 +140,7 @@ export async function refresh(refreshToken: string): Promise<LoginResult> {
 	await refreshTokenRepo.deleteByToken(payload.tokenId);
 
 	const org = membership[0].org;
-	const tokens = await generateTokenPair(payload.userId, org.id);
+	const tokens = await tokenService.generateTokenPair(payload.userId, org.id);
 	return { tokens, userId: payload.userId, orgId: org.id };
 }
 
@@ -180,6 +166,7 @@ export async function getCurrentUser(
 	return {
 		id: user.id,
 		email: user.email,
+		emailVerifiedAt: user.emailVerifiedAt,
 		hasCompletedOnboarding: user.hasCompletedOnboarding,
 		org: {
 			id: org.id,
@@ -191,31 +178,20 @@ export async function getCurrentUser(
 	};
 }
 
-async function generateTokenPair(
-	userId: string,
-	orgId: string,
-): Promise<TokenPair> {
-	const tokenId = tokenService.generateRefreshTokenId();
-	const expiresAt = new Date(
-		Date.now() + AUTH_CONFIG.refreshTokenExpiry * 1000,
-	);
-
-	await refreshTokenRepo.create({ userId, token: tokenId, expiresAt });
-
-	const [accessToken, refreshToken] = await Promise.all([
-		tokenService.generateAccessToken(userId, orgId),
-		tokenService.generateRefreshToken(userId, tokenId),
-	]);
-
-	return {
-		accessToken,
-		refreshToken,
-		expiresIn: AUTH_CONFIG.accessTokenExpiry,
-	};
-}
-
 const PASSWORD_RESET_EXPIRY_HOURS = 1;
 const EMAIL_VERIFICATION_EXPIRY_HOURS = 24;
+
+async function createAndSendVerificationEmail(
+	userId: string,
+	email: string,
+): Promise<void> {
+	const token = nanoid(32);
+	const expiresAt = new Date();
+	expiresAt.setHours(expiresAt.getHours() + EMAIL_VERIFICATION_EXPIRY_HOURS);
+
+	await emailVerificationRepo.create({ userId, token, expiresAt });
+	await emailService.sendVerificationEmail({ to: email, token });
+}
 
 export async function forgotPassword(email: string): Promise<void> {
 	const user = await userRepo.findByEmail(email);

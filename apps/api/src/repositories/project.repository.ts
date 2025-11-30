@@ -140,3 +140,16 @@ export function resetMonthlyRequests(id: string) {
 		data: { monthlyRequests: 1, requestResetAt: new Date() },
 	});
 }
+
+export function findByOrgIdWithStats(orgId: string, weekStart: Date) {
+	return prisma.project.findMany({
+		where: { orgId },
+		include: {
+			_count: { select: { endpoints: true } },
+			requestLogs: {
+				where: { createdAt: { gte: weekStart } },
+				select: { createdAt: true },
+			},
+		},
+	});
+}

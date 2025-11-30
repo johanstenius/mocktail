@@ -1,3 +1,4 @@
+import type { OAuthProvider } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 export function findById(id: string) {
@@ -9,6 +10,17 @@ export function findById(id: string) {
 export function findByEmail(email: string) {
 	return prisma.user.findUnique({
 		where: { email },
+	});
+}
+
+export function findByOAuthProvider(provider: OAuthProvider, oauthId: string) {
+	return prisma.user.findUnique({
+		where: {
+			oauthProvider_oauthId: {
+				oauthProvider: provider,
+				oauthId,
+			},
+		},
 	});
 }
 
@@ -72,5 +84,57 @@ export function markOnboardingComplete(userId: string) {
 			hasCompletedOnboarding: true,
 			onboardingCompletedAt: new Date(),
 		},
+	});
+}
+
+export type CreateOAuthUserWithOrgInput = {
+	email: string;
+	name: string;
+	oauthProvider: OAuthProvider;
+	oauthId: string;
+	orgName: string;
+	orgSlug: string;
+};
+
+export async function createOAuthUserWithOrg(
+	input: CreateOAuthUserWithOrgInput,
+) {
+	return prisma.$transaction(async (tx) => {
+		const existingUser = await tx.user.findUnique({
+			where: { email: input.email },
+		});
+		if (existingUser) {
+			return { error: "email_exists" as const };
+		}
+
+		const user = await tx.user.create({
+			data: {
+				email: input.email,
+				name: input.name,
+				oauthProvider: input.oauthProvider,
+				oauthId: input.oauthId,
+				emailVerifiedAt: new Date(),
+				hasCompletedOnboarding: true,
+				onboardingCompletedAt: new Date(),
+			},
+		});
+
+		const org = await tx.organization.create({
+			data: {
+				name: input.orgName,
+				slug: input.orgSlug,
+				ownerId: user.id,
+			},
+		});
+
+		await tx.orgMembership.create({
+			data: {
+				userId: user.id,
+				orgId: org.id,
+				role: "owner",
+			},
+		});
+
+		return { user, org };
 	});
 }

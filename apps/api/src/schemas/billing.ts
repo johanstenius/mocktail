@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, successSchema } from "./common";
+import { errorSchema, successSchema } from "./shared";
 
 const tierSchema = z.enum(["free", "pro", "enterprise"]);
 

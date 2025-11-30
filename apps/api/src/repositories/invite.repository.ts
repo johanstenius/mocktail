@@ -1,4 +1,4 @@
-import type { OrgRole } from "@prisma/client";
+import type { OAuthProvider, OrgRole } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 export type CreateInviteInput = {
@@ -31,6 +31,13 @@ export function findById(id: string) {
 export function findByEmailAndOrg(email: string, orgId: string) {
 	return prisma.orgInvite.findUnique({
 		where: { email_orgId: { email, orgId } },
+	});
+}
+
+export function findActiveByEmail(email: string) {
+	return prisma.orgInvite.findFirst({
+		where: { email, expiresAt: { gt: new Date() } },
+		include: { org: { select: { name: true } } },
 	});
 }
 
@@ -76,6 +83,40 @@ export async function acceptWithNewUser(
 	return prisma.$transaction(async (tx) => {
 		const user = await tx.user.create({
 			data: { email, passwordHash },
+		});
+
+		await tx.orgMembership.create({
+			data: { userId: user.id, orgId, role },
+		});
+
+		await tx.orgInvite.delete({ where: { id: inviteId } });
+
+		return { user };
+	});
+}
+
+export async function acceptWithOAuthUser(
+	inviteId: string,
+	data: {
+		email: string;
+		name: string;
+		oauthProvider: OAuthProvider;
+		oauthId: string;
+	},
+	orgId: string,
+	role: OrgRole,
+) {
+	return prisma.$transaction(async (tx) => {
+		const user = await tx.user.create({
+			data: {
+				email: data.email,
+				name: data.name,
+				oauthProvider: data.oauthProvider,
+				oauthId: data.oauthId,
+				emailVerifiedAt: new Date(),
+				hasCompletedOnboarding: true,
+				onboardingCompletedAt: new Date(),
+			},
 		});
 
 		await tx.orgMembership.create({

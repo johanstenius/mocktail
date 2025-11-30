@@ -133,3 +133,15 @@ export function getAvgLatency(projectId: string) {
 		_avg: { duration: true },
 	});
 }
+
+export function findRecentByProjectIds(projectIds: string[], limit: number) {
+	return prisma.requestLog.findMany({
+		where: { projectId: { in: projectIds } },
+		orderBy: { createdAt: "desc" },
+		take: limit,
+		include: {
+			project: { select: { id: true, name: true } },
+			endpoint: { select: { id: true, path: true } },
+		},
+	});
+}

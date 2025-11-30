@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import { UNAUTHENTICATED_RATE_LIMIT, getLimits } from "../config/limits";
+import { getLimits } from "../config/limits";
 import { rateLimited } from "../utils/errors";
 import { getMockTier } from "./mock-auth";
 
@@ -8,9 +8,16 @@ type SlidingWindowEntry = {
 	lastCleanup: number;
 };
 
-const rateLimitStore = new Map<string, SlidingWindowEntry>();
+type AuthRateLimitConfig = {
+	ipLimit: number;
+	emailLimit?: number;
+	getEmail?: (c: Context) => string | undefined;
+};
+
+const RATE_LIMIT_STORE = new Map<string, SlidingWindowEntry>();
 const WINDOW_MS = 1000; // 1 second sliding window
 const CLEANUP_INTERVAL_MS = 60_000; // cleanup stale entries every minute
+const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -19,9 +26,9 @@ function startCleanupInterval(): void {
 	cleanupTimer = setInterval(() => {
 		const now = Date.now();
 		const staleThreshold = now - WINDOW_MS * 2;
-		for (const [key, entry] of rateLimitStore) {
+		for (const [key, entry] of RATE_LIMIT_STORE) {
 			if (entry.lastCleanup < staleThreshold && entry.timestamps.length === 0) {
-				rateLimitStore.delete(key);
+				RATE_LIMIT_STORE.delete(key);
 			}
 		}
 	}, CLEANUP_INTERVAL_MS);
@@ -34,10 +41,10 @@ function checkRateLimit(
 	const now = Date.now();
 	const windowStart = now - WINDOW_MS;
 
-	let entry = rateLimitStore.get(key);
+	let entry = RATE_LIMIT_STORE.get(key);
 	if (!entry) {
 		entry = { timestamps: [], lastCleanup: now };
-		rateLimitStore.set(key, entry);
+		RATE_LIMIT_STORE.set(key, entry);
 	}
 
 	// Remove timestamps outside the window
@@ -97,14 +104,6 @@ export function createMockRateLimiter() {
 	};
 }
 
-const AUTH_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
-
-type AuthRateLimitConfig = {
-	ipLimit: number;
-	emailLimit?: number;
-	getEmail?: (c: Context) => string | undefined;
-};
-
 export function createAuthRateLimiter(config: AuthRateLimitConfig) {
 	startCleanupInterval();
 
@@ -156,10 +155,10 @@ function checkRateLimitWithWindow(
 	const now = Date.now();
 	const windowStart = now - windowMs;
 
-	let entry = rateLimitStore.get(key);
+	let entry = RATE_LIMIT_STORE.get(key);
 	if (!entry) {
 		entry = { timestamps: [], lastCleanup: now };
-		rateLimitStore.set(key, entry);
+		RATE_LIMIT_STORE.set(key, entry);
 	}
 
 	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
@@ -187,4 +186,4 @@ export function checkAuthEmailRateLimit(
 }
 
 // TODO: Replace with Redis for multi-instance deployment
-export { rateLimitStore };
+export { RATE_LIMIT_STORE as rateLimitStore };

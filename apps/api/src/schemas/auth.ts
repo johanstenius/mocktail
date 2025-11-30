@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, messageSchema } from "./common";
+import { errorSchema, messageSchema } from "./shared";
 
 export const registerSchema = z.object({
 	email: z.string().email(),

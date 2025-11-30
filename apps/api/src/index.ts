@@ -10,6 +10,7 @@ import { importRouter } from "./controllers/import";
 import { invitesRouter } from "./controllers/invites";
 import { membersRouter } from "./controllers/members";
 import { mockRouter } from "./controllers/mock";
+import { oauthRouter } from "./controllers/oauth";
 import { onboardingRouter } from "./controllers/onboarding";
 import { projectsRouter } from "./controllers/projects";
 import { requestLogsRouter } from "./controllers/request-logs";
@@ -33,6 +34,7 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 
 // Auth routes (public + protected)
 app.route("/api/auth", authRouter);
+app.route("/auth", oauthRouter);
 
 // API routes
 app.route("/api/projects", projectsRouter);

@@ -102,9 +102,5 @@ async function sendReminders(): Promise<{ orgId: string; orgName: string }[]> {
 async function getOrgOwnerEmail(
 	ownerId: string,
 ): Promise<{ email: string } | null> {
-	const { prisma } = await import("../repositories/db/prisma");
-	return prisma.user.findUnique({
-		where: { id: ownerId },
-		select: { email: true },
-	});
+	return orgRepo.findOwnerEmail(ownerId);
 }

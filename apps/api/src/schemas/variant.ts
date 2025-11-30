@@ -1,10 +1,10 @@
 import { createRoute, z } from "@hono/zod-openapi";
+import { bodyTypeSchema } from "./endpoint";
 import {
 	endpointIdParamSchema,
 	errorSchema,
 	variantIdParamSchema,
-} from "./common";
-import { bodyTypeSchema } from "./endpoint";
+} from "./shared";
 
 export const matchTargetSchema = z.enum(["header", "query", "param", "body"]);
 

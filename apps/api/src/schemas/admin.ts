@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema } from "./common";
+import { errorSchema } from "./shared";
 
 const orgCleanupResultSchema = z.object({
 	orgId: z.string(),

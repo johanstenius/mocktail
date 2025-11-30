@@ -1,11 +1,89 @@
 import * as endpointRepo from "../repositories/endpoint.repository";
+import * as orgMembershipRepo from "../repositories/org-membership.repository";
+import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as userRepo from "../repositories/user.repository";
 import { conflict } from "../utils/errors";
+import { ensureUniqueOrgSlug, slugify } from "../utils/slug";
+import {
+	type OAuthPendingPayload,
+	verifyOAuthPendingToken,
+} from "./oauth-pending-token";
+import * as tokenService from "./token.service";
+
+export async function createOrganization(userId: string, orgName: string) {
+	const existingMembership = await orgMembershipRepo.findByUserId(userId);
+	if (existingMembership.length > 0) {
+		throw conflict("User already has an organization");
+	}
+
+	const baseSlug = slugify(orgName);
+	const slug = await ensureUniqueOrgSlug(baseSlug);
+	const org = await orgRepo.create({
+		name: orgName,
+		slug,
+		ownerId: userId,
+	});
+
+	await orgMembershipRepo.create({
+		userId,
+		orgId: org.id,
+		role: "owner",
+	});
+
+	return {
+		org: {
+			id: org.id,
+			name: org.name,
+			slug: org.slug,
+		},
+	};
+}
 
 export async function markComplete(userId: string) {
 	await userRepo.markOnboardingComplete(userId);
 	return { success: true };
+}
+
+export type CompleteOAuthOnboardingResult = {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+	user: { id: string; email: string };
+	org: { id: string; name: string; slug: string };
+};
+
+export async function completeOAuthOnboarding(
+	oauthToken: string,
+	organizationName: string,
+): Promise<CompleteOAuthOnboardingResult> {
+	const payload = await verifyOAuthPendingToken(oauthToken);
+
+	const baseSlug = slugify(organizationName);
+	const slug = await ensureUniqueOrgSlug(baseSlug);
+
+	const result = await userRepo.createOAuthUserWithOrg({
+		email: payload.email,
+		name: payload.name,
+		oauthProvider: payload.provider,
+		oauthId: payload.oauthId,
+		orgName: organizationName,
+		orgSlug: slug,
+	});
+
+	if ("error" in result) {
+		throw conflict("Email already registered");
+	}
+
+	const { user, org } = result;
+
+	const tokens = await tokenService.generateTokenPair(user.id, org.id);
+
+	return {
+		...tokens,
+		user: { id: user.id, email: user.email },
+		org: { id: org.id, name: org.name, slug: org.slug },
+	};
 }
 
 const SAMPLE_PROJECT_SLUG = "petstore-demo";
@@ -134,7 +212,7 @@ const SAMPLE_ENDPOINTS = [
 	},
 ];
 
-async function generateUniqueSlug(baseSlug: string, orgId: string) {
+async function generateUniqueProjectSlug(baseSlug: string, orgId: string) {
 	let slug = baseSlug;
 	let suffix = 0;
 	while (await projectRepo.findBySlugAndOrgId(slug, orgId)) {
@@ -152,7 +230,7 @@ export type SampleProjectResult = {
 export async function createSampleProject(
 	orgId: string,
 ): Promise<SampleProjectResult> {
-	const slug = await generateUniqueSlug(SAMPLE_PROJECT_SLUG, orgId);
+	const slug = await generateUniqueProjectSlug(SAMPLE_PROJECT_SLUG, orgId);
 
 	const project = await projectRepo.create({
 		name: "Petstore Demo",

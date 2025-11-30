@@ -1,7 +1,7 @@
 import { getLimits } from "../config/limits";
 import * as batchJobRepo from "../repositories/batch-job.repository";
-import { prisma } from "../repositories/db/prisma";
 import * as emailVerificationRepo from "../repositories/email-verification.repository";
+import * as orgRepo from "../repositories/organization.repository";
 import * as passwordResetRepo from "../repositories/password-reset.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
 import { logger } from "../utils/logger";
@@ -26,14 +26,7 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 	});
 
 	try {
-		const orgs = await prisma.organization.findMany({
-			select: {
-				id: true,
-				name: true,
-				tier: true,
-				projects: { select: { id: true } },
-			},
-		});
+		const orgs = await orgRepo.findAllWithProjectsForCleanup();
 
 		const results: OrgCleanupResult[] = [];
 		let totalDeleted = 0;

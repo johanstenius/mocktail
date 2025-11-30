@@ -13,7 +13,6 @@ type ErrorResponse = {
 };
 
 export const errorHandler: ErrorHandler = (err, c) => {
-	// Zod validation errors
 	if (err instanceof ZodError) {
 		const fields: Record<string, string> = {};
 		for (const issue of err.issues) {
@@ -30,7 +29,6 @@ export const errorHandler: ErrorHandler = (err, c) => {
 		);
 	}
 
-	// HTTPException (our custom errors)
 	if (err instanceof HTTPException) {
 		const cause = err.cause as { code?: string } | undefined;
 		return c.json<ErrorResponse>(
@@ -42,7 +40,6 @@ export const errorHandler: ErrorHandler = (err, c) => {
 		);
 	}
 
-	// Prisma errors
 	const prismaErr = err as PrismaError;
 	if (prismaErr.code === "P2002") {
 		return c.json<ErrorResponse>(
@@ -63,7 +60,6 @@ export const errorHandler: ErrorHandler = (err, c) => {
 		);
 	}
 
-	// Unknown error
 	logger.error({ err }, "unhandled error");
 	return c.json<ErrorResponse>(
 		{

@@ -1,9 +1,10 @@
-import type { Tier } from "@prisma/client";
 import { getLimits } from "../config/limits";
-import { prisma } from "../repositories/db/prisma";
+import * as endpointRepo from "../repositories/endpoint.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import { quotaExceeded } from "../utils/errors";
+
+export type Tier = "free" | "pro";
 
 export type LimitCheckResult = {
 	allowed: boolean;
@@ -24,22 +25,7 @@ export type UsageData = {
 };
 
 export async function getUsage(orgId: string): Promise<UsageData | null> {
-	const org = await prisma.organization.findUnique({
-		where: { id: orgId },
-		include: {
-			_count: {
-				select: {
-					projects: true,
-					members: true,
-				},
-			},
-			projects: {
-				include: {
-					_count: { select: { endpoints: true } },
-				},
-			},
-		},
-	});
+	const org = await orgRepo.findByIdWithUsage(orgId);
 
 	if (!org) return null;
 
@@ -51,7 +37,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 	const pendingInvites = await orgRepo.countPendingInvitesByOrgId(orgId);
 
 	return {
-		tier: org.tier,
+		tier: org.tier as Tier,
 		projects: { used: org._count.projects, limit: limits.projects },
 		endpoints: {
 			used: totalEndpoints,
@@ -130,7 +116,7 @@ export async function checkEndpointLimit(
 	}
 
 	const limits = getLimits(project.org.tier);
-	const count = await prisma.endpoint.count({ where: { projectId } });
+	const count = await endpointRepo.countByProjectId(projectId);
 
 	if (count >= limits.endpointsPerProject) {
 		return {
@@ -154,7 +140,6 @@ export async function trackRequest(
 
 	const limits = getLimits(org.tier);
 
-	// Check if we need to reset (first of month)
 	const now = new Date();
 	const resetAt = org.requestResetAt;
 	if (
@@ -166,7 +151,6 @@ export async function trackRequest(
 		return { allowed: true, remaining: limits.monthlyRequests - 1 };
 	}
 
-	// Check quota
 	if (org.monthlyRequests >= limits.monthlyRequests) {
 		return { allowed: false, remaining: 0 };
 	}
@@ -182,7 +166,6 @@ export async function trackProjectRequest(projectId: string): Promise<void> {
 	const project = await projectRepo.findByIdWithOrg(projectId);
 	if (!project) return;
 
-	// Check if we need to reset (first of month)
 	const now = new Date();
 	const resetAt = project.requestResetAt;
 	if (

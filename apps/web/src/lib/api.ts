@@ -2,6 +2,7 @@ import type {
 	AcceptInviteResponse,
 	ActivityItem,
 	AuthResponse,
+	CompleteOAuthOnboardingResponse,
 	CreateEndpointInput,
 	CreateInviteInput,
 	CreateProjectInput,
@@ -274,6 +275,22 @@ export async function resetPassword(
 	});
 }
 
+export async function sendVerificationEmail(): Promise<void> {
+	await fetchJson<{ message: string }>(
+		`${API_BASE}/api/auth/send-verification`,
+		{
+			method: "POST",
+		},
+	);
+}
+
+export async function verifyEmail(token: string): Promise<void> {
+	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/verify-email`, {
+		method: "POST",
+		body: JSON.stringify({ token }),
+	});
+}
+
 // Members
 export async function getMembers(): Promise<Member[]> {
 	const data = await fetchJson<{ members: Member[] }>(
@@ -392,6 +409,18 @@ export async function getDashboardActivity(
 }
 
 // Onboarding
+export async function createOrganization(name: string): Promise<{
+	org: { id: string; name: string; slug: string };
+}> {
+	return fetchJson<{ org: { id: string; name: string; slug: string } }>(
+		`${API_BASE}/api/onboarding/create-organization`,
+		{
+			method: "POST",
+			body: JSON.stringify({ name }),
+		},
+	);
+}
+
 export async function completeOnboarding(): Promise<{ success: boolean }> {
 	return fetchJson<{ success: boolean }>(
 		`${API_BASE}/api/onboarding/complete`,
@@ -405,6 +434,19 @@ export async function createSampleProject(): Promise<SampleProjectResult> {
 	return fetchJson<SampleProjectResult>(
 		`${API_BASE}/api/onboarding/sample-project`,
 		{ method: "POST" },
+	);
+}
+
+export async function completeOAuthOnboarding(
+	oauthToken: string,
+	organizationName: string,
+): Promise<CompleteOAuthOnboardingResponse> {
+	return fetchJson<CompleteOAuthOnboardingResponse>(
+		`${API_BASE}/api/onboarding/complete-oauth`,
+		{
+			method: "POST",
+			body: JSON.stringify({ oauthToken, organizationName }),
+		},
 	);
 }
 

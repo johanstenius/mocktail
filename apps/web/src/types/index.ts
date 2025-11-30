@@ -150,6 +150,7 @@ export type TokenResponse = {
 export type AuthUser = {
 	id: string;
 	email: string;
+	emailVerifiedAt: string | null;
 };
 
 export type AuthOrg = {
@@ -175,6 +176,7 @@ export type AcceptInviteResponse = {
 		orgName: string;
 		orgSlug: string;
 		role: string;
+		emailVerifiedAt: string | null;
 	};
 	isExistingUser: boolean;
 };
@@ -182,6 +184,7 @@ export type AcceptInviteResponse = {
 export type MeResponse = {
 	id: string;
 	email: string;
+	emailVerifiedAt: string | null;
 	hasCompletedOnboarding: boolean;
 	org: {
 		id: string;
@@ -278,4 +281,12 @@ export type ActivityItem = {
 export type SampleProjectResult = {
 	project: { id: string; name: string; slug: string };
 	endpointsCreated: number;
+};
+
+export type CompleteOAuthOnboardingResponse = {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+	user: { id: string; email: string };
+	org: { id: string; name: string; slug: string };
 };

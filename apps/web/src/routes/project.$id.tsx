@@ -483,7 +483,11 @@ function ProjectSettings({
 
 function ProjectDetailPage() {
 	const { id: projectId } = Route.useParams();
-	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const {
+		isAuthenticated,
+		emailVerifiedAt,
+		isLoading: authLoading,
+	} = useAuth();
 	const navigate = useNavigate();
 
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");
@@ -541,6 +545,11 @@ function ProjectDetailPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

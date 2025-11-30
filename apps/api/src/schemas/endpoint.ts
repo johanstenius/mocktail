@@ -3,7 +3,7 @@ import {
 	endpointIdParamSchema,
 	errorSchema,
 	projectIdParamSchema,
-} from "./common";
+} from "./shared";
 
 export const httpMethodSchema = z.enum([
 	"GET",

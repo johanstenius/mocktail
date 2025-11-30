@@ -13,6 +13,7 @@ type AuthState = {
 	user: AuthUser | null;
 	org: AuthOrg | null;
 	hasCompletedOnboarding: boolean;
+	emailVerifiedAt: string | null;
 	isLoading: boolean;
 	isAuthenticated: boolean;
 };
@@ -56,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		user: null,
 		org: null,
 		hasCompletedOnboarding: true,
+		emailVerifiedAt: null,
 		isLoading: true,
 		isAuthenticated: false,
 	});
@@ -67,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				user: null,
 				org: null,
 				hasCompletedOnboarding: true,
+				emailVerifiedAt: null,
 				isLoading: false,
 				isAuthenticated: false,
 			});
@@ -76,9 +79,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		try {
 			const me: MeResponse = await api.getMe(tokens.accessToken);
 			setState({
-				user: { id: me.id, email: me.email },
+				user: {
+					id: me.id,
+					email: me.email,
+					emailVerifiedAt: me.emailVerifiedAt,
+				},
 				org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
 				hasCompletedOnboarding: me.hasCompletedOnboarding,
+				emailVerifiedAt: me.emailVerifiedAt,
 				isLoading: false,
 				isAuthenticated: true,
 			});
@@ -89,9 +97,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				storeTokens(newTokens);
 				const me = await api.getMe(newTokens.accessToken);
 				setState({
-					user: { id: me.id, email: me.email },
+					user: {
+						id: me.id,
+						email: me.email,
+						emailVerifiedAt: me.emailVerifiedAt,
+					},
 					org: { id: me.org.id, name: me.org.name, slug: me.org.slug },
 					hasCompletedOnboarding: me.hasCompletedOnboarding,
+					emailVerifiedAt: me.emailVerifiedAt,
 					isLoading: false,
 					isAuthenticated: true,
 				});
@@ -101,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					user: null,
 					org: null,
 					hasCompletedOnboarding: true,
+					emailVerifiedAt: null,
 					isLoading: false,
 					isAuthenticated: false,
 				});
@@ -120,6 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			user: response.user,
 			org: response.org,
 			hasCompletedOnboarding: me.hasCompletedOnboarding,
+			emailVerifiedAt: me.emailVerifiedAt,
 			isLoading: false,
 			isAuthenticated: true,
 		});
@@ -133,6 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				user: response.user,
 				org: response.org,
 				hasCompletedOnboarding: false,
+				emailVerifiedAt: null,
 				isLoading: false,
 				isAuthenticated: true,
 			});
@@ -154,6 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			user: null,
 			org: null,
 			hasCompletedOnboarding: true,
+			emailVerifiedAt: null,
 			isLoading: false,
 			isAuthenticated: false,
 		});
@@ -166,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				user,
 				org,
 				hasCompletedOnboarding: true,
+				emailVerifiedAt: user.emailVerifiedAt,
 				isLoading: false,
 				isAuthenticated: true,
 			});

@@ -103,20 +103,26 @@ function ProjectStatBar({
 }
 
 function AnalyticsPage() {
-	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const {
+		isAuthenticated,
+		emailVerifiedAt,
+		isLoading: authLoading,
+	} = useAuth();
 	const navigate = useNavigate();
+
+	const isVerified = Boolean(emailVerifiedAt);
 
 	const { data: projects = [], isLoading: projectsLoading } = useQuery({
 		queryKey: ["projects"],
 		queryFn: getProjects,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const logQueries = useQueries({
 		queries: projects.map((project) => ({
 			queryKey: ["logs", project.id, { limit: 20 }],
 			queryFn: () => getRequestLogs(project.id, { limit: 20 }),
-			enabled: isAuthenticated && projects.length > 0,
+			enabled: isAuthenticated && isVerified && projects.length > 0,
 		})),
 	});
 
@@ -190,6 +196,11 @@ function AnalyticsPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

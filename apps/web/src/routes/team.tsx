@@ -274,21 +274,28 @@ function InviteModal({
 }
 
 function TeamPage() {
-	const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+	const {
+		isAuthenticated,
+		emailVerifiedAt,
+		isLoading: authLoading,
+		user,
+	} = useAuth();
 	const navigate = useNavigate();
 	const [inviteModalOpen, setInviteModalOpen] = useState(false);
 	const queryClient = useQueryClient();
 
+	const isVerified = Boolean(emailVerifiedAt);
+
 	const { data: members = [], isLoading: membersLoading } = useQuery({
 		queryKey: ["members"],
 		queryFn: getMembers,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const { data: invites = [], isLoading: invitesLoading } = useQuery({
 		queryKey: ["invites"],
 		queryFn: getInvites,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const updateRoleMutation = useMutation({
@@ -335,6 +342,11 @@ function TeamPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

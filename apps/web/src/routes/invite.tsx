@@ -1,4 +1,5 @@
 import { Logo } from "@/components/logo";
+import { OAuthButtons } from "@/components/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,7 +98,11 @@ function InvitePage() {
 					refreshToken: result.refreshToken,
 					expiresIn: result.expiresIn,
 				},
-				{ id: result.user.id, email: result.user.email },
+				{
+					id: result.user.id,
+					email: result.user.email,
+					emailVerifiedAt: result.user.emailVerifiedAt,
+				},
 				{
 					id: result.user.orgId,
 					name: result.user.orgName,
@@ -221,6 +226,8 @@ function InvitePage() {
 
 							{needsPassword && (
 								<>
+									<OAuthButtons />
+
 									<div className="space-y-2">
 										<Label htmlFor="password">Create password</Label>
 										<Input

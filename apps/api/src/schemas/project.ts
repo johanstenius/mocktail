@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, idParamSchema } from "./common";
+import { errorSchema, idParamSchema } from "./shared";
 
 export const projectSchema = z.object({
 	id: z.string(),

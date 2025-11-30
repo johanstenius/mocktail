@@ -3,7 +3,7 @@ import {
 	errorSchema,
 	projectIdParamSchema,
 	requestLogIdParamSchema,
-} from "./common";
+} from "./shared";
 
 export const requestLogSchema = z.object({
 	id: z.string(),

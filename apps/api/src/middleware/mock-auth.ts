@@ -42,7 +42,9 @@ function extractApiKey(c: Context): string | null {
 	if (explicit) return explicit;
 
 	const auth = c.req.header("Authorization");
-	if (!auth) return null;
+	if (!auth) {
+		return null;
+	}
 
 	const [scheme, value] = auth.split(" ");
 
@@ -90,6 +92,7 @@ export function getMockProjectId(c: Context): string {
 	if (!projectId) {
 		throw new Error("Not authenticated");
 	}
+
 	return projectId;
 }
 
@@ -98,6 +101,7 @@ export function getMockOrgId(c: Context): string {
 	if (!orgId) {
 		throw new Error("Not authenticated");
 	}
+
 	return orgId;
 }
 
@@ -106,5 +110,6 @@ export function getMockTier(c: Context): Tier {
 	if (!tier) {
 		throw new Error("Not authenticated");
 	}
+
 	return tier;
 }

@@ -1,4 +1,4 @@
-import type { OrgRole } from "@prisma/client";
+export type OrgRole = "owner" | "admin" | "member";
 
 const ROLE_HIERARCHY: Record<OrgRole, number> = {
 	owner: 3,

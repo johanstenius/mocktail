@@ -127,3 +127,40 @@ export function findOrgsNeedingReminder(reminderDay: number) {
 		},
 	});
 }
+
+export function findByIdWithUsage(id: string) {
+	return prisma.organization.findUnique({
+		where: { id },
+		include: {
+			_count: {
+				select: {
+					projects: true,
+					members: true,
+				},
+			},
+			projects: {
+				include: {
+					_count: { select: { endpoints: true } },
+				},
+			},
+		},
+	});
+}
+
+export function findAllWithProjectsForCleanup() {
+	return prisma.organization.findMany({
+		select: {
+			id: true,
+			name: true,
+			tier: true,
+			projects: { select: { id: true } },
+		},
+	});
+}
+
+export function findOwnerEmail(ownerId: string) {
+	return prisma.user.findUnique({
+		where: { id: ownerId },
+		select: { email: true },
+	});
+}

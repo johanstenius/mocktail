@@ -1,8 +1,9 @@
-import type { OrgRole } from "@prisma/client";
 import type { Context, MiddlewareHandler } from "hono";
 import * as orgMembershipRepo from "../repositories/org-membership.repository";
+import * as userRepo from "../repositories/user.repository";
 import * as tokenService from "../services/token.service";
 import { forbidden, unauthorized } from "../utils/errors";
+import type { OrgRole } from "../utils/permissions";
 
 export type AuthContext = {
 	userId: string;
@@ -66,4 +67,22 @@ export function requireRole(
 
 export function getAuth(c: Context<{ Variables: AuthVariables }>): AuthContext {
 	return c.get("auth");
+}
+
+export function requireVerifiedEmail(): MiddlewareHandler<{
+	Variables: AuthVariables;
+}> {
+	return async (c, next) => {
+		const auth = c.get("auth");
+		if (!auth) {
+			throw unauthorized("Not authenticated");
+		}
+
+		const user = await userRepo.findById(auth.userId);
+		if (!user?.emailVerifiedAt) {
+			throw forbidden("Email verification required");
+		}
+
+		await next();
+	};
 }

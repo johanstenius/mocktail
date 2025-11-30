@@ -3,7 +3,7 @@ import {
 	errorSchema,
 	inviteIdParamSchema,
 	memberIdParamSchema,
-} from "./common";
+} from "./shared";
 
 export const orgRoleSchema = z.enum(["owner", "admin", "member"]);
 

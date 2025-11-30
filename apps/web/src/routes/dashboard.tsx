@@ -4,6 +4,7 @@ import {
 	Skeleton,
 } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WelcomeModal } from "@/components/welcome-modal";
 import {
 	getDashboardActivity,
@@ -42,17 +43,19 @@ function StatCard({
 	accent?: string;
 }) {
 	return (
-		<div className="glass rounded-xl p-5">
-			<div className="flex items-center justify-between mb-3">
-				<div
-					className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent || "bg-[var(--glow-violet)]/20"}`}
-				>
-					<Icon className="h-5 w-5 text-[var(--text-secondary)]" />
+		<Card>
+			<CardContent className="p-5">
+				<div className="flex items-center justify-between mb-3">
+					<div
+						className={`w-10 h-10 rounded-xl flex items-center justify-center ${accent || "bg-[var(--glow-violet)]/20"}`}
+					>
+						<Icon className="h-5 w-5 text-[var(--text-secondary)]" />
+					</div>
 				</div>
-			</div>
-			<div className="text-3xl font-bold font-['Outfit'] mb-1">{value}</div>
-			<div className="text-sm text-[var(--text-muted)]">{label}</div>
-		</div>
+				<div className="text-3xl font-bold font-['Outfit'] mb-1">{value}</div>
+				<div className="text-sm text-[var(--text-muted)]">{label}</div>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -100,50 +103,56 @@ function StatsGridSkeleton() {
 
 function OnboardingChecklistSkeleton() {
 	return (
-		<div className="glass rounded-xl p-6">
-			<div className="flex items-center justify-between mb-4">
-				<Skeleton className="h-5 w-24" />
-				<Skeleton className="h-4 w-20" />
-			</div>
-			<Skeleton className="h-1.5 w-full rounded-full mb-6" />
-			<div className="space-y-3">
-				{[1, 2, 3, 4].map((i) => (
-					<div key={i} className="flex items-center justify-between py-2">
-						<div className="flex items-center gap-3">
-							<Skeleton className="w-5 h-5 rounded-full" />
-							<Skeleton className="h-4 w-40" />
+		<Card>
+			<CardContent className="p-6">
+				<div className="flex items-center justify-between mb-4">
+					<Skeleton className="h-5 w-24" />
+					<Skeleton className="h-4 w-20" />
+				</div>
+				<Skeleton className="h-1.5 w-full rounded-full mb-6" />
+				<div className="space-y-3">
+					{[1, 2, 3, 4].map((i) => (
+						<div key={i} className="flex items-center justify-between py-2">
+							<div className="flex items-center gap-3">
+								<Skeleton className="w-5 h-5 rounded-full" />
+								<Skeleton className="h-4 w-40" />
+							</div>
 						</div>
-					</div>
-				))}
-			</div>
-		</div>
+					))}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
 function ActivityFeedSkeleton() {
 	return (
-		<div className="glass rounded-xl p-6">
-			<Skeleton className="h-5 w-32 mb-4" />
-			<div className="space-y-1">
-				<ActivityItemSkeleton />
-				<ActivityItemSkeleton />
-				<ActivityItemSkeleton />
-				<ActivityItemSkeleton />
-				<ActivityItemSkeleton />
-			</div>
-		</div>
+		<Card>
+			<CardContent className="p-6">
+				<Skeleton className="h-5 w-32 mb-4" />
+				<div className="space-y-1">
+					<ActivityItemSkeleton />
+					<ActivityItemSkeleton />
+					<ActivityItemSkeleton />
+					<ActivityItemSkeleton />
+					<ActivityItemSkeleton />
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
 function QuickActionsSkeleton() {
 	return (
-		<div className="glass rounded-xl p-6">
-			<Skeleton className="h-5 w-28 mb-4" />
-			<div className="grid grid-cols-2 gap-3">
-				<Skeleton className="h-12 rounded-lg" />
-				<Skeleton className="h-12 rounded-lg" />
-			</div>
-		</div>
+		<Card>
+			<CardContent className="p-6">
+				<Skeleton className="h-5 w-28 mb-4" />
+				<div className="grid grid-cols-2 gap-3">
+					<Skeleton className="h-12 rounded-lg" />
+					<Skeleton className="h-12 rounded-lg" />
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -193,199 +202,211 @@ function OnboardingChecklist({
 	}
 
 	return (
-		<div className="glass rounded-xl p-6">
-			<div className="flex items-center justify-between mb-4">
-				<h3 className="text-lg font-semibold font-['Outfit']">Quick Start</h3>
-				<span className="text-sm text-[var(--text-muted)]">
-					{completedCount}/{steps.length} complete
-				</span>
-			</div>
-
-			<div className="h-1.5 bg-[var(--bg-surface-active)] rounded-full mb-6 overflow-hidden">
-				<div
-					className="h-full bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] rounded-full transition-all duration-500"
-					style={{ width: `${progress}%` }}
-				/>
-			</div>
-
-			<div className="space-y-3">
-				{steps.map((step) => (
+		<Card>
+			<CardHeader className="pb-2">
+				<div className="flex items-center justify-between">
+					<CardTitle className="text-lg">Quick Start</CardTitle>
+					<span className="text-sm text-[var(--text-muted)]">
+						{completedCount}/{steps.length} complete
+					</span>
+				</div>
+			</CardHeader>
+			<CardContent>
+				<div className="h-1.5 bg-[var(--bg-surface-active)] rounded-full mb-6 overflow-hidden">
 					<div
-						key={step.label}
-						className={`flex items-center justify-between py-2 ${step.done ? "opacity-50" : ""}`}
-					>
-						<div className="flex items-center gap-3">
-							<div
-								className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${step.done ? "border-[var(--glow-emerald)] bg-[var(--glow-emerald)]" : "border-[var(--border-highlight)]"}`}
-							>
-								{step.done && (
-									<svg
-										className="w-3 h-3 text-white"
-										viewBox="0 0 12 12"
-										aria-hidden="true"
-									>
-										<path
-											fill="currentColor"
-											d="M10.28 2.28L4.5 8.06 1.72 5.28a.75.75 0 00-1.06 1.06l3.5 3.5a.75.75 0 001.06 0l6.5-6.5a.75.75 0 00-1.06-1.06z"
-										/>
-									</svg>
-								)}
+						className="h-full bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] rounded-full transition-all duration-500"
+						style={{ width: `${progress}%` }}
+					/>
+				</div>
+
+				<div className="space-y-3">
+					{steps.map((step) => (
+						<div
+							key={step.label}
+							className={`flex items-center justify-between py-2 ${step.done ? "opacity-50" : ""}`}
+						>
+							<div className="flex items-center gap-3">
+								<div
+									className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${step.done ? "border-[var(--glow-emerald)] bg-[var(--glow-emerald)]" : "border-[var(--border-highlight)]"}`}
+								>
+									{step.done && (
+										<svg
+											className="w-3 h-3 text-white"
+											viewBox="0 0 12 12"
+											aria-hidden="true"
+										>
+											<path
+												fill="currentColor"
+												d="M10.28 2.28L4.5 8.06 1.72 5.28a.75.75 0 00-1.06 1.06l3.5 3.5a.75.75 0 001.06 0l6.5-6.5a.75.75 0 00-1.06-1.06z"
+											/>
+										</svg>
+									)}
+								</div>
+								<span
+									className={
+										step.done ? "line-through text-[var(--text-muted)]" : ""
+									}
+								>
+									{step.label}
+								</span>
 							</div>
-							<span
-								className={
-									step.done ? "line-through text-[var(--text-muted)]" : ""
-								}
-							>
-								{step.label}
-							</span>
+							{step.action && !step.done && (
+								<Link to={step.action.to}>
+									<Button variant="ghost" size="sm">
+										{step.action.label}
+										<ArrowRight className="w-4 h-4 ml-1" />
+									</Button>
+								</Link>
+							)}
 						</div>
-						{step.action && !step.done && (
-							<Link to={step.action.to}>
-								<Button variant="ghost" size="sm">
-									{step.action.label}
-									<ArrowRight className="w-4 h-4 ml-1" />
-								</Button>
-							</Link>
-						)}
-					</div>
-				))}
-			</div>
-		</div>
+					))}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
 function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 	if (activity.length === 0) {
 		return (
-			<div className="glass rounded-xl p-6">
-				<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
-					Recent Activity
-				</h3>
-				<div className="text-center py-8 text-[var(--text-muted)]">
-					<Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-					<p>No activity yet</p>
-					<p className="text-sm mt-1">
-						Make requests to your mock endpoints to see activity here
-					</p>
-				</div>
-			</div>
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-lg">Recent Activity</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="text-center py-8 text-[var(--text-muted)]">
+						<Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+						<p>No activity yet</p>
+						<p className="text-sm mt-1">
+							Make requests to your mock endpoints to see activity here
+						</p>
+					</div>
+				</CardContent>
+			</Card>
 		);
 	}
 
 	return (
-		<div className="glass rounded-xl p-6">
-			<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
-				Recent Activity
-			</h3>
-			<div className="space-y-3">
-				{activity.map((item) => (
-					<div
-						key={item.id}
-						className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)] last:border-0"
-					>
-						<div className="flex items-center gap-3">
-							<div
-								className={`px-2 py-0.5 rounded text-xs font-mono font-semibold ${
-									item.method === "GET"
-										? "bg-emerald-500/20 text-emerald-400"
-										: item.method === "POST"
-											? "bg-blue-500/20 text-blue-400"
-											: item.method === "PUT"
-												? "bg-amber-500/20 text-amber-400"
-												: item.method === "DELETE"
-													? "bg-red-500/20 text-red-400"
-													: "bg-slate-500/20 text-slate-400"
-								}`}
-							>
-								{item.method}
+		<Card>
+			<CardHeader>
+				<CardTitle className="text-lg">Recent Activity</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="space-y-3">
+					{activity.map((item) => (
+						<div
+							key={item.id}
+							className="flex items-center justify-between py-2 border-b border-[var(--border-subtle)] last:border-0"
+						>
+							<div className="flex items-center gap-3">
+								<div
+									className={`px-2 py-0.5 rounded text-xs font-mono font-semibold ${
+										item.method === "GET"
+											? "bg-emerald-500/20 text-emerald-400"
+											: item.method === "POST"
+												? "bg-blue-500/20 text-blue-400"
+												: item.method === "PUT"
+													? "bg-amber-500/20 text-amber-400"
+													: item.method === "DELETE"
+														? "bg-red-500/20 text-red-400"
+														: "bg-slate-500/20 text-slate-400"
+									}`}
+								>
+									{item.method}
+								</div>
+								<div>
+									<span className="font-mono text-sm">{item.endpointPath}</span>
+									<span className="text-[var(--text-muted)] text-sm ml-2">
+										{item.projectName}
+									</span>
+								</div>
 							</div>
-							<div>
-								<span className="font-mono text-sm">{item.endpointPath}</span>
-								<span className="text-[var(--text-muted)] text-sm ml-2">
-									{item.projectName}
+							<div className="flex items-center gap-4">
+								<span
+									className={`text-sm font-mono ${
+										item.status && item.status < 300
+											? "text-emerald-400"
+											: item.status && item.status < 400
+												? "text-amber-400"
+												: "text-red-400"
+									}`}
+								>
+									{item.status}
+								</span>
+								<span className="text-xs text-[var(--text-muted)]">
+									{formatDistanceToNow(new Date(item.createdAt), {
+										addSuffix: true,
+									})}
 								</span>
 							</div>
 						</div>
-						<div className="flex items-center gap-4">
-							<span
-								className={`text-sm font-mono ${
-									item.status && item.status < 300
-										? "text-emerald-400"
-										: item.status && item.status < 400
-											? "text-amber-400"
-											: "text-red-400"
-								}`}
-							>
-								{item.status}
-							</span>
-							<span className="text-xs text-[var(--text-muted)]">
-								{formatDistanceToNow(new Date(item.createdAt), {
-									addSuffix: true,
-								})}
-							</span>
-						</div>
-					</div>
-				))}
-			</div>
-		</div>
+					))}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
 function QuickActions() {
 	return (
-		<div className="glass rounded-xl p-6">
-			<h3 className="text-lg font-semibold font-['Outfit'] mb-4">
-				Quick Actions
-			</h3>
-			<div className="grid grid-cols-2 gap-3">
-				<Link to="/projects">
-					<Button
-						variant="ghost"
-						className="w-full justify-start h-auto py-3 glass-hover"
-					>
-						<Plus className="w-4 h-4 mr-2" />
-						New Project
-					</Button>
-				</Link>
-				<Link to="/team">
-					<Button
-						variant="ghost"
-						className="w-full justify-start h-auto py-3 glass-hover"
-					>
-						<Users className="w-4 h-4 mr-2" />
-						Invite Team
-					</Button>
-				</Link>
-			</div>
-		</div>
+		<Card>
+			<CardHeader>
+				<CardTitle className="text-lg">Quick Actions</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="grid grid-cols-2 gap-3">
+					<Link to="/projects">
+						<Button
+							variant="ghost"
+							className="w-full justify-start h-auto py-3 glass-hover"
+						>
+							<Plus className="w-4 h-4 mr-2" />
+							New Project
+						</Button>
+					</Link>
+					<Link to="/team">
+						<Button
+							variant="ghost"
+							className="w-full justify-start h-auto py-3 glass-hover"
+						>
+							<Users className="w-4 h-4 mr-2" />
+							Invite Team
+						</Button>
+					</Link>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
 
 function DashboardPage() {
 	const {
 		isAuthenticated,
+		emailVerifiedAt,
 		isLoading: authLoading,
 		org,
 		hasCompletedOnboarding,
 	} = useAuth();
 	const navigate = useNavigate();
 
+	const isVerified = Boolean(emailVerifiedAt);
+
 	const { data: stats, isLoading: statsLoading } = useQuery({
 		queryKey: ["dashboard-stats"],
 		queryFn: getDashboardStats,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const { data: activity = [] } = useQuery({
 		queryKey: ["dashboard-activity"],
 		queryFn: () => getDashboardActivity(10),
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	const { data: projects = [] } = useQuery({
 		queryKey: ["projects"],
 		queryFn: getProjects,
-		enabled: isAuthenticated,
+		enabled: isAuthenticated && isVerified,
 	});
 
 	if (authLoading) {
@@ -398,6 +419,11 @@ function DashboardPage() {
 
 	if (!isAuthenticated) {
 		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!emailVerifiedAt) {
+		navigate({ to: "/check-email" });
 		return null;
 	}
 

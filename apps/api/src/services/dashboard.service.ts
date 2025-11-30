@@ -1,4 +1,6 @@
-import { prisma } from "../repositories/db/prisma";
+import * as orgRepo from "../repositories/organization.repository";
+import * as projectRepo from "../repositories/project.repository";
+import * as logRepo from "../repositories/request-log.repository";
 import type { ActivityItem, DashboardStats } from "../schemas/dashboard";
 
 export async function getStats(orgId: string): Promise<DashboardStats> {
@@ -12,17 +14,8 @@ export async function getStats(orgId: string): Promise<DashboardStats> {
 	startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
 
 	const [projects, teamMembers] = await Promise.all([
-		prisma.project.findMany({
-			where: { orgId },
-			include: {
-				_count: { select: { endpoints: true } },
-				requestLogs: {
-					where: { createdAt: { gte: startOfWeek } },
-					select: { createdAt: true },
-				},
-			},
-		}),
-		prisma.orgMembership.count({ where: { orgId } }),
+		projectRepo.findByOrgIdWithStats(orgId, startOfWeek),
+		orgRepo.countMembersByOrgId(orgId),
 	]);
 
 	let endpoints = 0;
@@ -52,25 +45,14 @@ export async function getActivity(
 	orgId: string,
 	limit: number,
 ): Promise<ActivityItem[]> {
-	const projects = await prisma.project.findMany({
-		where: { orgId },
-		select: { id: true },
-	});
+	const projects = await projectRepo.findByOrgId(orgId);
 	const projectIds = projects.map((p) => p.id);
 
 	if (projectIds.length === 0) {
 		return [];
 	}
 
-	const logs = await prisma.requestLog.findMany({
-		where: { projectId: { in: projectIds } },
-		orderBy: { createdAt: "desc" },
-		take: limit,
-		include: {
-			project: { select: { id: true, name: true } },
-			endpoint: { select: { id: true, path: true } },
-		},
-	});
+	const logs = await logRepo.findRecentByProjectIds(projectIds, limit);
 
 	return logs.map((log) => ({
 		id: log.id,

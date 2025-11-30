@@ -1,4 +1,11 @@
 import { Logo } from "@/components/logo";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -148,20 +155,22 @@ function LandingPage() {
 							icon: "🤝",
 						},
 					].map((feature) => (
-						<div
+						<Card
 							key={feature.title}
-							className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all group"
+							className="hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] transition-all group"
 						>
-							<div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
-								{feature.icon}
-							</div>
-							<h3 className="text-lg font-bold mb-2 font-['Outfit'] text-[var(--text-primary)]">
-								{feature.title}
-							</h3>
-							<p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-								{feature.desc}
-							</p>
-						</div>
+							<CardHeader>
+								<div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300 inline-block">
+									{feature.icon}
+								</div>
+								<CardTitle className="text-lg">{feature.title}</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<CardDescription className="text-sm leading-relaxed">
+									{feature.desc}
+								</CardDescription>
+							</CardContent>
+						</Card>
 					))}
 				</div>
 			</section>
@@ -173,128 +182,136 @@ function LandingPage() {
 				</h2>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					{/* Free Tier */}
-					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
-						<div className="text-xl font-semibold mb-1 font-['Outfit']">
-							Free
-						</div>
-						<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
-							$0
-							<span className="text-base text-[var(--text-muted)] font-normal">
-								/mo
-							</span>
-						</div>
-						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							Try it out, no credit card required.
-						</p>
-						<ul className="space-y-3 mb-8 flex-grow">
-							{[
-								"3 Projects",
-								"10 Endpoints per Project",
-								"5,000 Requests/mo",
-								"3 Team Members",
-								"3 Day Log Retention",
-							].map((feature) => (
-								<li
-									key={feature}
-									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-								>
-									<span className="text-[var(--accent-primary)] text-lg">
-										✓
-									</span>{" "}
-									{feature}
-								</li>
-							))}
-						</ul>
-						<Link
-							to="/register"
-							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
-						>
-							Start Free
-						</Link>
-					</div>
+					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
+						<CardHeader className="pb-0">
+							<CardTitle className="text-xl font-semibold mb-1">Free</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col flex-grow pt-4">
+							<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+								$0
+								<span className="text-base text-[var(--text-muted)] font-normal">
+									/mo
+								</span>
+							</div>
+							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+								Try it out, no credit card required.
+							</p>
+							<ul className="space-y-3 mb-8 flex-grow">
+								{[
+									"3 Projects",
+									"10 Endpoints per Project",
+									"5,000 Requests/mo",
+									"3 Team Members",
+									"3 Day Log Retention",
+								].map((feature) => (
+									<li
+										key={feature}
+										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+									>
+										<span className="text-[var(--accent-primary)] text-lg">
+											✓
+										</span>{" "}
+										{feature}
+									</li>
+								))}
+							</ul>
+							<Link
+								to="/register"
+								className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
+							>
+								Start Free
+							</Link>
+						</CardContent>
+					</Card>
 
 					{/* Pro Tier */}
-					<div className="bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border border-[rgba(139,92,246,0.5)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-[var(--bg-surface)]">
-						<div className="absolute top-3 right-3 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
+					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
+						<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
 							MOST POPULAR
 						</div>
-						<div className="text-xl font-semibold mb-1 font-['Outfit']">
-							Pro
-						</div>
-						<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
-							$29
-							<span className="text-base text-[var(--text-muted)] font-normal">
-								/mo
-							</span>
-						</div>
-						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							For teams shipping to production.
-						</p>
-						<ul className="space-y-3 mb-8 flex-grow">
-							{[
-								"10 Projects",
-								"50 Endpoints per Project",
-								"100,000 Requests/mo",
-								"10 Team Members",
-								"30 Day Log Retention",
-							].map((feature) => (
-								<li
-									key={feature}
-									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-								>
-									<span className="text-[var(--accent-primary)] text-lg">
-										✓
-									</span>{" "}
-									{feature}
-								</li>
-							))}
-						</ul>
-						<Link
-							to="/register"
-							className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
-						>
-							Get Started
-						</Link>
-					</div>
+						<CardHeader className="pb-0">
+							<CardTitle className="text-xl font-semibold mb-1">Pro</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col flex-grow pt-4">
+							<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+								$29
+								<span className="text-base text-[var(--text-muted)] font-normal">
+									/mo
+								</span>
+							</div>
+							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+								For teams shipping to production.
+							</p>
+							<ul className="space-y-3 mb-8 flex-grow">
+								{[
+									"10 Projects",
+									"50 Endpoints per Project",
+									"100,000 Requests/mo",
+									"10 Team Members",
+									"30 Day Log Retention",
+								].map((feature) => (
+									<li
+										key={feature}
+										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+									>
+										<span className="text-[var(--accent-primary)] text-lg">
+											✓
+										</span>{" "}
+										{feature}
+									</li>
+								))}
+							</ul>
+							<Link
+								to="/register"
+								className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
+							>
+								Get Started
+							</Link>
+						</CardContent>
+					</Card>
 
 					{/* Enterprise Tier */}
-					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-3xl p-8 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
-						<div className="text-xl font-semibold mb-1 font-['Outfit']">
-							Enterprise
-						</div>
-						<div className="text-4xl font-bold mb-4 font-['Outfit']">
-							Custom
-						</div>
-						<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-							Security and control for large organizations.
-						</p>
-						<ul className="space-y-3 mb-8 flex-grow">
-							{[
-								"Unlimited Projects",
-								"Unlimited Endpoints",
-								"Unlimited Requests",
-								"Unlimited Team Members",
-								"90 Day Log Retention",
-								"SSO / SAML",
-							].map((feature) => (
-								<li
-									key={feature}
-									className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-								>
-									<span className="text-[var(--accent-primary)] text-lg">
-										✓
-									</span>{" "}
-									{feature}
-								</li>
-							))}
-						</ul>
-						<a
-							href="#contact"
-							className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
-						>
-							Contact Sales
-						</a>
-					</div>
+					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
+						<CardHeader className="pb-0">
+							<CardTitle className="text-xl font-semibold mb-1">
+								Enterprise
+							</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col flex-grow pt-4">
+							<div className="text-4xl font-bold mb-4 font-['Outfit']">
+								Custom
+							</div>
+							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+								Security and control for large organizations.
+							</p>
+							<ul className="space-y-3 mb-8 flex-grow">
+								{[
+									"Unlimited Projects",
+									"Unlimited Endpoints",
+									"Unlimited Requests",
+									"Unlimited Team Members",
+									"90 Day Log Retention",
+									"SSO / SAML",
+								].map((feature) => (
+									<li
+										key={feature}
+										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+									>
+										<span className="text-[var(--accent-primary)] text-lg">
+											✓
+										</span>{" "}
+										{feature}
+									</li>
+								))}
+							</ul>
+							<a
+								href="#contact"
+								className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
+							>
+								Contact Sales
+							</a>
+						</CardContent>
+					</Card>
 				</div>
 			</section>
 

@@ -19,10 +19,18 @@ enum OrgRole {
   member
 }
 
+enum OAuthProvider {
+  github
+  google
+}
+
 model User {
   id                     String                   @id @default(cuid())
   email                  String                   @unique
-  passwordHash           String
+  passwordHash           String?
+  name                   String?
+  oauthProvider          OAuthProvider?
+  oauthId                String?
   emailVerifiedAt        DateTime?
   hasCompletedOnboarding Boolean                  @default(false)
   onboardingCompletedAt  DateTime?
@@ -32,6 +40,8 @@ model User {
   refreshTokens          RefreshToken[]
   passwordResets         PasswordResetToken[]
   emailVerifications     EmailVerificationToken[]
+
+  @@unique([oauthProvider, oauthId])
 }
 
 model Organization {

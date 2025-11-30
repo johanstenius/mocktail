@@ -10,6 +10,7 @@ export const ErrorCode = {
 	NOT_FOUND: "NOT_FOUND",
 	CONFLICT: "CONFLICT",
 	FORBIDDEN: "FORBIDDEN",
+	EMAIL_NOT_VERIFIED: "EMAIL_NOT_VERIFIED",
 
 	// Validation
 	VALIDATION_ERROR: "VALIDATION_ERROR",
@@ -39,10 +40,13 @@ export function badRequest(message: string): HTTPException {
 	});
 }
 
-export function forbidden(message: string): HTTPException {
+export function forbidden(
+	message: string,
+	code: string = ErrorCode.FORBIDDEN,
+): HTTPException {
 	return new HTTPException(403, {
 		message,
-		cause: { code: ErrorCode.FORBIDDEN },
+		cause: { code },
 	});
 }
 
@@ -88,4 +92,14 @@ export function quotaExceeded(message = "Quota exceeded"): HTTPException {
 		message,
 		cause: { code: ErrorCode.QUOTA_EXCEEDED },
 	});
+}
+
+export function getErrorMessage(error: unknown): string {
+	if (error instanceof HTTPException) {
+		return error.message;
+	}
+	if (error instanceof Error) {
+		return error.message;
+	}
+	return String(error);
 }

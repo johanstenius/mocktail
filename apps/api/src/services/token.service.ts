@@ -1,6 +1,13 @@
 import { SignJWT, jwtVerify } from "jose";
 import { nanoid } from "nanoid";
 import { AUTH_CONFIG } from "../config/auth";
+import * as refreshTokenRepo from "../repositories/refresh-token.repository";
+
+export type TokenPair = {
+	accessToken: string;
+	refreshToken: string;
+	expiresIn: number;
+};
 
 export type AccessTokenPayload = {
 	userId: string;
@@ -74,4 +81,27 @@ export async function verifyRefreshToken(
 
 export function generateRefreshTokenId(): string {
 	return nanoid(32);
+}
+
+export async function generateTokenPair(
+	userId: string,
+	orgId: string,
+): Promise<TokenPair> {
+	const tokenId = generateRefreshTokenId();
+	const expiresAt = new Date(
+		Date.now() + AUTH_CONFIG.refreshTokenExpiry * 1000,
+	);
+
+	await refreshTokenRepo.create({ userId, token: tokenId, expiresAt });
+
+	const [accessToken, refreshToken] = await Promise.all([
+		generateAccessToken(userId, orgId),
+		generateRefreshToken(userId, tokenId),
+	]);
+
+	return {
+		accessToken,
+		refreshToken,
+		expiresIn: AUTH_CONFIG.accessTokenExpiry,
+	};
 }

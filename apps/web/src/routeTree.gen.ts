@@ -9,20 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from "./routes/__root"
+import { Route as VerifyEmailRouteImport } from "./routes/verify-email"
 import { Route as TeamRouteImport } from "./routes/team"
 import { Route as ResetPasswordRouteImport } from "./routes/reset-password"
 import { Route as RegisterRouteImport } from "./routes/register"
 import { Route as ProjectsRouteImport } from "./routes/projects"
+import { Route as OnboardingRouteImport } from "./routes/onboarding"
 import { Route as LoginRouteImport } from "./routes/login"
 import { Route as InviteRouteImport } from "./routes/invite"
 import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password"
 import { Route as DocsRouteImport } from "./routes/docs"
 import { Route as DashboardRouteImport } from "./routes/dashboard"
+import { Route as CheckEmailRouteImport } from "./routes/check-email"
 import { Route as BillingRouteImport } from "./routes/billing"
 import { Route as AnalyticsRouteImport } from "./routes/analytics"
 import { Route as IndexRouteImport } from "./routes/index"
 import { Route as ProjectIdRouteImport } from "./routes/project.$id"
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: "/verify-email",
+  path: "/verify-email",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamRoute = TeamRouteImport.update({
   id: "/team",
   path: "/team",
@@ -41,6 +49,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProjectsRoute = ProjectsRouteImport.update({
   id: "/projects",
   path: "/projects",
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: "/onboarding",
+  path: "/onboarding",
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -68,6 +81,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: "/dashboard",
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckEmailRoute = CheckEmailRouteImport.update({
+  id: "/check-email",
+  path: "/check-email",
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BillingRoute = BillingRouteImport.update({
   id: "/billing",
   path: "/billing",
@@ -93,30 +111,36 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
+  "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
   "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
+  "/onboarding": typeof OnboardingRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
+  "/verify-email": typeof VerifyEmailRoute
   "/project/$id": typeof ProjectIdRoute
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
+  "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
   "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
+  "/onboarding": typeof OnboardingRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
+  "/verify-email": typeof VerifyEmailRoute
   "/project/$id": typeof ProjectIdRoute
 }
 export interface FileRoutesById {
@@ -124,15 +148,18 @@ export interface FileRoutesById {
   "/": typeof IndexRoute
   "/analytics": typeof AnalyticsRoute
   "/billing": typeof BillingRoute
+  "/check-email": typeof CheckEmailRoute
   "/dashboard": typeof DashboardRoute
   "/docs": typeof DocsRoute
   "/forgot-password": typeof ForgotPasswordRoute
   "/invite": typeof InviteRoute
   "/login": typeof LoginRoute
+  "/onboarding": typeof OnboardingRoute
   "/projects": typeof ProjectsRoute
   "/register": typeof RegisterRoute
   "/reset-password": typeof ResetPasswordRoute
   "/team": typeof TeamRoute
+  "/verify-email": typeof VerifyEmailRoute
   "/project/$id": typeof ProjectIdRoute
 }
 export interface FileRouteTypes {
@@ -141,45 +168,54 @@ export interface FileRouteTypes {
     | "/"
     | "/analytics"
     | "/billing"
+    | "/check-email"
     | "/dashboard"
     | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
+    | "/onboarding"
     | "/projects"
     | "/register"
     | "/reset-password"
     | "/team"
+    | "/verify-email"
     | "/project/$id"
   fileRoutesByTo: FileRoutesByTo
   to:
     | "/"
     | "/analytics"
     | "/billing"
+    | "/check-email"
     | "/dashboard"
     | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
+    | "/onboarding"
     | "/projects"
     | "/register"
     | "/reset-password"
     | "/team"
+    | "/verify-email"
     | "/project/$id"
   id:
     | "__root__"
     | "/"
     | "/analytics"
     | "/billing"
+    | "/check-email"
     | "/dashboard"
     | "/docs"
     | "/forgot-password"
     | "/invite"
     | "/login"
+    | "/onboarding"
     | "/projects"
     | "/register"
     | "/reset-password"
     | "/team"
+    | "/verify-email"
     | "/project/$id"
   fileRoutesById: FileRoutesById
 }
@@ -187,20 +223,30 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   BillingRoute: typeof BillingRoute
+  CheckEmailRoute: typeof CheckEmailRoute
   DashboardRoute: typeof DashboardRoute
   DocsRoute: typeof DocsRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   InviteRoute: typeof InviteRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   ProjectsRoute: typeof ProjectsRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TeamRoute: typeof TeamRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
   ProjectIdRoute: typeof ProjectIdRoute
 }
 
 declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
+    "/verify-email": {
+      id: "/verify-email"
+      path: "/verify-email"
+      fullPath: "/verify-email"
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/team": {
       id: "/team"
       path: "/team"
@@ -227,6 +273,13 @@ declare module "@tanstack/react-router" {
       path: "/projects"
       fullPath: "/projects"
       preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    "/onboarding": {
+      id: "/onboarding"
+      path: "/onboarding"
+      fullPath: "/onboarding"
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     "/login": {
@@ -264,6 +317,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    "/check-email": {
+      id: "/check-email"
+      path: "/check-email"
+      fullPath: "/check-email"
+      preLoaderRoute: typeof CheckEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     "/billing": {
       id: "/billing"
       path: "/billing"
@@ -299,15 +359,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   BillingRoute: BillingRoute,
+  CheckEmailRoute: CheckEmailRoute,
   DashboardRoute: DashboardRoute,
   DocsRoute: DocsRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   InviteRoute: InviteRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   ProjectsRoute: ProjectsRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TeamRoute: TeamRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
   ProjectIdRoute: ProjectIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -307,10 +307,5 @@ async function getOrgOwnerEmail(
 	const org = await orgRepo.findById(orgId);
 	if (!org) return null;
 
-	const { prisma } = await import("../repositories/db/prisma");
-	const owner = await prisma.user.findUnique({
-		where: { id: org.ownerId },
-		select: { email: true },
-	});
-	return owner;
+	return orgRepo.findOwnerEmail(org.ownerId);
 }

@@ -74,3 +74,9 @@ export function upsert(
 		create: { projectId, ...data },
 	});
 }
+
+export function countByProjectId(projectId: string) {
+	return prisma.endpoint.count({
+		where: { projectId },
+	});
+}
