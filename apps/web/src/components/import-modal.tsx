@@ -2,6 +2,7 @@ import { importOpenApiSpec } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileJson, Upload } from "lucide-react";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import {
 	Dialog,
@@ -39,7 +40,15 @@ export function ImportModal({
 			onOpenChange(false);
 			setSpecInput("");
 			setError(null);
-			alert(`Imported ${result.created} endpoints (${result.skipped} skipped)`);
+			if (result.created > 0) {
+				toast.success(
+					`Imported ${result.created} endpoint${result.created !== 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} skipped)` : ""}`,
+				);
+			} else if (result.skipped > 0) {
+				toast.info(`${result.skipped} endpoints already exist`);
+			} else {
+				toast.info("No endpoints found in spec");
+			}
 		},
 		onError: (err: Error) => {
 			setError(err.message);

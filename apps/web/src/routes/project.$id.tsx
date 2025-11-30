@@ -465,18 +465,18 @@ function ProjectDetailPage() {
 				<div className="flex items-center gap-2">
 					<Button
 						variant="outline"
-						onClick={() => setImportModalOpen(true)}
-						className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
-					>
-						<Upload className="h-4 w-4 mr-2" />
-						Import
-					</Button>
-					<Button
 						onClick={handleNewEndpoint}
-						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+						className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
 					>
 						<Plus className="h-4 w-4 mr-2" />
 						Create Endpoint
+					</Button>
+					<Button
+						onClick={() => setImportModalOpen(true)}
+						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+					>
+						<Upload className="h-4 w-4 mr-2" />
+						Import Spec
 					</Button>
 				</div>
 			</header>
@@ -554,8 +554,12 @@ function ProjectDetailPage() {
 								<EmptyState
 									icon={RouteIcon}
 									title="No endpoints yet"
-									description="Create endpoints manually or import from an OpenAPI spec."
+									description="Import from an OpenAPI spec or create endpoints manually."
 									action={{
+										label: "Import Spec",
+										onClick: () => setImportModalOpen(true),
+									}}
+									secondaryAction={{
 										label: "Create Endpoint",
 										onClick: handleNewEndpoint,
 									}}
