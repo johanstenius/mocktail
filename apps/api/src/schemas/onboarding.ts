@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, successSchema } from "./shared";
+import { errorSchema } from "./shared";
 
 export const createOrganizationSchema = z.object({
 	name: z.string().min(1).max(100),
@@ -41,12 +41,7 @@ export const completeOnboardingRoute = createRoute({
 	tags: ["Onboarding"],
 	summary: "Mark onboarding complete",
 	responses: {
-		200: {
-			description: "Onboarding completed",
-			content: {
-				"application/json": { schema: successSchema },
-			},
-		},
+		204: { description: "Onboarding completed" },
 	},
 });
 

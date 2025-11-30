@@ -1,5 +1,5 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { errorSchema, successSchema } from "./shared";
+import { errorSchema } from "./shared";
 
 const tierSchema = z.enum(["free", "pro", "enterprise"]);
 
@@ -59,10 +59,7 @@ export const cancelSubscriptionRoute = createRoute({
 	tags: ["Billing"],
 	summary: "Cancel subscription at period end",
 	responses: {
-		200: {
-			description: "Subscription cancelled",
-			content: { "application/json": { schema: successSchema } },
-		},
+		204: { description: "Subscription cancelled" },
 		400: {
 			description: "No active subscription",
 			content: { "application/json": { schema: errorSchema } },
@@ -76,10 +73,7 @@ export const reactivateSubscriptionRoute = createRoute({
 	tags: ["Billing"],
 	summary: "Reactivate cancelled subscription",
 	responses: {
-		200: {
-			description: "Subscription reactivated",
-			content: { "application/json": { schema: successSchema } },
-		},
+		204: { description: "Subscription reactivated" },
 		400: {
 			description: "No cancelled subscription to reactivate",
 			content: { "application/json": { schema: errorSchema } },
@@ -93,10 +87,7 @@ export const retryPaymentRoute = createRoute({
 	tags: ["Billing"],
 	summary: "Retry failed payment",
 	responses: {
-		200: {
-			description: "Payment retry initiated",
-			content: { "application/json": { schema: successSchema } },
-		},
+		204: { description: "Payment retry initiated" },
 		400: {
 			description: "No failed payment to retry",
 			content: { "application/json": { schema: errorSchema } },

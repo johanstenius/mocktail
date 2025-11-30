@@ -39,9 +39,8 @@ export async function createOrganization(userId: string, orgName: string) {
 	};
 }
 
-export async function markComplete(userId: string) {
+export async function markComplete(userId: string): Promise<void> {
 	await userRepo.markOnboardingComplete(userId);
-	return { success: true };
 }
 
 export type CompleteOAuthOnboardingResult = {

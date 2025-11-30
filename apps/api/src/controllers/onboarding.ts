@@ -36,8 +36,8 @@ onboardingRouter.openapi(createOrganizationRoute, async (c) => {
 
 onboardingRouter.openapi(completeOnboardingRoute, async (c) => {
 	const { userId } = getAuth(c);
-	const result = await onboardingService.markComplete(userId);
-	return c.json(result);
+	await onboardingService.markComplete(userId);
+	return c.body(null, 204);
 });
 
 onboardingRouter.openapi(createSampleProjectRoute, async (c) => {

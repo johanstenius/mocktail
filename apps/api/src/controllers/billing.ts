@@ -121,19 +121,22 @@ billingRouter.openapi(createCheckoutRoute, async (c) => {
 billingRouter.openapi(cancelSubscriptionRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.cancelSubscription(auth.orgId);
-	return c.json({ success: true });
+
+	return c.body(null, 204);
 });
 
 billingRouter.openapi(reactivateSubscriptionRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.reactivateSubscription(auth.orgId);
-	return c.json({ success: true });
+
+	return c.body(null, 204);
 });
 
 billingRouter.openapi(retryPaymentRoute, async (c) => {
 	const auth = getAuth(c);
 	await stripeService.retryPayment(auth.orgId);
-	return c.json({ success: true });
+
+	return c.body(null, 204);
 });
 
 billingRouter.post("/webhook", async (c) => {

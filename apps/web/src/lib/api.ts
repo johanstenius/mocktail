@@ -69,6 +69,29 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	return res.json();
 }
 
+async function fetchVoid(url: string, options?: RequestInit): Promise<void> {
+	const token = getAccessToken();
+	const headers: Record<string, string> = {
+		...(options?.headers as Record<string, string>),
+	};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	const res = await fetch(url, {
+		...options,
+		headers,
+	});
+	if (!res.ok) {
+		const data = await res.json().catch(() => ({}));
+		throw new ApiError(
+			data.error ?? "Request failed",
+			data.code ?? "INTERNAL_ERROR",
+			data.fields,
+		);
+	}
+}
+
 // Projects
 export async function getProjects(): Promise<Project[]> {
 	const data = await fetchJson<{ projects: Project[] }>(
@@ -374,24 +397,15 @@ export async function createCheckoutSession(): Promise<{ url: string }> {
 }
 
 export async function cancelSubscription(): Promise<void> {
-	await fetchJson<{ success: boolean }>(`${API_BASE}/api/billing/cancel`, {
-		method: "POST",
-	});
+	await fetchVoid(`${API_BASE}/api/billing/cancel`, { method: "POST" });
 }
 
 export async function reactivateSubscription(): Promise<void> {
-	await fetchJson<{ success: boolean }>(`${API_BASE}/api/billing/reactivate`, {
-		method: "POST",
-	});
+	await fetchVoid(`${API_BASE}/api/billing/reactivate`, { method: "POST" });
 }
 
 export async function retryPayment(): Promise<void> {
-	await fetchJson<{ success: boolean }>(
-		`${API_BASE}/api/billing/retry-payment`,
-		{
-			method: "POST",
-		},
-	);
+	await fetchVoid(`${API_BASE}/api/billing/retry-payment`, { method: "POST" });
 }
 
 // Dashboard
@@ -421,13 +435,8 @@ export async function createOrganization(name: string): Promise<{
 	);
 }
 
-export async function completeOnboarding(): Promise<{ success: boolean }> {
-	return fetchJson<{ success: boolean }>(
-		`${API_BASE}/api/onboarding/complete`,
-		{
-			method: "POST",
-		},
-	);
+export async function completeOnboarding(): Promise<void> {
+	await fetchVoid(`${API_BASE}/api/onboarding/complete`, { method: "POST" });
 }
 
 export async function createSampleProject(): Promise<SampleProjectResult> {
