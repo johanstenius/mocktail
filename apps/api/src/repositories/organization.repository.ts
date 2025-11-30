@@ -41,6 +41,15 @@ export function countMembersByOrgId(orgId: string) {
 	});
 }
 
+export function countPendingInvitesByOrgId(orgId: string) {
+	return prisma.orgInvite.count({
+		where: {
+			orgId,
+			expiresAt: { gt: new Date() },
+		},
+	});
+}
+
 export function updateStripeCustomerId(
 	orgId: string,
 	stripeCustomerId: string,

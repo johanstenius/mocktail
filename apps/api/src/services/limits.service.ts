@@ -3,6 +3,7 @@ import { getLimits } from "../config/limits";
 import { prisma } from "../repositories/db/prisma";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
+import { quotaExceeded } from "../utils/errors";
 
 export type LimitCheckResult = {
 	allowed: boolean;
@@ -47,6 +48,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 		(sum, p) => sum + p._count.endpoints,
 		0,
 	);
+	const pendingInvites = await orgRepo.countPendingInvitesByOrgId(orgId);
 
 	return {
 		tier: org.tier,
@@ -55,7 +57,10 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 			used: totalEndpoints,
 			limit: limits.endpointsPerProject * org._count.projects,
 		},
-		members: { used: org._count.members, limit: limits.teamMembers },
+		members: {
+			used: org._count.members + pendingInvites,
+			limit: limits.teamMembers,
+		},
 		requests: { used: org.monthlyRequests, limit: limits.monthlyRequests },
 		cancelAtPeriodEnd: org.stripeCancelAtPeriodEnd,
 		currentPeriodEnd: org.stripeCurrentPeriodEnd,
@@ -95,18 +100,20 @@ export async function checkMemberLimit(
 	}
 
 	const limits = getLimits(org.tier);
-	const count = await orgRepo.countMembersByOrgId(orgId);
+	const memberCount = await orgRepo.countMembersByOrgId(orgId);
+	const inviteCount = await orgRepo.countPendingInvitesByOrgId(orgId);
+	const total = memberCount + inviteCount;
 
-	if (count >= limits.teamMembers) {
+	if (total >= limits.teamMembers) {
 		return {
 			allowed: false,
 			reason: `Team member limit reached (${limits.teamMembers})`,
-			current: count,
+			current: total,
 			limit: limits.teamMembers,
 		};
 	}
 
-	return { allowed: true, current: count, limit: limits.teamMembers };
+	return { allowed: true, current: total, limit: limits.teamMembers };
 }
 
 export async function checkEndpointLimit(
@@ -171,15 +178,9 @@ export async function trackRequest(
 	};
 }
 
-export async function trackProjectRequest(
-	projectId: string,
-): Promise<{ allowed: boolean; remaining: number }> {
+export async function trackProjectRequest(projectId: string): Promise<void> {
 	const project = await projectRepo.findByIdWithOrg(projectId);
-	if (!project) {
-		return { allowed: false, remaining: 0 };
-	}
-
-	const limits = getLimits(project.org.tier);
+	if (!project) return;
 
 	// Check if we need to reset (first of month)
 	const now = new Date();
@@ -190,18 +191,26 @@ export async function trackProjectRequest(
 		resetAt.getFullYear() !== now.getFullYear()
 	) {
 		await projectRepo.resetMonthlyRequests(project.id);
-		return { allowed: true, remaining: limits.monthlyRequests - 1 };
-	}
-
-	// Aggregate all project requests for org quota check
-	const orgTotal = await projectRepo.sumMonthlyRequestsByOrgId(project.orgId);
-	if (orgTotal >= limits.monthlyRequests) {
-		return { allowed: false, remaining: 0 };
+		return;
 	}
 
 	await projectRepo.incrementMonthlyRequests(project.id);
-	return {
-		allowed: true,
-		remaining: limits.monthlyRequests - orgTotal - 1,
-	};
+}
+
+function requireLimit(result: LimitCheckResult): void {
+	if (!result.allowed) {
+		throw quotaExceeded(result.reason ?? "Limit reached");
+	}
+}
+
+export async function requireProjectLimit(orgId: string): Promise<void> {
+	requireLimit(await checkProjectLimit(orgId));
+}
+
+export async function requireMemberLimit(orgId: string): Promise<void> {
+	requireLimit(await checkMemberLimit(orgId));
+}
+
+export async function requireEndpointLimit(projectId: string): Promise<void> {
+	requireLimit(await checkEndpointLimit(projectId));
 }
