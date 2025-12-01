@@ -1,9 +1,11 @@
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { exportAuditLogs, getAuditLogs, getMembers } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import type {
 	AuditAction,
 	AuditLog,
@@ -24,6 +26,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/audit-logs")({
+	beforeLoad: requireAuth,
 	component: AuditLogsPage,
 });
 
@@ -234,34 +237,32 @@ function AuditLogsPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<span className="text-[var(--text-primary)] font-medium">
-						Audit Logs
-					</span>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handleExport("csv")}
-						disabled={exporting}
-					>
-						<FileText className="h-4 w-4 mr-1" />
-						CSV
-					</Button>
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => handleExport("json")}
-						disabled={exporting}
-					>
-						<FileJson className="h-4 w-4 mr-1" />
-						JSON
-					</Button>
-					{exporting && <Loader2 className="h-4 w-4 animate-spin" />}
-				</div>
-			</header>
+			<PageHeader
+				title="Audit Logs"
+				actions={
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handleExport("csv")}
+							disabled={exporting}
+						>
+							<FileText className="h-4 w-4 mr-1" />
+							CSV
+						</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => handleExport("json")}
+							disabled={exporting}
+						>
+							<FileJson className="h-4 w-4 mr-1" />
+							JSON
+						</Button>
+						{exporting && <Loader2 className="h-4 w-4 animate-spin" />}
+					</div>
+				}
+			/>
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-5xl mx-auto">

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import {
 	ActivityItemSkeleton,
 	GlassStatCardSkeleton,
@@ -12,6 +13,7 @@ import {
 	getProjects,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import type { ActivityItem, DashboardStats, Project } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -28,6 +30,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
+	beforeLoad: requireAuth,
 	component: DashboardPage,
 });
 
@@ -431,13 +434,7 @@ function DashboardPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<span className="text-[var(--text-primary)] font-medium">
-						Dashboard
-					</span>
-				</div>
-			</header>
+			<PageHeader title="Dashboard" />
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-6xl mx-auto space-y-8">

@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { MemberRowSkeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+import { requireAuth } from "@/lib/route-guards";
 import type { Invite, Member, OrgRole } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -28,6 +30,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/team")({
+	beforeLoad: requireAuth,
 	component: TeamPage,
 });
 
@@ -357,20 +360,20 @@ function TeamPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<span className="text-[var(--text-primary)] font-medium">Team</span>
-				</div>
-				{canInvite && (
-					<Button
-						onClick={() => setInviteModalOpen(true)}
-						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-					>
-						<UserPlus className="h-4 w-4 mr-2" />
-						Invite Member
-					</Button>
-				)}
-			</header>
+			<PageHeader
+				title="Team"
+				actions={
+					canInvite && (
+						<Button
+							onClick={() => setInviteModalOpen(true)}
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+						>
+							<UserPlus className="h-4 w-4 mr-2" />
+							Invite Member
+						</Button>
+					)
+				}
+			/>
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-4xl mx-auto">

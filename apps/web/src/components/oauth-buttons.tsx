@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { API_URL } from "@/lib/config";
 import { Github } from "lucide-react";
-
-// TODO: Make this configurable via environment variable
-const API_URL = "http://localhost:4000";
 
 export function OAuthButtons() {
 	const handleGitHubLogin = () => {

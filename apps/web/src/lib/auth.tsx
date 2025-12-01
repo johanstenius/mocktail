@@ -193,7 +193,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const logout = useCallback(async () => {
 		const tokens = getStoredTokens();
 		if (tokens) {
-			await api.logout(tokens.refreshToken).catch(() => {});
+			// Best-effort logout - don't block local logout if API fails
+			await api.logout(tokens.refreshToken).catch((err: unknown) => {
+				console.warn("Logout API call failed:", err);
+			});
 		}
 		clearTokens();
 		setState({

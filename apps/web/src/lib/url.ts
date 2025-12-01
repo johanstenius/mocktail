@@ -1,4 +1,6 @@
-const MOCK_API_URL = "http://localhost:4000";
+import { API_URL } from "./config";
+
+const MOCK_API_URL = API_URL;
 
 export function getMockBaseUrl(): string {
 	return `${MOCK_API_URL}/mock`;

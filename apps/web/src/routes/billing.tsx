@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/page-header";
 import { TierCardSkeleton, UsageBarSkeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
 	retryPayment,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import type { Tier } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,6 +39,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
+	beforeLoad: requireAuth,
 	component: BillingPage,
 	validateSearch: (search: Record<string, unknown>) => {
 		const result: { success?: boolean; canceled?: boolean } = {};
@@ -330,7 +333,17 @@ function BillingPage() {
 	const upgradeMutation = useMutation({
 		mutationFn: createCheckoutSession,
 		onSuccess: (data) => {
-			window.location.href = data.url;
+			// Validate redirect URL is from trusted Stripe domain
+			try {
+				const url = new URL(data.url);
+				if (url.hostname.endsWith("stripe.com")) {
+					window.location.href = data.url;
+				} else {
+					toast.error("Invalid checkout URL");
+				}
+			} catch {
+				toast.error("Invalid checkout URL");
+			}
 		},
 		onError: () => {
 			toast.error("Failed to start checkout");
@@ -402,13 +415,7 @@ function BillingPage() {
 				}}
 			/>
 
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<span className="text-[var(--text-primary)] font-medium">
-						Billing
-					</span>
-				</div>
-			</header>
+			<PageHeader title="Billing" />
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-5xl mx-auto">

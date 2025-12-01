@@ -4,6 +4,7 @@ import { EndpointPanel } from "@/components/endpoint-panel";
 import { ImportDropzone } from "@/components/import-dropzone";
 import { ImportModal } from "@/components/import-modal";
 import { MethodBadge } from "@/components/method-badge";
+import { PageHeader } from "@/components/page-header";
 import { RequestLogTable } from "@/components/request-log-table";
 import { EndpointRowSkeleton, Skeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,11 @@ import {
 	rotateProjectApiKey,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
 import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Loader2,
 	Pencil,
@@ -33,6 +35,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/project/$id")({
+	beforeLoad: requireAuth,
 	component: ProjectDetailPage,
 });
 
@@ -612,37 +615,31 @@ function ProjectDetailPage() {
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
 			{/* Header */}
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<Link
-						to="/projects"
-						className="hover:text-[var(--text-secondary)] transition-colors"
-					>
-						Projects
-					</Link>
-					<span className="opacity-50">/</span>
-					<span className="text-[var(--text-primary)] font-medium">
-						{project.name}
-					</span>
-				</div>
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						onClick={handleNewEndpoint}
-						className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
-					>
-						<Plus className="h-4 w-4 mr-2" />
-						Create Endpoint
-					</Button>
-					<Button
-						onClick={() => setImportModalOpen(true)}
-						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-					>
-						<Upload className="h-4 w-4 mr-2" />
-						Import Spec
-					</Button>
-				</div>
-			</header>
+			<PageHeader
+				breadcrumbs={[
+					{ label: "Projects", href: "/projects" },
+					{ label: project.name },
+				]}
+				actions={
+					<>
+						<Button
+							variant="outline"
+							onClick={handleNewEndpoint}
+							className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
+						>
+							<Plus className="h-4 w-4 mr-2" />
+							Create Endpoint
+						</Button>
+						<Button
+							onClick={() => setImportModalOpen(true)}
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+						>
+							<Upload className="h-4 w-4 mr-2" />
+							Import Spec
+						</Button>
+					</>
+				}
+			/>
 
 			{/* Content */}
 			<div className="flex-1 overflow-y-auto p-8">

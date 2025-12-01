@@ -1,5 +1,6 @@
 import { CreateProjectModal } from "@/components/create-project-modal";
 import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
 import { ProjectCardSkeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +10,7 @@ import {
 	getProjects,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import type { Project } from "@/types";
 import {
 	useMutation,
@@ -22,6 +24,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/projects")({
+	beforeLoad: requireAuth,
 	component: ProjectsPage,
 });
 
@@ -186,13 +189,9 @@ function ProjectsPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
-					<span className="text-[var(--text-primary)] font-medium">
-						Projects
-					</span>
-				</div>
-				<div className="flex items-center gap-4">
+			<PageHeader
+				title="Projects"
+				actions={
 					<Button
 						onClick={() => setCreateModalOpen(true)}
 						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
@@ -200,8 +199,8 @@ function ProjectsPage() {
 						<Plus className="h-4 w-4 mr-2" />
 						Create Project
 					</Button>
-				</div>
-			</header>
+				}
+			/>
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-4xl mx-auto">

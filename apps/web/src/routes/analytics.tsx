@@ -1,4 +1,5 @@
 import { MethodBadge } from "@/components/method-badge";
+import { PageHeader } from "@/components/page-header";
 import {
 	ProjectStatBarSkeleton,
 	Skeleton,
@@ -7,12 +8,14 @@ import {
 } from "@/components/skeleton";
 import { getProjects, getRequestLogs } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/route-guards";
 import type { HttpMethod, RequestLog } from "@/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/analytics")({
+	beforeLoad: requireAuth,
 	component: AnalyticsPage,
 });
 
@@ -207,23 +210,23 @@ function AnalyticsPage() {
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
 			{/* Header */}
-			<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-				<div className="flex items-center gap-3">
+			<PageHeader
+				title="Analytics"
+				icon={
 					<svg
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
 						strokeWidth="2"
-						className="h-6 w-6 text-[var(--glow-violet)]"
+						className="h-4 w-4 text-[var(--glow-violet)]"
 						aria-hidden="true"
 					>
 						<line x1="18" y1="20" x2="18" y2="10" />
 						<line x1="12" y1="20" x2="12" y2="4" />
 						<line x1="6" y1="20" x2="6" y2="14" />
 					</svg>
-					<h1 className="text-2xl font-bold font-['Outfit']">Analytics</h1>
-				</div>
-			</header>
+				}
+			/>
 
 			{/* Content */}
 			<div className="flex-1 overflow-y-auto p-8">

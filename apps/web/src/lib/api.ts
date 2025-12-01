@@ -32,7 +32,7 @@ import type {
 } from "@/types";
 import { ApiError } from "./errors";
 
-const API_BASE = "http://localhost:4000";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const TOKEN_KEY = "mocktail_tokens";
 
 function getAccessToken(): string | null {
@@ -116,11 +116,7 @@ export async function createProject(
 }
 
 export async function deleteProject(id: string): Promise<void> {
-	const token = getAccessToken();
-	await fetch(`${API_BASE}/api/projects/${id}`, {
-		method: "DELETE",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-	});
+	await fetchVoid(`${API_BASE}/api/projects/${id}`, { method: "DELETE" });
 }
 
 // Endpoints
@@ -171,11 +167,10 @@ export async function deleteEndpoint(
 	projectId: string,
 	endpointId: string,
 ): Promise<void> {
-	const token = getAccessToken();
-	await fetch(`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}`, {
-		method: "DELETE",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-	});
+	await fetchVoid(
+		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}`,
+		{ method: "DELETE" },
+	);
 }
 
 // Request Logs
@@ -339,11 +334,7 @@ export async function updateMemberRole(
 }
 
 export async function removeMember(memberId: string): Promise<void> {
-	const token = getAccessToken();
-	await fetch(`${API_BASE}/api/members/${memberId}`, {
-		method: "DELETE",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-	});
+	await fetchVoid(`${API_BASE}/api/members/${memberId}`, { method: "DELETE" });
 }
 
 // Invites
@@ -363,11 +354,7 @@ export async function createInvite(input: CreateInviteInput): Promise<Invite> {
 }
 
 export async function revokeInvite(inviteId: string): Promise<void> {
-	const token = getAccessToken();
-	await fetch(`${API_BASE}/api/invites/${inviteId}`, {
-		method: "DELETE",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-	});
+	await fetchVoid(`${API_BASE}/api/invites/${inviteId}`, { method: "DELETE" });
 }
 
 export async function getInviteByToken(token: string): Promise<InviteInfo> {
@@ -573,13 +560,9 @@ export async function deleteVariant(
 	endpointId: string,
 	variantId: string,
 ): Promise<void> {
-	const token = getAccessToken();
-	await fetch(
+	await fetchVoid(
 		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
-		{
-			method: "DELETE",
-			headers: token ? { Authorization: `Bearer ${token}` } : {},
-		},
+		{ method: "DELETE" },
 	);
 }
 
