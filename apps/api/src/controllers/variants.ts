@@ -17,14 +17,6 @@ export const variantsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 variantsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
-function parseJson(str: string): unknown {
-	try {
-		return JSON.parse(str);
-	} catch {
-		return {};
-	}
-}
-
 function mapVariantToResponse(variant: VariantModel) {
 	return {
 		id: variant.id,
@@ -33,9 +25,8 @@ function mapVariantToResponse(variant: VariantModel) {
 		priority: variant.priority,
 		isDefault: variant.isDefault,
 		status: variant.status,
-		headers: parseJson(variant.headers) as Record<string, string>,
-		body:
-			variant.bodyType === "template" ? variant.body : parseJson(variant.body),
+		headers: variant.headers,
+		body: variant.body,
 		bodyType: variant.bodyType as "static" | "template",
 		delay: variant.delay,
 		failRate: variant.failRate,

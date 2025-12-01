@@ -22,7 +22,7 @@ export type CleanupResult = {
 
 export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 	const job = await batchJobRepo.create({
-		type: "log_cleanup",
+		type: "request_log_cleanup",
 		status: "running",
 	});
 
@@ -90,17 +90,14 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 			"log cleanup completed",
 		);
 
-		await batchJobRepo.markCompleted(
-			job.id,
-			JSON.stringify({
-				results,
-				totalDeleted,
-				expiredTokens: {
-					emailVerification: expiredVerificationTokens.count,
-					passwordReset: expiredPasswordResets.count,
-				},
-			}),
-		);
+		await batchJobRepo.markCompleted(job.id, {
+			results,
+			totalDeleted,
+			expiredTokens: {
+				emailVerification: expiredVerificationTokens.count,
+				passwordReset: expiredPasswordResets.count,
+			},
+		});
 
 		return { jobId: job.id, results, totalDeleted };
 	} catch (error) {

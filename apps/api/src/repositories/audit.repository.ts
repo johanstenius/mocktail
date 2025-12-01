@@ -1,4 +1,4 @@
-import type { AuditAction } from "@prisma/client";
+import type { AuditAction, Prisma } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 type CreateAuditLogData = {
@@ -7,7 +7,7 @@ type CreateAuditLogData = {
 	action: AuditAction;
 	targetType?: string;
 	targetId?: string;
-	metadata?: string;
+	metadata?: Record<string, unknown>;
 	ipAddress?: string;
 	userAgent?: string;
 };
@@ -31,7 +31,7 @@ export function create(data: CreateAuditLogData) {
 			action: data.action,
 			targetType: data.targetType ?? null,
 			targetId: data.targetId ?? null,
-			metadata: data.metadata ?? "{}",
+			metadata: (data.metadata ?? {}) as Prisma.InputJsonValue,
 			ipAddress: data.ipAddress ?? null,
 			userAgent: data.userAgent ?? null,
 		},

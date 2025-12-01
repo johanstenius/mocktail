@@ -57,7 +57,7 @@ oauthRouter.get("/github/callback", async (c) => {
 
 // Google OAuth
 oauthRouter.get("/google", async (c) => {
-	logger.info({apiUrl: config.apiUrl}, "URL")
+	logger.info({ apiUrl: config.apiUrl }, "URL");
 	const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 	googleAuthUrl.searchParams.set("client_id", config.googleClientId);
 	googleAuthUrl.searchParams.set("response_type", "code");

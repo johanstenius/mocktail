@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 export type CreateVariantData = {
@@ -6,12 +7,12 @@ export type CreateVariantData = {
 	priority: number;
 	isDefault: boolean;
 	status: number;
-	headers: string;
-	body: string;
+	headers: unknown;
+	body: unknown;
 	bodyType: string;
 	delay: number;
 	failRate: number;
-	rules: string;
+	rules: unknown;
 	ruleLogic: string;
 };
 
@@ -43,13 +44,46 @@ export function findDefaultByEndpoint(endpointId: string) {
 }
 
 export function create(data: CreateVariantData) {
-	return prisma.responseVariant.create({ data });
+	return prisma.responseVariant.create({
+		data: {
+			endpointId: data.endpointId,
+			name: data.name,
+			priority: data.priority,
+			isDefault: data.isDefault,
+			status: data.status,
+			headers: data.headers as Prisma.InputJsonValue,
+			body: data.body as Prisma.InputJsonValue,
+			bodyType: data.bodyType,
+			delay: data.delay,
+			failRate: data.failRate,
+			rules: data.rules as Prisma.InputJsonValue,
+			ruleLogic: data.ruleLogic,
+		},
+	});
 }
 
 export function update(id: string, data: UpdateVariantData) {
 	return prisma.responseVariant.update({
 		where: { id },
-		data,
+		data: {
+			...(data.name && { name: data.name }),
+			...(data.priority !== undefined && { priority: data.priority }),
+			...(data.isDefault !== undefined && { isDefault: data.isDefault }),
+			...(data.status !== undefined && { status: data.status }),
+			...(data.headers !== undefined && {
+				headers: data.headers as Prisma.InputJsonValue,
+			}),
+			...(data.body !== undefined && {
+				body: data.body as Prisma.InputJsonValue,
+			}),
+			...(data.bodyType && { bodyType: data.bodyType }),
+			...(data.delay !== undefined && { delay: data.delay }),
+			...(data.failRate !== undefined && { failRate: data.failRate }),
+			...(data.rules !== undefined && {
+				rules: data.rules as Prisma.InputJsonValue,
+			}),
+			...(data.ruleLogic && { ruleLogic: data.ruleLogic }),
+		},
 	});
 }
 

@@ -53,6 +53,17 @@ enum AuditAction {
   subscription_cancelled
 }
 
+enum BatchJobType {
+  request_log_cleanup
+  usage_reset
+}
+
+enum BatchJobStatus {
+  running
+  completed
+  failed
+}
+
 model User {
   id                     String                   @id @default(cuid())
   email                  String                   @unique
@@ -70,6 +81,7 @@ model User {
   passwordResets         PasswordResetToken[]
   emailVerifications     EmailVerificationToken[]
   auditLogs              AuditLog[]               @relation("AuditActor")
+  sentInvites            OrgInvite[]
 
   @@unique([oauthProvider, oauthId])
 }
@@ -104,6 +116,7 @@ model OrgMembership {
   orgId     String
   role      OrgRole
   createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
@@ -117,6 +130,9 @@ model RefreshToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Project {
@@ -135,23 +151,17 @@ model Project {
   requestLogs RequestLog[]
 
   @@unique([orgId, slug])
+  @@index([orgId])
 }
 
 model Endpoint {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   projectId String
   method    String // GET, POST, PUT, DELETE, PATCH
   path      String // /users, /users/:id
-  // Legacy fields - kept for backwards compat during migration
-  status   Int?    @default(200)
-  headers  String? @default("{}")
-  body     String? @default("{}")
-  bodyType String? @default("static")
-  delay    Int?    @default(0)
-  failRate Int?    @default(0)
 
   // Request validation
-  requestBodySchema String @default("{}")
+  requestBodySchema Json   @default("{}")
   validationMode    String @default("none")
 
   createdAt DateTime @default(now())
@@ -173,14 +183,14 @@ model ResponseVariant {
 
   // Response config
   status   Int    @default(200)
-  headers  String @default("{}") // JSON string
-  body     String @default("{}") // JSON string
+  headers  Json   @default("{}")
+  body     Json   @default("{}")
   bodyType String @default("static") // "static" | "template"
   delay    Int    @default(0) // ms
   failRate Int    @default(0) // 0-100 percentage
 
   // Match rules
-  rules     String @default("[]") // JSON: MatchRule[]
+  rules     Json   @default("[]")
   ruleLogic String @default("and") // "and" | "or"
 
   createdAt DateTime @default(now())
@@ -195,19 +205,22 @@ model RequestLog {
   id               String   @id @default(cuid())
   projectId        String
   endpointId       String?
-  variantId        String? // Which variant was matched
+  variantId        String?
   method           String
   path             String
   status           Int
-  requestHeaders   String   @default("{}") // JSON string
-  requestBody      String?
-  responseBody     String?
-  validationErrors String? // JSON array of error messages
+  requestHeaders   Json     @default("{}")
+  requestBody      Json?
+  responseBody     Json?
+  validationErrors Json?
   duration         Int // ms
   createdAt        DateTime @default(now())
 
   project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   endpoint Endpoint? @relation(fields: [endpointId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([createdAt])
 }
 
 
@@ -234,26 +247,28 @@ model EmailVerificationToken {
 }
 
 model OrgInvite {
-  id        String       @id @default(cuid())
-  email     String
-  orgId     String
-  role      OrgRole      @default(member)
-  token     String       @unique
-  expiresAt DateTime
-  invitedBy String
-  createdAt DateTime     @default(now())
-  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  email       String
+  orgId       String
+  role        OrgRole      @default(member)
+  token       String       @unique
+  expiresAt   DateTime
+  invitedById String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy   User         @relation(fields: [invitedById], references: [id], onDelete: Cascade)
 
   @@unique([email, orgId])
 }
 
 model BatchJob {
-  id        String    @id @default(cuid())
-  type      String
-  status    String    // running, completed, failed
-  result    String?   // JSON summary
+  id        String         @id @default(cuid())
+  type      BatchJobType
+  status    BatchJobStatus
+  result    Json?
   error     String?
-  startedAt DateTime  @default(now())
+  startedAt DateTime       @default(now())
   endedAt   DateTime?
 
   @@index([type])
@@ -267,7 +282,7 @@ model AuditLog {
   action     AuditAction
   targetType String?
   targetId   String?
-  metadata   String      @default("{}")
+  metadata   Json        @default("{}")
   ipAddress  String?
   userAgent  String?
   createdAt  DateTime    @default(now())

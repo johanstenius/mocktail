@@ -10,31 +10,12 @@ export const importRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 importRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
-function parseJson(str: string): unknown {
-	try {
-		return JSON.parse(str);
-	} catch {
-		return {};
-	}
-}
-
 function mapEndpointToResponse(endpoint: ImportedEndpoint) {
 	return {
 		id: endpoint.id,
 		projectId: endpoint.projectId,
-		method: endpoint.method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+		method: endpoint.method,
 		path: endpoint.path,
-		status: endpoint.status,
-		headers: parseJson(endpoint.headers) as Record<string, string>,
-		body:
-			endpoint.bodyType === "template"
-				? endpoint.body
-				: parseJson(endpoint.body),
-		bodyType: endpoint.bodyType as "static" | "template",
-		delay: endpoint.delay,
-		failRate: endpoint.failRate,
-		requestBodySchema: parseJson(endpoint.requestBodySchema ?? "{}"),
-		validationMode: endpoint.validationMode as "none" | "warn" | "strict",
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};

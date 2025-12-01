@@ -1,8 +1,9 @@
+import type { BatchJobStatus, BatchJobType, Prisma } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 type CreateJobData = {
-	type: string;
-	status: string;
+	type: BatchJobType;
+	status: BatchJobStatus;
 };
 
 export function create(data: CreateJobData) {
@@ -13,7 +14,7 @@ export function findById(id: string) {
 	return prisma.batchJob.findUnique({ where: { id } });
 }
 
-export function findByType(type: string, limit = 20) {
+export function findByType(type: BatchJobType, limit = 20) {
 	return prisma.batchJob.findMany({
 		where: { type },
 		orderBy: { startedAt: "desc" },
@@ -21,7 +22,7 @@ export function findByType(type: string, limit = 20) {
 	});
 }
 
-export function markCompleted(id: string, result: string) {
+export function markCompleted(id: string, result: Prisma.InputJsonValue) {
 	return prisma.batchJob.update({
 		where: { id },
 		data: { status: "completed", result, endedAt: new Date() },

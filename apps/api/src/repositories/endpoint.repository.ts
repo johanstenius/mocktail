@@ -1,16 +1,11 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 type CreateEndpointData = {
 	projectId: string;
 	method: string;
 	path: string;
-	status: number;
-	headers: string;
-	body: string;
-	bodyType: string;
-	delay: number;
-	failRate: number;
-	requestBodySchema?: string;
+	requestBodySchema?: unknown;
 	validationMode?: string;
 };
 
@@ -46,13 +41,29 @@ export function findByMethodAndPath(
 }
 
 export function create(data: CreateEndpointData) {
-	return prisma.endpoint.create({ data });
+	return prisma.endpoint.create({
+		data: {
+			projectId: data.projectId,
+			method: data.method,
+			path: data.path,
+			requestBodySchema:
+				(data.requestBodySchema as Prisma.InputJsonValue) ?? {},
+			validationMode: data.validationMode ?? "none",
+		},
+	});
 }
 
 export function update(id: string, data: UpdateEndpointData) {
 	return prisma.endpoint.update({
 		where: { id },
-		data,
+		data: {
+			...(data.method && { method: data.method }),
+			...(data.path && { path: data.path }),
+			...(data.requestBodySchema !== undefined && {
+				requestBodySchema: data.requestBodySchema as Prisma.InputJsonValue,
+			}),
+			...(data.validationMode && { validationMode: data.validationMode }),
+		},
 	});
 }
 
@@ -68,12 +79,20 @@ export function upsert(
 	path: string,
 	data: Omit<CreateEndpointData, "projectId">,
 ) {
+	const prismaData = {
+		method: data.method,
+		path: data.path,
+		...(data.requestBodySchema !== undefined && {
+			requestBodySchema: data.requestBodySchema as Prisma.InputJsonValue,
+		}),
+		...(data.validationMode && { validationMode: data.validationMode }),
+	};
 	return prisma.endpoint.upsert({
 		where: {
 			projectId_method_path: { projectId, method, path },
 		},
-		update: data,
-		create: { projectId, ...data },
+		update: prismaData,
+		create: { projectId, ...prismaData },
 	});
 }
 

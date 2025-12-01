@@ -22,13 +22,17 @@ async function main() {
 
 	for (const endpoint of endpoints) {
 		if (endpoint.variants.length > 0) {
-			console.log(`  Skipping ${endpoint.method} ${endpoint.path} - already has variants`);
+			console.log(
+				`  Skipping ${endpoint.method} ${endpoint.path} - already has variants`,
+			);
 			skipped++;
 			continue;
 		}
 
 		if (endpoint.status === null) {
-			console.log(`  Skipping ${endpoint.method} ${endpoint.path} - no legacy data`);
+			console.log(
+				`  Skipping ${endpoint.method} ${endpoint.path} - no legacy data`,
+			);
 			skipped++;
 			continue;
 		}

@@ -3,6 +3,7 @@ import * as endpointRepo from "../repositories/endpoint.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as userRepo from "../repositories/user.repository";
+import * as variantRepo from "../repositories/variant.repository";
 import { conflict } from "../utils/errors";
 import { ensureUniqueOrgSlug, slugify } from "../utils/slug";
 import * as auditService from "./audit.service";
@@ -117,122 +118,98 @@ const SAMPLE_ENDPOINTS = [
 		method: "GET",
 		path: "/pets",
 		status: 200,
-		body: JSON.stringify(
-			{
-				pets: [
-					{ id: 1, name: "Max", species: "dog", age: 3, status: "available" },
-					{ id: 2, name: "Bella", species: "cat", age: 2, status: "available" },
-					{ id: 3, name: "Charlie", species: "dog", age: 5, status: "adopted" },
-				],
-				total: 3,
-			},
-			null,
-			2,
-		),
+		body: {
+			pets: [
+				{ id: 1, name: "Max", species: "dog", age: 3, status: "available" },
+				{ id: 2, name: "Bella", species: "cat", age: 2, status: "available" },
+				{ id: 3, name: "Charlie", species: "dog", age: 5, status: "adopted" },
+			],
+			total: 3,
+		},
 	},
 	{
 		method: "GET",
 		path: "/pets/:id",
 		status: 200,
-		body: JSON.stringify(
-			{
-				id: 1,
-				name: "Max",
-				species: "dog",
-				breed: "Golden Retriever",
-				age: 3,
-				status: "available",
-				description: "Friendly and playful golden retriever",
-				createdAt: "2024-01-15T10:30:00Z",
-			},
-			null,
-			2,
-		),
+		body: {
+			id: 1,
+			name: "Max",
+			species: "dog",
+			breed: "Golden Retriever",
+			age: 3,
+			status: "available",
+			description: "Friendly and playful golden retriever",
+			createdAt: "2024-01-15T10:30:00Z",
+		},
 	},
 	{
 		method: "POST",
 		path: "/pets",
 		status: 201,
-		body: JSON.stringify(
-			{
-				id: 4,
-				name: "Luna",
-				species: "cat",
-				breed: "Siamese",
-				age: 1,
-				status: "available",
-				createdAt: "2024-03-20T14:00:00Z",
-			},
-			null,
-			2,
-		),
+		body: {
+			id: 4,
+			name: "Luna",
+			species: "cat",
+			breed: "Siamese",
+			age: 1,
+			status: "available",
+			createdAt: "2024-03-20T14:00:00Z",
+		},
 	},
 	{
 		method: "PUT",
 		path: "/pets/:id",
 		status: 200,
-		body: JSON.stringify(
-			{
-				id: 1,
-				name: "Max",
-				species: "dog",
-				breed: "Golden Retriever",
-				age: 4,
-				status: "adopted",
-				updatedAt: "2024-03-21T09:15:00Z",
-			},
-			null,
-			2,
-		),
+		body: {
+			id: 1,
+			name: "Max",
+			species: "dog",
+			breed: "Golden Retriever",
+			age: 4,
+			status: "adopted",
+			updatedAt: "2024-03-21T09:15:00Z",
+		},
 	},
 	{
 		method: "DELETE",
 		path: "/pets/:id",
 		status: 204,
-		body: "",
+		body: null,
 	},
 	{
 		method: "GET",
 		path: "/users",
 		status: 200,
-		body: JSON.stringify(
-			{
-				users: [
-					{
-						id: 1,
-						name: "Alice Johnson",
-						email: "alice@example.com",
-						role: "admin",
-					},
-					{
-						id: 2,
-						name: "Bob Smith",
-						email: "bob@example.com",
-						role: "customer",
-					},
-				],
-				total: 2,
-			},
-			null,
-			2,
-		),
+		body: {
+			users: [
+				{
+					id: 1,
+					name: "Alice Johnson",
+					email: "alice@example.com",
+					role: "admin",
+				},
+				{
+					id: 2,
+					name: "Bob Smith",
+					email: "bob@example.com",
+					role: "customer",
+				},
+			],
+			total: 2,
+		},
 	},
 	{
 		method: "GET",
 		path: "/users/:id",
 		status: 200,
-		body: JSON.stringify(
-			{
-				id: 1,
-				name: "Alice Johnson",
-				email: "alice@example.com",
-				role: "admin",
-				pets: [{ id: 3, name: "Charlie", species: "dog" }],
-				createdAt: "2024-01-01T00:00:00Z",
-			},
-			null,
-			2,
-		),
+		body: {
+			id: 1,
+			name: "Alice Johnson",
+			email: "alice@example.com",
+			role: "admin",
+			pets: [{ id: 3, name: "Charlie", species: "dog" }],
+			createdAt: "2024-01-01T00:00:00Z",
+		},
 	},
 ];
 
@@ -264,17 +241,26 @@ export async function createSampleProject(
 	});
 
 	let endpointsCreated = 0;
-	for (const endpoint of SAMPLE_ENDPOINTS) {
-		await endpointRepo.create({
+	for (const ep of SAMPLE_ENDPOINTS) {
+		const endpoint = await endpointRepo.create({
 			projectId: project.id,
-			method: endpoint.method,
-			path: endpoint.path,
-			status: endpoint.status,
-			headers: JSON.stringify({ "Content-Type": "application/json" }),
-			body: endpoint.body,
-			bodyType: "json",
+			method: ep.method,
+			path: ep.path,
+		});
+
+		await variantRepo.create({
+			endpointId: endpoint.id,
+			name: "Default",
+			priority: 0,
+			isDefault: true,
+			status: ep.status,
+			headers: { "Content-Type": "application/json" },
+			body: ep.body ?? {},
+			bodyType: "static",
 			delay: 0,
 			failRate: 0,
+			rules: [],
+			ruleLogic: "and",
 		});
 		endpointsCreated++;
 	}

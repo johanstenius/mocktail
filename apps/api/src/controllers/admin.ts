@@ -20,9 +20,10 @@ adminRouter.openapi(runLogCleanupRoute, async (c) => {
 
 adminRouter.openapi(listJobsRoute, async (c) => {
 	const { type, limit } = c.req.valid("query");
-	const jobs = type
-		? await batchJobRepo.findByType(type, Number(limit))
-		: await batchJobRepo.findByType("log_cleanup", Number(limit));
+	const jobType = (type ?? "request_log_cleanup") as
+		| "request_log_cleanup"
+		| "usage_reset";
+	const jobs = await batchJobRepo.findByType(jobType, Number(limit));
 
 	return c.json(
 		{

@@ -7,10 +7,10 @@ export type RequestLogModel = {
 	method: string;
 	path: string;
 	status: number;
-	requestHeaders: string;
-	requestBody: string | null;
-	responseBody: string | null;
-	validationErrors: string | null;
+	requestHeaders: unknown;
+	requestBody: unknown;
+	responseBody: unknown;
+	validationErrors: unknown;
 	duration: number;
 	createdAt: Date;
 };
@@ -44,6 +44,7 @@ export async function findByProjectId(
 		logRepo.findByProjectId(options),
 		logRepo.countByProjectId(options),
 	]);
+
 	return { logs, total };
 }
 
@@ -62,12 +63,9 @@ export function create(input: CreateLogInput): Promise<RequestLogModel> {
 		method: input.method,
 		path: input.path,
 		status: input.status,
-		requestHeaders: JSON.stringify(input.requestHeaders),
-		requestBody:
-			typeof input.requestBody === "string"
-				? input.requestBody
-				: JSON.stringify(input.requestBody),
-		responseBody: JSON.stringify(input.responseBody),
+		requestHeaders: input.requestHeaders,
+		requestBody: input.requestBody,
+		responseBody: input.responseBody,
 		duration: input.duration,
 	});
 }

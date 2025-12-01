@@ -9,13 +9,7 @@ export type ImportedEndpoint = {
 	projectId: string;
 	method: string;
 	path: string;
-	status: number;
-	headers: string;
-	body: string;
-	bodyType: string;
-	delay: number;
-	failRate: number;
-	requestBodySchema: string;
+	requestBodySchema: unknown;
 	validationMode: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -26,13 +20,7 @@ type PrismaEndpoint = {
 	projectId: string;
 	method: string;
 	path: string;
-	status: number | null;
-	headers: string | null;
-	body: string | null;
-	bodyType: string | null;
-	delay: number | null;
-	failRate: number | null;
-	requestBodySchema: string;
+	requestBodySchema: unknown;
 	validationMode: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -44,12 +32,6 @@ function toImportedEndpoint(e: PrismaEndpoint): ImportedEndpoint {
 		projectId: e.projectId,
 		method: e.method,
 		path: e.path,
-		status: e.status ?? 200,
-		headers: e.headers ?? "{}",
-		body: e.body ?? "",
-		bodyType: e.bodyType ?? "static",
-		delay: e.delay ?? 0,
-		failRate: e.failRate ?? 0,
 		requestBodySchema: e.requestBodySchema,
 		validationMode: e.validationMode,
 		createdAt: e.createdAt,
@@ -109,8 +91,7 @@ export async function importSpec(
 		if (existing) {
 			if (overwrite) {
 				const updated = await endpointRepo.update(existing.id, {
-					status: ep.status,
-					body: JSON.stringify(ep.body),
+					requestBodySchema: ep.requestBodySchema ?? {},
 				});
 				createdEndpoints.push(toImportedEndpoint(updated));
 			} else {
@@ -123,15 +104,7 @@ export async function importSpec(
 			projectId,
 			method: ep.method,
 			path: ep.path,
-			status: ep.status,
-			headers: JSON.stringify({ "Content-Type": "application/json" }),
-			body: JSON.stringify(ep.body),
-			bodyType: "static",
-			delay: 0,
-			failRate: 0,
-			requestBodySchema: ep.requestBodySchema
-				? JSON.stringify(ep.requestBodySchema)
-				: "{}",
+			requestBodySchema: ep.requestBodySchema ?? {},
 			validationMode: "none",
 		});
 
@@ -141,12 +114,12 @@ export async function importSpec(
 			priority: 0,
 			isDefault: true,
 			status: ep.status,
-			headers: JSON.stringify({ "Content-Type": "application/json" }),
-			body: JSON.stringify(ep.body),
+			headers: { "Content-Type": "application/json" },
+			body: ep.body,
 			bodyType: "static",
 			delay: 0,
 			failRate: 0,
-			rules: "[]",
+			rules: [],
 			ruleLogic: "and",
 		});
 

@@ -1,5 +1,4 @@
 import { createRoute, z } from "@hono/zod-openapi";
-import { endpointSchema } from "./endpoint";
 import { errorSchema, projectIdParamSchema } from "./shared";
 
 export const importSpecSchema = z.object({
@@ -11,10 +10,19 @@ export const importSpecSchema = z.object({
 		.optional(),
 });
 
+export const importedEndpointSchema = z.object({
+	id: z.string(),
+	projectId: z.string(),
+	method: z.string(),
+	path: z.string(),
+	createdAt: z.string(),
+	updatedAt: z.string(),
+});
+
 export const importResultSchema = z.object({
 	created: z.number(),
 	skipped: z.number(),
-	endpoints: z.array(endpointSchema),
+	endpoints: z.array(importedEndpointSchema),
 });
 
 // Route definitions

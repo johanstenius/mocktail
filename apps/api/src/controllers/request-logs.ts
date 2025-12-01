@@ -18,22 +18,6 @@ export const requestLogsRouter = new OpenAPIHono<{
 requestLogsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapRequestLogToResponse(log: RequestLogModel) {
-	let requestHeaders: Record<string, string> = {};
-	try {
-		requestHeaders = JSON.parse(log.requestHeaders);
-	} catch {
-		// ignore
-	}
-
-	let validationErrors: string[] | null = null;
-	if (log.validationErrors) {
-		try {
-			validationErrors = JSON.parse(log.validationErrors);
-		} catch {
-			// ignore
-		}
-	}
-
 	return {
 		id: log.id,
 		projectId: log.projectId,
@@ -41,10 +25,10 @@ function mapRequestLogToResponse(log: RequestLogModel) {
 		method: log.method,
 		path: log.path,
 		status: log.status,
-		requestHeaders,
+		requestHeaders: log.requestHeaders,
 		requestBody: log.requestBody,
 		responseBody: log.responseBody,
-		validationErrors,
+		validationErrors: log.validationErrors,
 		duration: log.duration,
 		createdAt: log.createdAt.toISOString(),
 	};
@@ -77,6 +61,7 @@ requestLogsRouter.openapi(listRequestLogsRoute, async (c) => {
 	);
 });
 
+// @ts-expect-error - OpenAPI response schema typing issue with unknown fields
 requestLogsRouter.openapi(getRequestLogRoute, async (c) => {
 	const { projectId, id } = c.req.valid("param");
 

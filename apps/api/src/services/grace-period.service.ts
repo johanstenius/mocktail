@@ -15,7 +15,7 @@ export type GraceExpiryResult = {
 
 export async function processGracePeriods(): Promise<GraceExpiryResult> {
 	const job = await batchJobRepo.create({
-		type: "grace_period",
+		type: "usage_reset",
 		status: "running",
 	});
 
@@ -32,10 +32,7 @@ export async function processGracePeriods(): Promise<GraceExpiryResult> {
 			"grace period job completed",
 		);
 
-		await batchJobRepo.markCompleted(
-			job.id,
-			JSON.stringify({ downgraded, reminders }),
-		);
+		await batchJobRepo.markCompleted(job.id, { downgraded, reminders });
 
 		return { jobId: job.id, downgraded, reminders };
 	} catch (error) {

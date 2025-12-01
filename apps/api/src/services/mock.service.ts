@@ -17,12 +17,12 @@ type Variant = {
 	priority: number;
 	isDefault: boolean;
 	status: number;
-	headers: string;
-	body: string;
+	headers: unknown;
+	body: unknown;
 	bodyType: string;
 	delay: number;
 	failRate: number;
-	rules: string;
+	rules: unknown;
 	ruleLogic: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -32,16 +32,9 @@ type Endpoint = {
 	id: string;
 	method: string;
 	path: string;
-	requestBodySchema: string;
+	requestBodySchema: unknown;
 	validationMode: string;
 	variants: Variant[];
-	// Legacy fields for backwards compat
-	status?: number | null;
-	headers?: string | null;
-	body?: string | null;
-	bodyType?: string | null;
-	delay?: number | null;
-	failRate?: number | null;
 };
 
 export type MockRequest = {
@@ -71,7 +64,8 @@ export type MockResult =
 function dbVariantToModel(variant: Variant): VariantModel {
 	return {
 		...variant,
-		rules: JSON.parse(variant.rules) as MatchRule[],
+		headers: variant.headers as Record<string, string>,
+		rules: variant.rules as MatchRule[],
 		ruleLogic: variant.ruleLogic as RuleLogic,
 	};
 }
@@ -79,36 +73,10 @@ function dbVariantToModel(variant: Variant): VariantModel {
 function getEffectiveVariant(
 	endpoint: Endpoint,
 	matchContext: MatchContext,
-): { variant: VariantModel | null; useLegacy: boolean } {
-	if (endpoint.variants.length > 0) {
-		const variants = endpoint.variants.map(dbVariantToModel);
-		const matched = findMatchingVariant(variants, matchContext);
-		return { variant: matched, useLegacy: false };
-	}
-	// Legacy fallback: use endpoint fields directly
-	if (endpoint.status != null) {
-		return {
-			variant: {
-				id: "legacy",
-				endpointId: endpoint.id,
-				name: "Default",
-				priority: 0,
-				isDefault: true,
-				status: endpoint.status,
-				headers: endpoint.headers ?? "{}",
-				body: endpoint.body ?? "{}",
-				bodyType: endpoint.bodyType ?? "static",
-				delay: endpoint.delay ?? 0,
-				failRate: endpoint.failRate ?? 0,
-				rules: [],
-				ruleLogic: "and",
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			},
-			useLegacy: true,
-		};
-	}
-	return { variant: null, useLegacy: false };
+): VariantModel | null {
+	if (endpoint.variants.length === 0) return null;
+	const variants = endpoint.variants.map(dbVariantToModel);
+	return findMatchingVariant(variants, matchContext);
 }
 
 export async function handleMockRequest(
@@ -140,12 +108,9 @@ export async function handleMockRequest(
 			method: request.method,
 			path: request.path,
 			status: 404,
-			requestHeaders: JSON.stringify(request.headers),
-			requestBody:
-				typeof request.body === "string"
-					? request.body
-					: JSON.stringify(request.body),
-			responseBody: JSON.stringify(errorResponse),
+			requestHeaders: request.headers,
+			requestBody: request.body,
+			responseBody: errorResponse,
 			duration,
 		});
 
@@ -161,7 +126,7 @@ export async function handleMockRequest(
 		body: request.body,
 	};
 
-	const { variant, useLegacy } = getEffectiveVariant(endpoint, matchContext);
+	const variant = getEffectiveVariant(endpoint, matchContext);
 
 	if (!variant) {
 		const duration = Date.now() - startTime;
@@ -177,12 +142,9 @@ export async function handleMockRequest(
 			method: request.method,
 			path: request.path,
 			status: 500,
-			requestHeaders: JSON.stringify(request.headers),
-			requestBody:
-				typeof request.body === "string"
-					? request.body
-					: JSON.stringify(request.body),
-			responseBody: JSON.stringify(errorResponse),
+			requestHeaders: request.headers,
+			requestBody: request.body,
+			responseBody: errorResponse,
 			duration,
 		});
 
@@ -192,9 +154,7 @@ export async function handleMockRequest(
 	// Request body validation (from endpoint, not variant)
 	let validationErrors: string[] | null = null;
 	const validationMode = (endpoint.validationMode ?? "none") as ValidationMode;
-	const schema = endpoint.requestBodySchema
-		? JSON.parse(endpoint.requestBodySchema)
-		: null;
+	const schema = endpoint.requestBodySchema;
 
 	if (validationMode !== "none" && !isEmptySchema(schema)) {
 		const validationResult = validateRequestBody(schema, request.body);
@@ -212,17 +172,14 @@ export async function handleMockRequest(
 				await logRepo.create({
 					projectId: project.id,
 					endpointId: endpoint.id,
-					variantId: useLegacy ? null : variant.id,
+					variantId: variant.id,
 					method: request.method,
 					path: request.path,
 					status: 400,
-					requestHeaders: JSON.stringify(request.headers),
-					requestBody:
-						typeof request.body === "string"
-							? request.body
-							: JSON.stringify(request.body),
-					responseBody: JSON.stringify(errorResponse),
-					validationErrors: JSON.stringify(validationErrors),
+					requestHeaders: request.headers,
+					requestBody: request.body,
+					responseBody: errorResponse,
+					validationErrors,
 					duration,
 				});
 
@@ -234,7 +191,7 @@ export async function handleMockRequest(
 						body: errorResponse,
 					},
 					endpointId: endpoint.id,
-					variantId: useLegacy ? null : variant.id,
+					variantId: variant.id,
 				};
 			}
 		}
@@ -247,31 +204,20 @@ export async function handleMockRequest(
 		body: request.body,
 	};
 
-	// Parse response body
+	// Process response body
 	let body: unknown;
-	try {
-		if (variant.bodyType === "template") {
-			const processed = processTemplate(variant.body, templateContext);
-			try {
-				body = JSON.parse(processed);
-			} catch {
-				body = processed;
-			}
-		} else {
-			body = JSON.parse(variant.body);
-			body = interpolateParams(body, params);
+	if (variant.bodyType === "template" && typeof variant.body === "string") {
+		const processed = processTemplate(variant.body, templateContext);
+		try {
+			body = JSON.parse(processed);
+		} catch {
+			body = processed;
 		}
-	} catch {
-		body = variant.body;
+	} else {
+		body = interpolateParams(variant.body, params);
 	}
 
-	// Parse headers
-	let headers: Record<string, string> = {};
-	try {
-		headers = JSON.parse(variant.headers);
-	} catch {
-		// ignore
-	}
+	const headers = variant.headers;
 
 	// Apply delay
 	if (variant.delay > 0) {
@@ -295,19 +241,14 @@ export async function handleMockRequest(
 	await logRepo.create({
 		projectId: project.id,
 		endpointId: endpoint.id,
-		variantId: useLegacy ? null : variant.id,
+		variantId: variant.id,
 		method: request.method,
 		path: request.path,
 		status,
-		requestHeaders: JSON.stringify(request.headers),
-		requestBody:
-			typeof request.body === "string"
-				? request.body
-				: JSON.stringify(request.body),
-		responseBody: JSON.stringify(responseBody),
-		validationErrors: validationErrors
-			? JSON.stringify(validationErrors)
-			: null,
+		requestHeaders: request.headers,
+		requestBody: request.body,
+		responseBody,
+		validationErrors,
 		duration,
 	});
 
@@ -315,7 +256,7 @@ export async function handleMockRequest(
 		success: true,
 		response: { status, headers, body: responseBody },
 		endpointId: endpoint.id,
-		variantId: useLegacy ? null : variant.id,
+		variantId: variant.id,
 	};
 }
 

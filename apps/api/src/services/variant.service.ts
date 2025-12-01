@@ -27,8 +27,8 @@ export type VariantModel = {
 	priority: number;
 	isDefault: boolean;
 	status: number;
-	headers: string;
-	body: string;
+	headers: Record<string, string>;
+	body: unknown;
 	bodyType: string;
 	delay: number;
 	failRate: number;
@@ -59,7 +59,8 @@ function dbToModel(
 	if (!db) return null;
 	return {
 		...db,
-		rules: JSON.parse(db.rules) as MatchRule[],
+		headers: db.headers as Record<string, string>,
+		rules: db.rules as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
 	};
 }
@@ -69,7 +70,8 @@ function dbListToModels(
 ): VariantModel[] {
 	return list.map((db) => ({
 		...db,
-		rules: JSON.parse(db.rules) as MatchRule[],
+		headers: db.headers as Record<string, string>,
+		rules: db.rules as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
 	}));
 }
@@ -117,15 +119,12 @@ export async function create(
 		priority,
 		isDefault,
 		status: input.status,
-		headers: JSON.stringify(input.headers),
-		body:
-			input.bodyType === "template"
-				? String(input.body)
-				: JSON.stringify(input.body),
+		headers: input.headers,
+		body: input.body,
 		bodyType: input.bodyType,
 		delay: input.delay,
 		failRate: input.failRate,
-		rules: JSON.stringify(input.rules),
+		rules: input.rules,
 		ruleLogic: input.ruleLogic,
 	});
 
@@ -171,19 +170,12 @@ export async function update(
 		...(input.name !== undefined && { name: input.name }),
 		...(input.isDefault !== undefined && { isDefault: input.isDefault }),
 		...(input.status !== undefined && { status: input.status }),
-		...(input.headers !== undefined && {
-			headers: JSON.stringify(input.headers),
-		}),
-		...(input.body !== undefined && {
-			body:
-				bodyType === "template"
-					? String(input.body)
-					: JSON.stringify(input.body),
-		}),
+		...(input.headers !== undefined && { headers: input.headers }),
+		...(input.body !== undefined && { body: input.body }),
 		...(input.bodyType !== undefined && { bodyType: input.bodyType }),
 		...(input.delay !== undefined && { delay: input.delay }),
 		...(input.failRate !== undefined && { failRate: input.failRate }),
-		...(input.rules !== undefined && { rules: JSON.stringify(input.rules) }),
+		...(input.rules !== undefined && { rules: input.rules }),
 		...(input.ruleLogic !== undefined && { ruleLogic: input.ruleLogic }),
 	});
 

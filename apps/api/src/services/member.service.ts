@@ -35,7 +35,7 @@ export type InviteModel = {
 	email: string;
 	role: OrgRole;
 	expiresAt: Date;
-	invitedBy: string;
+	invitedById: string;
 	createdAt: Date;
 };
 
@@ -55,7 +55,7 @@ function toInviteResponse(i: InviteModel): InviteResponse {
 		email: i.email,
 		role: i.role,
 		expiresAt: i.expiresAt.toISOString(),
-		invitedBy: i.invitedBy,
+		invitedBy: i.invitedById,
 		createdAt: i.createdAt.toISOString(),
 	};
 }
@@ -208,7 +208,7 @@ export async function createInvite(
 		role,
 		token,
 		expiresAt,
-		invitedBy: actorUserId,
+		invitedById: actorUserId,
 	});
 
 	await auditService.log({

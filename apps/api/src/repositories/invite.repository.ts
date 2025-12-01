@@ -7,7 +7,7 @@ export type CreateInviteInput = {
 	role: OrgRole;
 	token: string;
 	expiresAt: Date;
-	invitedBy: string;
+	invitedById: string;
 };
 
 export function findActiveByOrgId(orgId: string) {

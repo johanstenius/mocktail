@@ -37,9 +37,9 @@ export const runLogCleanupRoute = createRoute({
 
 const batchJobSchema = z.object({
 	id: z.string(),
-	type: z.string(),
-	status: z.string(),
-	result: z.string().nullable(),
+	type: z.enum(["request_log_cleanup", "usage_reset"]),
+	status: z.enum(["running", "completed", "failed"]),
+	result: z.unknown().nullable(),
 	error: z.string().nullable(),
 	startedAt: z.string(),
 	endedAt: z.string().nullable(),

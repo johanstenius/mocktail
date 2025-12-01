@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 type CreateLogData = {
@@ -7,12 +8,20 @@ type CreateLogData = {
 	method: string;
 	path: string;
 	status: number;
-	requestHeaders: string;
-	requestBody: string | null;
-	responseBody: string | null;
-	validationErrors?: string | null;
+	requestHeaders: unknown;
+	requestBody: unknown;
+	responseBody: unknown;
+	validationErrors?: unknown;
 	duration: number;
 };
+
+function toJsonOrDbNull(
+	val: unknown,
+): Prisma.InputJsonValue | typeof Prisma.DbNull {
+	return val === null || val === undefined
+		? Prisma.DbNull
+		: (val as Prisma.InputJsonValue);
+}
 
 type FindLogsOptions = {
 	projectId: string;
@@ -74,7 +83,21 @@ export function findByIdAndProject(id: string, projectId: string) {
 }
 
 export function create(data: CreateLogData) {
-	return prisma.requestLog.create({ data });
+	return prisma.requestLog.create({
+		data: {
+			projectId: data.projectId,
+			endpointId: data.endpointId,
+			variantId: data.variantId,
+			method: data.method,
+			path: data.path,
+			status: data.status,
+			requestHeaders: data.requestHeaders as Prisma.InputJsonValue,
+			requestBody: toJsonOrDbNull(data.requestBody),
+			responseBody: toJsonOrDbNull(data.responseBody),
+			validationErrors: toJsonOrDbNull(data.validationErrors),
+			duration: data.duration,
+		},
+	});
 }
 
 export function removeByProjectId(projectId: string) {

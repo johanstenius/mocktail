@@ -14,7 +14,7 @@ export type AuditLogModel = {
 	action: AuditAction;
 	targetType: string | null;
 	targetId: string | null;
-	metadata: string;
+	metadata: unknown;
 	ipAddress: string | null;
 	userAgent: string | null;
 	createdAt: Date;
@@ -48,7 +48,7 @@ export async function log(input: LogInput): Promise<void> {
 		action: input.action,
 		targetType: input.targetType,
 		targetId: input.targetId,
-		metadata: input.metadata ? JSON.stringify(input.metadata) : undefined,
+		metadata: input.metadata,
 		ipAddress: input.ctx?.ipAddress,
 		userAgent: input.ctx?.userAgent,
 	});

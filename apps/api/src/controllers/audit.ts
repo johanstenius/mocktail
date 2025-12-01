@@ -16,13 +16,6 @@ export const auditRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 auditRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapAuditLogToResponse(log: AuditLogModel): AuditLogResponse {
-	let metadata: Record<string, unknown> = {};
-	try {
-		metadata = JSON.parse(log.metadata);
-	} catch {
-		// ignore
-	}
-
 	return {
 		id: log.id,
 		orgId: log.orgId,
@@ -30,7 +23,7 @@ function mapAuditLogToResponse(log: AuditLogModel): AuditLogResponse {
 		action: log.action,
 		targetType: log.targetType,
 		targetId: log.targetId,
-		metadata,
+		metadata: (log.metadata ?? {}) as Record<string, unknown>,
 		ipAddress: log.ipAddress,
 		userAgent: log.userAgent,
 		createdAt: log.createdAt.toISOString(),
