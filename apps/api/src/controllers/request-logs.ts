@@ -25,6 +25,15 @@ function mapRequestLogToResponse(log: RequestLogModel) {
 		// ignore
 	}
 
+	let validationErrors: string[] | null = null;
+	if (log.validationErrors) {
+		try {
+			validationErrors = JSON.parse(log.validationErrors);
+		} catch {
+			// ignore
+		}
+	}
+
 	return {
 		id: log.id,
 		projectId: log.projectId,
@@ -35,6 +44,7 @@ function mapRequestLogToResponse(log: RequestLogModel) {
 		requestHeaders,
 		requestBody: log.requestBody,
 		responseBody: log.responseBody,
+		validationErrors,
 		duration: log.duration,
 		createdAt: log.createdAt.toISOString(),
 	};

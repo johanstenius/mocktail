@@ -69,6 +69,7 @@
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		font-feature-settings: "rlig" 1, "calt" 1;
+		scrollbar-gutter: stable;
 	}
 
 	body::selection {

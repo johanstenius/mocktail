@@ -10,6 +10,7 @@ type CreateLogData = {
 	requestHeaders: string;
 	requestBody: string | null;
 	responseBody: string | null;
+	validationErrors?: string | null;
 	duration: number;
 };
 

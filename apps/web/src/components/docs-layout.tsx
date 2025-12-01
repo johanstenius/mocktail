@@ -1,6 +1,8 @@
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "@tanstack/react-router";
+import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 type NavItem = {
 	href: string;
@@ -45,13 +47,18 @@ const navigation: NavGroup[] = [
 	},
 ];
 
-function NavLink({ href, children }: { href: string; children: string }) {
+function NavLink({
+	href,
+	children,
+	onClick,
+}: { href: string; children: string; onClick?: () => void }) {
 	const location = useLocation();
 	const isActive = location.pathname === href;
 
 	return (
 		<Link
 			to={href}
+			onClick={onClick}
 			className={cn(
 				"block py-1.5 text-sm transition-colors",
 				isActive
@@ -64,18 +71,44 @@ function NavLink({ href, children }: { href: string; children: string }) {
 	);
 }
 
+function useDocsNavigation() {
+	const location = useLocation();
+	const flatNav = navigation.flatMap((group) => group.items);
+	const currentIndex = flatNav.findIndex(
+		(item) => item.href === location.pathname,
+	);
+
+	const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : null;
+	const next =
+		currentIndex < flatNav.length - 1 ? flatNav[currentIndex + 1] : null;
+
+	return { prev, next };
+}
+
 export function DocsLayout({ children }: { children: React.ReactNode }) {
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const { prev, next } = useDocsNavigation();
+
 	return (
 		<div className="min-h-screen">
 			<header className="fixed top-0 left-0 right-0 z-50 py-4 bg-[rgba(5,5,5,0.8)] backdrop-blur-xl border-b border-[var(--border-subtle)]">
 				<div className="container max-w-6xl mx-auto px-6 flex items-center justify-between">
-					<Link to="/" className="flex items-center gap-2">
-						<Logo />
-					</Link>
+					<div className="flex items-center gap-4">
+						<button
+							type="button"
+							className="lg:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+						>
+							{isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+						</button>
+						<Link to="/" className="flex items-center gap-2">
+							<Logo />
+						</Link>
+					</div>
 					<nav className="flex items-center gap-6">
 						<Link
 							to="/"
-							className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
+							className="hidden sm:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
 						>
 							Home
 						</Link>
@@ -88,6 +121,32 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 					</nav>
 				</div>
 			</header>
+
+			{/* Mobile Navigation Overlay */}
+			{isMobileMenuOpen && (
+				<div className="fixed inset-0 z-40 bg-[var(--bg-void)] pt-24 px-6 lg:hidden overflow-y-auto">
+					<nav className="space-y-8 pb-12">
+						{navigation.map((group) => (
+							<div key={group.title}>
+								<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-3 font-semibold">
+									{group.title}
+								</div>
+								<div className="space-y-1">
+									{group.items.map((item) => (
+										<NavLink
+											key={item.href}
+											href={item.href}
+											onClick={() => setIsMobileMenuOpen(false)}
+										>
+											{item.label}
+										</NavLink>
+									))}
+								</div>
+							</div>
+						))}
+					</nav>
+				</div>
+			)}
 
 			<div className="container max-w-6xl mx-auto px-6 pt-24">
 				<div className="flex gap-12">
@@ -108,7 +167,42 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 						</nav>
 					</aside>
 
-					<main className="flex-1 min-w-0 pb-24">{children}</main>
+					<main className="flex-1 min-w-0 pb-24">
+						<div className="max-w-3xl">
+							{children}
+
+							<div className="mt-16 pt-8 border-t border-[var(--border-subtle)] flex justify-between gap-4">
+								{prev ? (
+									<Link
+										to={prev.href}
+										className="group flex flex-col gap-1 p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface)] transition-all text-left"
+									>
+										<span className="text-xs text-[var(--text-muted)] flex items-center gap-1 group-hover:text-[var(--accent-primary)] transition-colors">
+											<ChevronLeft size={12} /> Previous
+										</span>
+										<span className="font-medium text-[var(--text-primary)]">
+											{prev.label}
+										</span>
+									</Link>
+								) : (
+									<div />
+								)}
+								{next && (
+									<Link
+										to={next.href}
+										className="group flex flex-col gap-1 p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface)] transition-all text-right items-end"
+									>
+										<span className="text-xs text-[var(--text-muted)] flex items-center gap-1 group-hover:text-[var(--accent-primary)] transition-colors">
+											Next <ChevronRight size={12} />
+										</span>
+										<span className="font-medium text-[var(--text-primary)]">
+											{next.label}
+										</span>
+									</Link>
+								)}
+							</div>
+						</div>
+					</main>
 				</div>
 			</div>
 		</div>
@@ -152,9 +246,7 @@ export function Section({
 			<h2 className="text-xl font-bold mb-4 font-['Outfit'] text-[var(--text-primary)]">
 				{title}
 			</h2>
-			<div className="space-y-4 text-[var(--text-secondary)] leading-relaxed">
-				{children}
-			</div>
+			<div className="space-y-4 text-slate-300 leading-relaxed">{children}</div>
 		</section>
 	);
 }

@@ -76,6 +76,23 @@ function LogRow({ log }: { log: RequestLog }) {
 									{log.responseBody || "(empty)"}
 								</pre>
 							</div>
+							{log.validationErrors && log.validationErrors.length > 0 && (
+								<div className="col-span-2">
+									<h4 className="text-xs font-medium text-[var(--status-warning)] uppercase tracking-wider mb-2">
+										Validation Errors
+									</h4>
+									<ul className="bg-[var(--status-warning)]/10 rounded-lg p-3 text-sm space-y-1">
+										{log.validationErrors.map((err) => (
+											<li
+												key={err}
+												className="text-[var(--text-secondary)] font-mono text-xs"
+											>
+												• {err}
+											</li>
+										))}
+									</ul>
+								</div>
+							)}
 						</div>
 					</td>
 				</tr>

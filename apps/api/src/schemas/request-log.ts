@@ -15,6 +15,7 @@ export const requestLogSchema = z.object({
 	requestHeaders: z.record(z.string()),
 	requestBody: z.string().nullable(),
 	responseBody: z.string().nullable(),
+	validationErrors: z.array(z.string()).nullable(),
 	duration: z.number(),
 	createdAt: z.string(),
 });

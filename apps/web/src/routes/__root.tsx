@@ -23,7 +23,7 @@ function RootLayout() {
 	];
 	const showSidebar = !publicPaths.some(
 		(path) =>
-			location.pathname === path || location.pathname.startsWith(`${path}?`),
+			location.pathname === path || location.pathname.startsWith(`${path}/`),
 	);
 
 	return (

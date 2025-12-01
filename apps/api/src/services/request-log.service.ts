@@ -10,6 +10,7 @@ export type RequestLogModel = {
 	requestHeaders: string;
 	requestBody: string | null;
 	responseBody: string | null;
+	validationErrors: string | null;
 	duration: number;
 	createdAt: Date;
 };
