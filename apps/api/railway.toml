@@ -1,8 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install && pnpm db:generate && pnpm build"
 
 [deploy]
-startCommand = "pnpm db:push && node dist/index.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
