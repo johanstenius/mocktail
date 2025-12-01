@@ -1,8 +1,10 @@
+import { NotFoundPage } from "@/components/not-found-page";
 import { Sidebar } from "@/components/sidebar";
 import { Outlet, createRootRoute, useLocation } from "@tanstack/react-router";
 
 export const Route = createRootRoute({
 	component: RootLayout,
+	notFoundComponent: NotFoundPage,
 });
 
 function RootLayout() {
