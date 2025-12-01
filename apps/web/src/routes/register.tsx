@@ -84,6 +84,12 @@ function RegisterPage() {
 				<Link to="/">
 					<Logo />
 				</Link>
+				<Link
+					to="/login"
+					className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+				>
+					Sign In
+				</Link>
 			</header>
 
 			<main className="flex-1 flex items-center justify-center px-4 relative z-10">
@@ -96,7 +102,7 @@ function RegisterPage() {
 						<CardContent>
 							<OAuthButtons />
 
-							<form onSubmit={handleSubmit} className="space-y-6 mt-6">
+							<form onSubmit={handleSubmit} className="space-y-4 mt-6">
 								{error && (
 									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
 										{error}

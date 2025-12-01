@@ -45,12 +45,20 @@ function LandingPage() {
 							Docs
 						</Link>
 					</nav>
-					<Link
-						to="/login"
-						className="h-9 px-4 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium backdrop-blur-md hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)] transition-all flex items-center"
-					>
-						Sign In
-					</Link>
+					<div className="flex items-center gap-4">
+						<Link
+							to="/login"
+							className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+						>
+							Sign In
+						</Link>
+						<Link
+							to="/register"
+							className="h-9 px-4 rounded-full bg-[var(--glow-violet)] text-white text-sm font-medium shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 hover:bg-[#7c3aed] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-all flex items-center"
+						>
+							Get Started
+						</Link>
+					</div>
 				</div>
 			</header>
 
