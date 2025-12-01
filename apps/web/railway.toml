@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 30
+
+# Remove or comment out when ready to go public
+# Set BASIC_AUTH_USER and BASIC_AUTH_PASS env vars in Railway
+[deploy.basicAuth]
+username = "${{BASIC_AUTH_USER}}"
+password = "${{BASIC_AUTH_PASS}}"
