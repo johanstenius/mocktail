@@ -41,10 +41,17 @@ function OnboardingPage() {
 				setOrganization(suggestedOrgName);
 			}
 			window.history.replaceState({}, document.title, "/onboarding");
+			setIsInitializing(false);
+		} else {
+			// No OAuth token and no existing auth - redirect to login
+			const tokens = localStorage.getItem("mocktail_tokens");
+			if (!tokens || !JSON.parse(tokens).accessToken) {
+				navigate({ to: "/login" });
+				return;
+			}
+			setIsInitializing(false);
 		}
-
-		setIsInitializing(false);
-	}, []);
+	}, [navigate]);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -142,7 +149,7 @@ function OnboardingPage() {
 								)}
 
 								<div className="space-y-2">
-									<Label htmlFor="organization">Organization Name</Label>
+									<Label htmlFor="organization">Organization</Label>
 									<Input
 										id="organization"
 										type="text"
@@ -153,9 +160,6 @@ function OnboardingPage() {
 										autoComplete="organization"
 										autoFocus
 									/>
-									<p className="text-xs text-[var(--text-muted)]">
-										You can change this anytime in settings
-									</p>
 								</div>
 
 								<Button type="submit" disabled={isLoading} className="w-full">

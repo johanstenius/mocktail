@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { every, except } from "hono/combine";
 import { cors } from "hono/cors";
 import { adminRouter } from "./controllers/admin";
 import { auditRouter } from "./controllers/audit";
@@ -17,6 +18,7 @@ import { projectsRouter } from "./controllers/projects";
 import { requestLogsRouter } from "./controllers/request-logs";
 import { statisticsRouter } from "./controllers/statistics";
 import { variantsRouter } from "./controllers/variants";
+import { authMiddleware, requireVerifiedEmail } from "./middleware/auth";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
 import { logger } from "./utils/logger";
@@ -29,6 +31,37 @@ app.onError(errorHandler);
 // Middleware
 app.use("*", loggerMiddleware());
 app.use("*", cors());
+
+// Routes excluded from global auth+verified middleware
+const PUBLIC_ROUTES = [
+	"/health",
+	"/api/docs",
+	"/auth/*", // OAuth callbacks
+	"/mock/*", // Mock server
+	"/admin/*", // Admin routes (has own auth)
+	// Auth routes (public or auth-only without verified email)
+	"/api/auth/register",
+	"/api/auth/login",
+	"/api/auth/logout",
+	"/api/auth/refresh",
+	"/api/auth/forgot-password",
+	"/api/auth/reset-password",
+	"/api/auth/verify-email",
+	"/api/auth/me", // Auth only, no verified email
+	"/api/auth/send-verification", // Auth only, no verified email
+	// Invites (public token routes)
+	"/api/invites/token",
+	"/api/invites/accept",
+	// Billing webhook
+	"/api/billing/webhook",
+	// OAuth onboarding
+	"/api/onboarding/complete-oauth",
+];
+
+app.use(
+	"*",
+	except(PUBLIC_ROUTES, every(authMiddleware(), requireVerifiedEmail())),
+);
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
