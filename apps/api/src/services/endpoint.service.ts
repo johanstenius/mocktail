@@ -3,6 +3,9 @@ import * as projectRepo from "../repositories/project.repository";
 import * as variantRepo from "../repositories/variant.repository";
 import * as auditService from "./audit.service";
 import type { AuditContext } from "./audit.service";
+import { validateJsonSchema } from "./request-validator.service";
+
+export type ValidationMode = "none" | "warn" | "strict";
 
 export type EndpointModel = {
 	id: string;
@@ -15,6 +18,8 @@ export type EndpointModel = {
 	bodyType: string;
 	delay: number;
 	failRate: number;
+	requestBodySchema: string;
+	validationMode: ValidationMode;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -30,6 +35,8 @@ type PrismaEndpoint = {
 	bodyType: string | null;
 	delay: number | null;
 	failRate: number | null;
+	requestBodySchema: string;
+	validationMode: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -46,6 +53,8 @@ function toEndpointModel(e: PrismaEndpoint): EndpointModel {
 		bodyType: e.bodyType ?? "static",
 		delay: e.delay ?? 0,
 		failRate: e.failRate ?? 0,
+		requestBodySchema: e.requestBodySchema,
+		validationMode: e.validationMode as ValidationMode,
 		createdAt: e.createdAt,
 		updatedAt: e.updatedAt,
 	};
@@ -60,6 +69,8 @@ export type CreateEndpointInput = {
 	bodyType: string;
 	delay: number;
 	failRate: number;
+	requestBodySchema?: unknown;
+	validationMode?: ValidationMode;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;
@@ -84,7 +95,11 @@ export async function create(
 	input: CreateEndpointInput,
 	ctx?: AuditContext,
 ): Promise<
-	{ endpoint: EndpointModel } | { error: "project_not_found" | "conflict" }
+	| { endpoint: EndpointModel }
+	| {
+			error: "project_not_found" | "conflict" | "invalid_schema";
+			message?: string;
+	  }
 > {
 	const project = await projectRepo.findById(projectId);
 	if (!project) return { error: "project_not_found" };
@@ -95,6 +110,13 @@ export async function create(
 		input.path,
 	);
 	if (existing) return { error: "conflict" };
+
+	if (input.requestBodySchema !== undefined) {
+		const schemaValidation = validateJsonSchema(input.requestBodySchema);
+		if (!schemaValidation.valid) {
+			return { error: "invalid_schema", message: schemaValidation.error };
+		}
+	}
 
 	const bodyString =
 		input.bodyType === "template"
@@ -112,6 +134,8 @@ export async function create(
 		bodyType: input.bodyType,
 		delay: input.delay,
 		failRate: input.failRate,
+		requestBodySchema: JSON.stringify(input.requestBodySchema ?? {}),
+		validationMode: input.validationMode ?? "none",
 	});
 
 	await variantRepo.create({
@@ -146,12 +170,21 @@ export async function update(
 	projectId: string,
 	input: UpdateEndpointInput,
 	ctx?: AuditContext,
-): Promise<EndpointModel | null> {
+): Promise<
+	EndpointModel | { error: "invalid_schema"; message: string } | null
+> {
 	const existing = await endpointRepo.findByIdAndProject(endpointId, projectId);
 	if (!existing) return null;
 
 	const project = await projectRepo.findById(projectId);
 	if (!project) return null;
+
+	if (input.requestBodySchema !== undefined) {
+		const schemaValidation = validateJsonSchema(input.requestBodySchema);
+		if (!schemaValidation.valid) {
+			return { error: "invalid_schema", message: schemaValidation.error };
+		}
+	}
 
 	const bodyType = input.bodyType ?? existing.bodyType;
 
@@ -169,6 +202,12 @@ export async function update(
 		...(input.bodyType && { bodyType: input.bodyType }),
 		...(input.delay !== undefined && { delay: input.delay }),
 		...(input.failRate !== undefined && { failRate: input.failRate }),
+		...(input.requestBodySchema !== undefined && {
+			requestBodySchema: JSON.stringify(input.requestBodySchema),
+		}),
+		...(input.validationMode !== undefined && {
+			validationMode: input.validationMode,
+		}),
 	});
 
 	const changedFields: string[] = [];
@@ -185,6 +224,13 @@ export async function update(
 		changedFields.push("failRate");
 	if (input.headers) changedFields.push("headers");
 	if (input.body !== undefined) changedFields.push("body");
+	if (input.requestBodySchema !== undefined)
+		changedFields.push("requestBodySchema");
+	if (
+		input.validationMode !== undefined &&
+		input.validationMode !== existing.validationMode
+	)
+		changedFields.push("validationMode");
 
 	if (changedFields.length > 0) {
 		await auditService.log({

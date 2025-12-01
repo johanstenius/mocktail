@@ -10,6 +10,8 @@ type CreateEndpointData = {
 	bodyType: string;
 	delay: number;
 	failRate: number;
+	requestBodySchema?: string;
+	validationMode?: string;
 };
 
 type UpdateEndpointData = Partial<Omit<CreateEndpointData, "projectId">>;

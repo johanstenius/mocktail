@@ -150,6 +150,10 @@ model Endpoint {
   delay    Int?    @default(0)
   failRate Int?    @default(0)
 
+  // Request validation
+  requestBodySchema String @default("{}")
+  validationMode    String @default("none")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -178,10 +182,6 @@ model ResponseVariant {
   // Match rules
   rules     String @default("[]") // JSON: MatchRule[]
   ruleLogic String @default("and") // "and" | "or"
-
-  // Request validation
-  requestBodySchema String @default("{}") // JSON Schema
-  validationMode    String @default("none") // "none" | "warn" | "strict"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

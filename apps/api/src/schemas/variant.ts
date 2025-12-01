@@ -26,8 +26,6 @@ export const matchRuleSchema = z.object({
 
 export const ruleLogicSchema = z.enum(["and", "or"]);
 
-export const validationModeSchema = z.enum(["none", "warn", "strict"]);
-
 export const variantSchema = z.object({
 	id: z.string(),
 	endpointId: z.string(),
@@ -42,8 +40,6 @@ export const variantSchema = z.object({
 	failRate: z.number(),
 	rules: z.array(matchRuleSchema),
 	ruleLogic: ruleLogicSchema,
-	requestBodySchema: z.unknown(),
-	validationMode: validationModeSchema,
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -59,8 +55,6 @@ export const createVariantSchema = z.object({
 	failRate: z.number().min(0).max(100).default(0),
 	rules: z.array(matchRuleSchema).max(10).default([]),
 	ruleLogic: ruleLogicSchema.default("and"),
-	requestBodySchema: z.unknown().default({}),
-	validationMode: validationModeSchema.default("none"),
 });
 
 export const updateVariantSchema = z.object({
@@ -74,8 +68,6 @@ export const updateVariantSchema = z.object({
 	failRate: z.number().min(0).max(100).optional(),
 	rules: z.array(matchRuleSchema).max(10).optional(),
 	ruleLogic: ruleLogicSchema.optional(),
-	requestBodySchema: z.unknown().optional(),
-	validationMode: validationModeSchema.optional(),
 });
 
 export const reorderVariantsSchema = z.object({

@@ -41,10 +41,6 @@ function mapVariantToResponse(variant: VariantModel) {
 		failRate: variant.failRate,
 		rules: variant.rules,
 		ruleLogic: variant.ruleLogic,
-		requestBodySchema: variant.requestBodySchema
-			? parseJson(variant.requestBodySchema)
-			: null,
-		validationMode: variant.validationMode ?? ("none" as const),
 		createdAt: variant.createdAt.toISOString(),
 		updatedAt: variant.updatedAt.toISOString(),
 	};
@@ -101,13 +97,13 @@ variantsRouter.openapi(updateVariantRoute, async (c) => {
 	const { endpointId, variantId } = c.req.valid("param");
 	const body = c.req.valid("json");
 
-	const variant = await variantService.update(variantId, endpointId, body);
+	const result = await variantService.update(variantId, endpointId, body);
 
-	if (!variant) {
+	if (!result) {
 		throw notFound("Variant");
 	}
 
-	return c.json(mapVariantToResponse(variant), 200);
+	return c.json(mapVariantToResponse(result), 200);
 });
 
 variantsRouter.openapi(deleteVariantRoute, async (c) => {

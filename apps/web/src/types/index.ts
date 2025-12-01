@@ -11,6 +11,7 @@ export type MatchOperator =
 	| "exists"
 	| "not_exists";
 export type RuleLogic = "and" | "or";
+export type ValidationMode = "none" | "warn" | "strict";
 
 export type MatchRule = {
 	target: MatchTarget;
@@ -72,6 +73,8 @@ export type Endpoint = {
 	bodyType: BodyType;
 	delay: number;
 	failRate: number;
+	requestBodySchema: unknown;
+	validationMode: ValidationMode;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -86,6 +89,7 @@ export type RequestLog = {
 	requestHeaders: Record<string, string>;
 	requestBody: string | null;
 	responseBody: string | null;
+	validationErrors: string[] | null;
 	duration: number;
 	createdAt: string;
 };
@@ -104,6 +108,8 @@ export type CreateEndpointInput = {
 	bodyType?: BodyType;
 	delay?: number;
 	failRate?: number;
+	requestBodySchema?: unknown;
+	validationMode?: ValidationMode;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;

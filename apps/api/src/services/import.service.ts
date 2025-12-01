@@ -15,6 +15,8 @@ export type ImportedEndpoint = {
 	bodyType: string;
 	delay: number;
 	failRate: number;
+	requestBodySchema: string;
+	validationMode: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -30,6 +32,8 @@ type PrismaEndpoint = {
 	bodyType: string | null;
 	delay: number | null;
 	failRate: number | null;
+	requestBodySchema: string;
+	validationMode: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -46,6 +50,8 @@ function toImportedEndpoint(e: PrismaEndpoint): ImportedEndpoint {
 		bodyType: e.bodyType ?? "static",
 		delay: e.delay ?? 0,
 		failRate: e.failRate ?? 0,
+		requestBodySchema: e.requestBodySchema,
+		validationMode: e.validationMode,
 		createdAt: e.createdAt,
 		updatedAt: e.updatedAt,
 	};
@@ -123,6 +129,10 @@ export async function importSpec(
 			bodyType: "static",
 			delay: 0,
 			failRate: 0,
+			requestBodySchema: ep.requestBodySchema
+				? JSON.stringify(ep.requestBodySchema)
+				: "{}",
+			validationMode: "none",
 		});
 
 		await variantRepo.create({

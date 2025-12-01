@@ -21,6 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Loader2,
+	Pencil,
 	Plus,
 	RefreshCw,
 	Route as RouteIcon,
@@ -46,6 +47,7 @@ function EndpointRow({
 	stat,
 	variantCount,
 	onClick,
+	onEdit,
 }: {
 	endpoint: Endpoint;
 	projectId: string;
@@ -53,6 +55,7 @@ function EndpointRow({
 	stat?: { requestCount: number };
 	variantCount?: number;
 	onClick: () => void;
+	onEdit: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const queryClient = useQueryClient();
@@ -123,6 +126,14 @@ function EndpointRow({
 					>
 						cURL
 					</CopyButton>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+						onClick={onEdit}
+					>
+						<Pencil className="h-4 w-4" />
+					</Button>
 					{showConfirm ? (
 						<>
 							<Button
@@ -497,6 +508,7 @@ function ProjectDetailPage() {
 	const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(
 		null,
 	);
+	const [editingEndpoint, setEditingEndpoint] = useState<Endpoint | null>(null);
 	const [prefillData, setPrefillData] = useState<{
 		method: HttpMethod;
 		path: string;
@@ -731,6 +743,7 @@ function ProjectDetailPage() {
 											apiKey={project.apiKey}
 											stat={statsMap.get(endpoint.id)}
 											onClick={() => handleEndpointClick(endpoint)}
+											onEdit={() => setEditingEndpoint(endpoint)}
 										/>
 									))}
 								</div>
@@ -764,9 +777,16 @@ function ProjectDetailPage() {
 			<EndpointForm
 				projectId={projectId}
 				apiKey={project.apiKey}
+				endpoint={editingEndpoint ?? undefined}
 				prefill={prefillData ?? undefined}
-				open={endpointModalOpen}
-				onOpenChange={setEndpointModalOpen}
+				open={endpointModalOpen || editingEndpoint !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setEditingEndpoint(null);
+						setPrefillData(null);
+					}
+					setEndpointModalOpen(open);
+				}}
 			/>
 
 			<ImportModal
@@ -781,6 +801,10 @@ function ProjectDetailPage() {
 				endpoint={selectedEndpoint}
 				open={endpointPanelOpen}
 				onOpenChange={setEndpointPanelOpen}
+				onEditEndpoint={(ep) => {
+					setEndpointPanelOpen(false);
+					setEditingEndpoint(ep);
+				}}
 			/>
 		</main>
 	);

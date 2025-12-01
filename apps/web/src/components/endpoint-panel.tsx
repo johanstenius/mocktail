@@ -42,7 +42,7 @@ import type {
 	Variant,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical, Plus, Settings2, Trash2, X } from "lucide-react";
+import { GripVertical, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -737,6 +737,7 @@ type EndpointPanelProps = {
 	endpoint: Endpoint | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	onEditEndpoint?: (endpoint: Endpoint) => void;
 };
 
 export function EndpointPanel({
@@ -745,6 +746,7 @@ export function EndpointPanel({
 	endpoint,
 	open,
 	onOpenChange,
+	onEditEndpoint,
 }: EndpointPanelProps) {
 	const [variantModalOpen, setVariantModalOpen] = useState(false);
 	const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
@@ -783,6 +785,16 @@ export function EndpointPanel({
 						<SheetTitle className="font-mono text-base">
 							{endpoint.path}
 						</SheetTitle>
+						{onEditEndpoint && (
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+								onClick={() => onEditEndpoint(endpoint)}
+							>
+								<Pencil className="h-4 w-4" />
+							</Button>
+						)}
 					</div>
 					<SheetDescription>
 						<div className="flex items-center gap-2 mt-2">

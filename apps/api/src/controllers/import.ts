@@ -33,6 +33,8 @@ function mapEndpointToResponse(endpoint: ImportedEndpoint) {
 		bodyType: endpoint.bodyType as "static" | "template",
 		delay: endpoint.delay,
 		failRate: endpoint.failRate,
+		requestBodySchema: parseJson(endpoint.requestBodySchema ?? "{}"),
+		validationMode: endpoint.validationMode as "none" | "warn" | "strict",
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};

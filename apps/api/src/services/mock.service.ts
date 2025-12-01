@@ -1,6 +1,11 @@
 import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
 import { findBestMatch } from "../utils/path-matcher";
+import type { ValidationMode } from "./endpoint.service";
+import {
+	isEmptySchema,
+	validateRequestBody,
+} from "./request-validator.service";
 import { type MatchContext, findMatchingVariant } from "./rule-matcher.service";
 import { type RequestContext, processTemplate } from "./template-engine";
 import type { MatchRule, RuleLogic, VariantModel } from "./variant.service";
@@ -27,6 +32,8 @@ type Endpoint = {
 	id: string;
 	method: string;
 	path: string;
+	requestBodySchema: string;
+	validationMode: string;
 	variants: Variant[];
 	// Legacy fields for backwards compat
 	status?: number | null;
@@ -66,8 +73,6 @@ function dbVariantToModel(variant: Variant): VariantModel {
 		...variant,
 		rules: JSON.parse(variant.rules) as MatchRule[],
 		ruleLogic: variant.ruleLogic as RuleLogic,
-		requestBodySchema: null,
-		validationMode: "none",
 	};
 }
 
@@ -97,8 +102,6 @@ function getEffectiveVariant(
 				failRate: endpoint.failRate ?? 0,
 				rules: [],
 				ruleLogic: "and",
-				requestBodySchema: null,
-				validationMode: "none",
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			},
@@ -186,6 +189,57 @@ export async function handleMockRequest(
 		return { success: false, error: "endpoint_not_found" };
 	}
 
+	// Request body validation (from endpoint, not variant)
+	let validationErrors: string[] | null = null;
+	const validationMode = (endpoint.validationMode ?? "none") as ValidationMode;
+	const schema = endpoint.requestBodySchema
+		? JSON.parse(endpoint.requestBodySchema)
+		: null;
+
+	if (validationMode !== "none" && !isEmptySchema(schema)) {
+		const validationResult = validateRequestBody(schema, request.body);
+		if (!validationResult.valid) {
+			validationErrors = validationResult.errors;
+
+			if (validationMode === "strict") {
+				const duration = Date.now() - startTime;
+				const errorResponse = {
+					error: "validation_failed",
+					message: "Request body validation failed",
+					validationErrors,
+				};
+
+				await logRepo.create({
+					projectId: project.id,
+					endpointId: endpoint.id,
+					variantId: useLegacy ? null : variant.id,
+					method: request.method,
+					path: request.path,
+					status: 400,
+					requestHeaders: JSON.stringify(request.headers),
+					requestBody:
+						typeof request.body === "string"
+							? request.body
+							: JSON.stringify(request.body),
+					responseBody: JSON.stringify(errorResponse),
+					validationErrors: JSON.stringify(validationErrors),
+					duration,
+				});
+
+				return {
+					success: true,
+					response: {
+						status: 400,
+						headers: { "Content-Type": "application/json" },
+						body: errorResponse,
+					},
+					endpointId: endpoint.id,
+					variantId: useLegacy ? null : variant.id,
+				};
+			}
+		}
+	}
+
 	const templateContext: RequestContext = {
 		params,
 		query: request.query,
@@ -251,6 +305,9 @@ export async function handleMockRequest(
 				? request.body
 				: JSON.stringify(request.body),
 		responseBody: JSON.stringify(responseBody),
+		validationErrors: validationErrors
+			? JSON.stringify(validationErrors)
+			: null,
 		duration,
 	});
 

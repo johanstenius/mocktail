@@ -15,6 +15,8 @@ export const httpMethodSchema = z.enum([
 
 export const bodyTypeSchema = z.enum(["static", "template"]);
 
+export const validationModeSchema = z.enum(["none", "warn", "strict"]);
+
 export const endpointSchema = z.object({
 	id: z.string(),
 	projectId: z.string(),
@@ -26,6 +28,8 @@ export const endpointSchema = z.object({
 	bodyType: bodyTypeSchema,
 	delay: z.number(),
 	failRate: z.number(),
+	requestBodySchema: z.unknown(),
+	validationMode: validationModeSchema,
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -39,6 +43,8 @@ export const createEndpointSchema = z.object({
 	bodyType: bodyTypeSchema.default("static"),
 	delay: z.number().min(0).max(30000).default(0),
 	failRate: z.number().min(0).max(100).default(0),
+	requestBodySchema: z.unknown().optional(),
+	validationMode: validationModeSchema.optional(),
 });
 
 export const updateEndpointSchema = z.object({
@@ -50,6 +56,8 @@ export const updateEndpointSchema = z.object({
 	bodyType: bodyTypeSchema.optional(),
 	delay: z.number().min(0).max(30000).optional(),
 	failRate: z.number().min(0).max(100).optional(),
+	requestBodySchema: z.unknown().optional(),
+	validationMode: validationModeSchema.optional(),
 });
 
 export const endpointListSchema = z.object({

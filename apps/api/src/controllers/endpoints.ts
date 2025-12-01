@@ -11,7 +11,7 @@ import {
 import * as endpointService from "../services/endpoint.service";
 import type { EndpointModel } from "../services/endpoint.service";
 import * as limitsService from "../services/limits.service";
-import { conflict, notFound } from "../utils/errors";
+import { badRequest, conflict, notFound } from "../utils/errors";
 
 export const endpointsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
@@ -40,6 +40,8 @@ function mapEndpointToResponse(endpoint: EndpointModel) {
 		bodyType: endpoint.bodyType as "static" | "template",
 		delay: endpoint.delay,
 		failRate: endpoint.failRate,
+		requestBodySchema: parseJson(endpoint.requestBodySchema),
+		validationMode: endpoint.validationMode as "none" | "warn" | "strict",
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};
@@ -79,11 +81,16 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 		bodyType: body.bodyType,
 		delay: body.delay,
 		failRate: body.failRate,
+		requestBodySchema: body.requestBodySchema,
+		validationMode: body.validationMode,
 	});
 
 	if ("error" in result) {
 		if (result.error === "project_not_found") {
 			throw notFound("Project");
+		}
+		if (result.error === "invalid_schema") {
+			throw badRequest(result.message ?? "Invalid JSON Schema");
 		}
 		throw conflict("Endpoint with this method and path already exists");
 	}
@@ -96,13 +103,17 @@ endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");
 
-	const endpoint = await endpointService.update(endpointId, projectId, body);
+	const result = await endpointService.update(endpointId, projectId, body);
 
-	if (!endpoint) {
+	if (!result) {
 		throw notFound("Endpoint");
 	}
 
-	return c.json(mapEndpointToResponse(endpoint), 200);
+	if ("error" in result) {
+		throw badRequest(result.message);
+	}
+
+	return c.json(mapEndpointToResponse(result), 200);
 });
 
 endpointsRouter.openapi(deleteEndpointRoute, async (c) => {

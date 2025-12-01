@@ -9,6 +9,7 @@ export type ExtractedEndpoint = {
 	path: string;
 	status: number;
 	body: unknown;
+	requestBodySchema: unknown;
 };
 
 const SUPPORTED_METHODS: HttpMethod[] = [
@@ -58,6 +59,21 @@ function extractResponseBody(
 	return generateExample(schema);
 }
 
+function extractRequestBodySchema(
+	operation: OpenAPIV3.OperationObject,
+): unknown {
+	const requestBody = operation.requestBody as
+		| OpenAPIV3.RequestBodyObject
+		| undefined;
+	if (!requestBody?.content) return null;
+
+	const jsonContent =
+		requestBody.content["application/json"] ?? requestBody.content["*/*"];
+	if (!jsonContent?.schema) return null;
+
+	return jsonContent.schema;
+}
+
 export function extractEndpoints(spec: ParsedSpec): ExtractedEndpoint[] {
 	const endpoints: ExtractedEndpoint[] = [];
 
@@ -75,12 +91,14 @@ export function extractEndpoints(spec: ParsedSpec): ExtractedEndpoint[] {
 
 			const status = getSuccessStatus(operation.responses);
 			const body = extractResponseBody(operation.responses, status);
+			const requestBodySchema = extractRequestBodySchema(operation);
 
 			endpoints.push({
 				method,
 				path: convertPath(path),
 				status,
 				body,
+				requestBodySchema,
 			});
 		}
 	}

@@ -1,7 +1,12 @@
 import { createEndpoint, updateEndpoint } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { getCurlCommand, getMockUrl } from "@/lib/url";
-import type { CreateEndpointInput, Endpoint, HttpMethod } from "@/types";
+import type {
+	CreateEndpointInput,
+	Endpoint,
+	HttpMethod,
+	ValidationMode,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +22,7 @@ import {
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Select } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 
 const HTTP_METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE"];
@@ -52,6 +58,20 @@ export function EndpointForm({
 	});
 	const [delay, setDelay] = useState(endpoint?.delay ?? 0);
 	const [failRate, setFailRate] = useState(endpoint?.failRate ?? 0);
+	const [validationEnabled, setValidationEnabled] = useState(
+		endpoint?.validationMode !== "none" &&
+			endpoint?.requestBodySchema != null &&
+			Object.keys(endpoint?.requestBodySchema as object).length > 0,
+	);
+	const [requestBodySchema, setRequestBodySchema] = useState(() => {
+		if (!endpoint?.requestBodySchema) return "";
+		if (Object.keys(endpoint.requestBodySchema as object).length === 0)
+			return "";
+		return JSON.stringify(endpoint.requestBodySchema, null, 2);
+	});
+	const [validationMode, setValidationMode] = useState<ValidationMode>(
+		endpoint?.validationMode ?? "strict",
+	);
 	const [error, setError] = useState<string | null>(null);
 
 	const isTemplate = body.includes("{{");
@@ -79,6 +99,14 @@ export function EndpointForm({
 				);
 				setDelay(endpoint.delay);
 				setFailRate(endpoint.failRate);
+				const hasSchema =
+					endpoint.requestBodySchema != null &&
+					Object.keys(endpoint.requestBodySchema as object).length > 0;
+				setValidationEnabled(endpoint.validationMode !== "none" && hasSchema);
+				setRequestBodySchema(
+					hasSchema ? JSON.stringify(endpoint.requestBodySchema, null, 2) : "",
+				);
+				setValidationMode(endpoint.validationMode ?? "strict");
 			} else if (prefill) {
 				setMethod(prefill.method);
 				setPath(prefill.path);
@@ -86,6 +114,9 @@ export function EndpointForm({
 				setBody("{}");
 				setDelay(0);
 				setFailRate(0);
+				setValidationEnabled(false);
+				setRequestBodySchema("");
+				setValidationMode("strict");
 			} else {
 				setMethod("GET");
 				setPath("/");
@@ -93,6 +124,9 @@ export function EndpointForm({
 				setBody("{}");
 				setDelay(0);
 				setFailRate(0);
+				setValidationEnabled(false);
+				setRequestBodySchema("");
+				setValidationMode("strict");
 			}
 			setError(null);
 		}
@@ -137,6 +171,9 @@ export function EndpointForm({
 		setBody("{}");
 		setDelay(0);
 		setFailRate(0);
+		setValidationEnabled(false);
+		setRequestBodySchema("");
+		setValidationMode("strict");
 		setError(null);
 	}
 
@@ -161,6 +198,16 @@ export function EndpointForm({
 			}
 		}
 
+		let parsedSchema: unknown = {};
+		if (validationEnabled && requestBodySchema) {
+			try {
+				parsedSchema = JSON.parse(requestBodySchema);
+			} catch {
+				setError("Invalid JSON in request body schema");
+				return;
+			}
+		}
+
 		const input: CreateEndpointInput = {
 			method,
 			path,
@@ -169,6 +216,8 @@ export function EndpointForm({
 			bodyType: statusAllowsBody ? bodyType : "static",
 			delay,
 			failRate,
+			requestBodySchema: parsedSchema,
+			validationMode: validationEnabled ? validationMode : "none",
 		};
 
 		if (isEditing) {
@@ -248,6 +297,62 @@ export function EndpointForm({
 									required
 								/>
 							</div>
+						</div>
+
+						{/* Request Validation */}
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<Label>Request Validation</Label>
+								<button
+									type="button"
+									onClick={() => setValidationEnabled(!validationEnabled)}
+									className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+										validationEnabled
+											? "bg-[var(--glow-violet)]"
+											: "bg-white/10"
+									}`}
+								>
+									<span
+										className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+											validationEnabled ? "translate-x-4.5" : "translate-x-1"
+										}`}
+									/>
+								</button>
+							</div>
+							<p className="text-xs text-[var(--text-muted)]">
+								{validationEnabled
+									? "Validate incoming request body against JSON Schema"
+									: "Accept all requests (no validation)"}
+							</p>
+
+							{validationEnabled && (
+								<>
+									<Textarea
+										value={requestBodySchema}
+										onChange={(e) => setRequestBodySchema(e.target.value)}
+										placeholder='{"type": "object", "properties": {...}}'
+										className="min-h-[100px] font-mono text-sm"
+									/>
+									<div>
+										<Label htmlFor="validationMode">
+											On Validation Failure
+										</Label>
+										<Select
+											id="validationMode"
+											value={validationMode}
+											onChange={(e) =>
+												setValidationMode(e.target.value as ValidationMode)
+											}
+											className="mt-1.5"
+										>
+											<option value="strict">Strict - Return 400 error</option>
+											<option value="warn">
+												Warn - Log errors, return response
+											</option>
+										</Select>
+									</div>
+								</>
+							)}
 						</div>
 
 						{/* Status */}

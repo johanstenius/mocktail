@@ -302,8 +302,6 @@ describe("findMatchingVariant", () => {
 			failRate: 0,
 			rules,
 			ruleLogic: "and",
-			requestBodySchema: null,
-			validationMode: "none",
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
