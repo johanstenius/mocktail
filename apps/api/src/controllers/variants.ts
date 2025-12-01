@@ -1,6 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import { authMiddleware, requireVerifiedEmail } from "../middleware/auth";
 import {
 	createVariantRoute,
 	deleteVariantRoute,
@@ -14,8 +13,6 @@ import type { VariantModel } from "../services/variant.service";
 import { badRequest, notFound } from "../utils/errors";
 
 export const variantsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-variantsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapVariantToResponse(variant: VariantModel) {
 	return {

@@ -1,14 +1,11 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import { authMiddleware, requireVerifiedEmail } from "../middleware/auth";
 import { importRoute } from "../schemas/import";
 import * as importService from "../services/import.service";
 import type { ImportedEndpoint } from "../services/import.service";
 import { badRequest, notFound } from "../utils/errors";
 
 export const importRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-importRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapEndpointToResponse(endpoint: ImportedEndpoint) {
 	return {

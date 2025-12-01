@@ -1,11 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import {
-	authMiddleware,
-	getAuth,
-	requireRole,
-	requireVerifiedEmail,
-} from "../middleware/auth";
+import { getAuth, requireRole } from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -22,32 +17,11 @@ import { logger } from "../utils/logger";
 
 export const billingRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
-// Auth for all routes except webhook
-billingRouter.use("/usage", authMiddleware(), requireVerifiedEmail());
-billingRouter.use(
-	"/checkout",
-	authMiddleware(),
-	requireVerifiedEmail(),
-	requireRole("admin", "owner"),
-);
-billingRouter.use(
-	"/cancel",
-	authMiddleware(),
-	requireVerifiedEmail(),
-	requireRole("admin", "owner"),
-);
-billingRouter.use(
-	"/reactivate",
-	authMiddleware(),
-	requireVerifiedEmail(),
-	requireRole("admin", "owner"),
-);
-billingRouter.use(
-	"/retry-payment",
-	authMiddleware(),
-	requireVerifiedEmail(),
-	requireRole("admin", "owner"),
-);
+// Role checks for admin-only routes
+billingRouter.use("/checkout", requireRole("admin", "owner"));
+billingRouter.use("/cancel", requireRole("admin", "owner"));
+billingRouter.use("/reactivate", requireRole("admin", "owner"));
+billingRouter.use("/retry-payment", requireRole("admin", "owner"));
 
 function toLimit(value: number): number | null {
 	return Number.isFinite(value) ? value : null;

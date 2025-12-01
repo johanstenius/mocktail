@@ -1,6 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import { authMiddleware, requireVerifiedEmail } from "../middleware/auth";
 import {
 	deleteAllRequestLogsRoute,
 	getRequestLogRoute,
@@ -14,8 +13,6 @@ import { notFound } from "../utils/errors";
 export const requestLogsRouter = new OpenAPIHono<{
 	Variables: AuthVariables;
 }>();
-
-requestLogsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapRequestLogToResponse(log: RequestLogModel) {
 	return {

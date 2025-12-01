@@ -1,10 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import {
-	authMiddleware,
-	getAuth,
-	requireVerifiedEmail,
-} from "../middleware/auth";
+import { getAuth } from "../middleware/auth";
 import {
 	completeOAuthOnboardingRoute,
 	completeOnboardingRoute,
@@ -24,9 +20,6 @@ onboardingRouter.openapi(completeOAuthOnboardingRoute, async (c) => {
 	);
 	return c.json(result, 201);
 });
-
-// Protected routes
-onboardingRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 onboardingRouter.openapi(createOrganizationRoute, async (c) => {
 	const { userId } = getAuth(c);

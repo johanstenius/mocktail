@@ -1,10 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import {
-	authMiddleware,
-	getAuth,
-	requireVerifiedEmail,
-} from "../middleware/auth";
+import { getAuth } from "../middleware/auth";
 import { invalidateProjectKeyCache } from "../middleware/mock-auth";
 import {
 	createProjectRoute,
@@ -20,8 +16,6 @@ import type { ProjectModel } from "../services/project.service";
 import { conflict, notFound } from "../utils/errors";
 
 export const projectsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-projectsRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapProjectToResponse(project: ProjectModel) {
 	return {

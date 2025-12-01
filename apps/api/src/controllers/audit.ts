@@ -1,10 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import {
-	authMiddleware,
-	getAuth,
-	requireVerifiedEmail,
-} from "../middleware/auth";
+import { getAuth } from "../middleware/auth";
 import type { AuditLogResponse } from "../schemas/audit";
 import { exportAuditLogsRoute, listAuditLogsRoute } from "../schemas/audit";
 import * as auditService from "../services/audit.service";
@@ -12,8 +8,6 @@ import type { AuditLogModel } from "../services/audit.service";
 import { forbidden } from "../utils/errors";
 
 export const auditRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-auditRouter.use("*", authMiddleware(), requireVerifiedEmail());
 
 function mapAuditLogToResponse(log: AuditLogModel): AuditLogResponse {
 	return {

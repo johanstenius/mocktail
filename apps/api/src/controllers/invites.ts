@@ -1,10 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../middleware/auth";
-import {
-	authMiddleware,
-	getAuth,
-	requireVerifiedEmail,
-} from "../middleware/auth";
+import { getAuth } from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -20,10 +16,6 @@ import * as memberService from "../services/member.service";
 import { logger } from "../utils/logger";
 
 export const invitesRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-// Auth for protected routes (list, create, delete)
-invitesRouter.use("/", authMiddleware(), requireVerifiedEmail());
-invitesRouter.use("/:inviteId", authMiddleware(), requireVerifiedEmail());
 
 // Public routes
 invitesRouter.openapi(getInviteByTokenRoute, async (c) => {
