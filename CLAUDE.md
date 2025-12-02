@@ -5,9 +5,12 @@
 - After a plan has been accepted, always add a github issue with the whole plan, then update it as each sub-phase is done.
 - Only add comments if they bring a lot of value, rather refactor to make code readable
 - Make sure code compiles and test pass after changes
-
 - Types over interfaces
 - **Use named function declarations, not arrow function constants**: `function foo(): Bar {}` not `const foo = () => {}`
+
+## Documentation
+
+Always add documentation on /docs (/docs/index.tsx) page when implementing a new feature.
 
 ## Frameworks
 
