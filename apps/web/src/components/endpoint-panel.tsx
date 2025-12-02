@@ -33,6 +33,7 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { getCurlCommand, getMockUrl } from "@/lib/url";
 import type {
+	DelayType,
 	Endpoint,
 	HttpMethod,
 	MatchOperator,
@@ -242,6 +243,9 @@ function VariantFormModal({
 		return JSON.stringify(variant.body, null, 2);
 	});
 	const [delay, setDelay] = useState(variant?.delay ?? 0);
+	const [delayType, setDelayType] = useState<DelayType>(
+		variant?.delayType ?? "fixed",
+	);
 	const [failRate, setFailRate] = useState(variant?.failRate ?? 0);
 	const [rules, setRules] = useState<MatchRule[]>(variant?.rules ?? []);
 	const [ruleLogic, setRuleLogic] = useState<RuleLogic>(
@@ -263,6 +267,7 @@ function VariantFormModal({
 						: JSON.stringify(variant.body, null, 2),
 				);
 				setDelay(variant.delay);
+				setDelayType(variant.delayType);
 				setFailRate(variant.failRate);
 				setRules(variant.rules);
 				setRuleLogic(variant.ruleLogic);
@@ -272,6 +277,7 @@ function VariantFormModal({
 				setStatus(200);
 				setBody("{}");
 				setDelay(0);
+				setDelayType("fixed");
 				setFailRate(0);
 				setRules([]);
 				setRuleLogic("and");
@@ -301,6 +307,7 @@ function VariantFormModal({
 				body: parsedBody,
 				bodyType: statusAllowsBody ? bodyType : "static",
 				delay,
+				delayType,
 				failRate,
 				rules,
 				ruleLogic,
@@ -339,6 +346,7 @@ function VariantFormModal({
 				body: parsedBody,
 				bodyType: statusAllowsBody ? bodyType : "static",
 				delay,
+				delayType,
 				failRate,
 				rules,
 				ruleLogic,
@@ -484,7 +492,35 @@ function VariantFormModal({
 
 						<div className="grid grid-cols-2 gap-4">
 							<div>
-								<Label htmlFor="delay">Delay (ms)</Label>
+								<div className="flex items-center justify-between mb-1.5">
+									<Label htmlFor="delay">
+										{delayType === "random" ? "Max Delay (ms)" : "Delay (ms)"}
+									</Label>
+									<div className="flex items-center gap-1">
+										<button
+											type="button"
+											onClick={() => setDelayType("fixed")}
+											className={`px-2 py-0.5 text-xs rounded transition-colors ${
+												delayType === "fixed"
+													? "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)]"
+													: "bg-white/5 text-[var(--text-muted)] hover:bg-white/10"
+											}`}
+										>
+											Fixed
+										</button>
+										<button
+											type="button"
+											onClick={() => setDelayType("random")}
+											className={`px-2 py-0.5 text-xs rounded transition-colors ${
+												delayType === "random"
+													? "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)]"
+													: "bg-white/5 text-[var(--text-muted)] hover:bg-white/10"
+											}`}
+										>
+											Random
+										</button>
+									</div>
+								</div>
 								<Input
 									id="delay"
 									type="number"
@@ -492,7 +528,6 @@ function VariantFormModal({
 									max={30000}
 									value={delay}
 									onChange={(e) => setDelay(Number(e.target.value))}
-									className="mt-1.5"
 								/>
 							</div>
 							<div>

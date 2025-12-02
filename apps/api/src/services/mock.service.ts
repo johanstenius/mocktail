@@ -21,6 +21,7 @@ type Variant = {
 	body: unknown;
 	bodyType: string;
 	delay: number;
+	delayType: string;
 	failRate: number;
 	rules: unknown;
 	ruleLogic: string;
@@ -67,6 +68,7 @@ function dbVariantToModel(variant: Variant): VariantModel {
 		headers: variant.headers as Record<string, string>,
 		rules: variant.rules as MatchRule[],
 		ruleLogic: variant.ruleLogic as RuleLogic,
+		delayType: variant.delayType as "fixed" | "random",
 	};
 }
 
@@ -221,7 +223,11 @@ export async function handleMockRequest(
 
 	// Apply delay
 	if (variant.delay > 0) {
-		await new Promise((resolve) => setTimeout(resolve, variant.delay));
+		const actualDelay =
+			variant.delayType === "random"
+				? Math.floor(Math.random() * (variant.delay + 1))
+				: variant.delay;
+		await new Promise((resolve) => setTimeout(resolve, actualDelay));
 	}
 
 	// Determine status (apply fail rate)

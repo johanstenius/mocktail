@@ -1,5 +1,6 @@
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 export type BodyType = "static" | "template";
+export type DelayType = "fixed" | "random";
 
 // Variant types
 export type MatchTarget = "header" | "query" | "param" | "body";
@@ -31,6 +32,7 @@ export type Variant = {
 	body: unknown;
 	bodyType: BodyType;
 	delay: number;
+	delayType: DelayType;
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
@@ -46,6 +48,7 @@ export type CreateVariantInput = {
 	body?: unknown;
 	bodyType?: BodyType;
 	delay?: number;
+	delayType?: DelayType;
 	failRate?: number;
 	rules?: MatchRule[];
 	ruleLogic?: RuleLogic;

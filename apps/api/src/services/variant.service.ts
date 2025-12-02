@@ -12,6 +12,7 @@ export type MatchOperator =
 	| "exists"
 	| "not_exists";
 export type RuleLogic = "and" | "or";
+export type DelayType = "fixed" | "random";
 
 export type MatchRule = {
 	target: MatchTarget;
@@ -31,6 +32,7 @@ export type VariantModel = {
 	body: unknown;
 	bodyType: string;
 	delay: number;
+	delayType: DelayType;
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
@@ -46,6 +48,7 @@ export type CreateVariantInput = {
 	body: unknown;
 	bodyType: string;
 	delay: number;
+	delayType: DelayType;
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
@@ -62,6 +65,7 @@ function dbToModel(
 		headers: db.headers as Record<string, string>,
 		rules: db.rules as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
+		delayType: db.delayType as DelayType,
 	};
 }
 
@@ -73,6 +77,7 @@ function dbListToModels(
 		headers: db.headers as Record<string, string>,
 		rules: db.rules as MatchRule[],
 		ruleLogic: db.ruleLogic as RuleLogic,
+		delayType: db.delayType as DelayType,
 	}));
 }
 

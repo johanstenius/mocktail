@@ -299,6 +299,7 @@ describe("findMatchingVariant", () => {
 			body: {},
 			bodyType: "static",
 			delay: 0,
+			delayType: "fixed",
 			failRate: 0,
 			rules,
 			ruleLogic: "and",

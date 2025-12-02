@@ -26,6 +26,8 @@ export const matchRuleSchema = z.object({
 
 export const ruleLogicSchema = z.enum(["and", "or"]);
 
+export const delayTypeSchema = z.enum(["fixed", "random"]);
+
 export const variantSchema = z.object({
 	id: z.string(),
 	endpointId: z.string(),
@@ -37,6 +39,7 @@ export const variantSchema = z.object({
 	body: z.unknown(),
 	bodyType: bodyTypeSchema,
 	delay: z.number(),
+	delayType: delayTypeSchema,
 	failRate: z.number(),
 	rules: z.array(matchRuleSchema),
 	ruleLogic: ruleLogicSchema,
@@ -52,6 +55,7 @@ export const createVariantSchema = z.object({
 	body: z.unknown().default({}),
 	bodyType: bodyTypeSchema.default("static"),
 	delay: z.number().min(0).max(30000).default(0),
+	delayType: delayTypeSchema.default("fixed"),
 	failRate: z.number().min(0).max(100).default(0),
 	rules: z.array(matchRuleSchema).max(10).default([]),
 	ruleLogic: ruleLogicSchema.default("and"),
@@ -65,6 +69,7 @@ export const updateVariantSchema = z.object({
 	body: z.unknown().optional(),
 	bodyType: bodyTypeSchema.optional(),
 	delay: z.number().min(0).max(30000).optional(),
+	delayType: delayTypeSchema.optional(),
 	failRate: z.number().min(0).max(100).optional(),
 	rules: z.array(matchRuleSchema).max(10).optional(),
 	ruleLogic: ruleLogicSchema.optional(),
