@@ -298,7 +298,13 @@ export async function handleMockRequest(
 }
 
 async function handleProxyRequest(
-	project: { id: string; proxyBaseUrl: string | null; proxyTimeout: number },
+	project: {
+		id: string;
+		proxyBaseUrl: string | null;
+		proxyTimeout: number;
+		proxyAuthHeader: string | null;
+		proxyPassThroughAuth: boolean;
+	},
 	endpointId: string | null,
 	request: MockRequest,
 	startTime: number,
@@ -318,6 +324,10 @@ async function handleProxyRequest(
 			body: request.body,
 		},
 		project.proxyTimeout,
+		{
+			passThrough: project.proxyPassThroughAuth,
+			header: project.proxyAuthHeader,
+		},
 	);
 
 	if (proxyResult.success) {

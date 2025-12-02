@@ -25,6 +25,8 @@ function mapProjectToResponse(project: ProjectModel) {
 		apiKey: project.apiKey,
 		proxyBaseUrl: project.proxyBaseUrl,
 		proxyTimeout: project.proxyTimeout,
+		proxyAuthHeader: project.proxyAuthHeader,
+		proxyPassThroughAuth: project.proxyPassThroughAuth,
 		createdAt: project.createdAt.toISOString(),
 		updatedAt: project.updatedAt.toISOString(),
 	};

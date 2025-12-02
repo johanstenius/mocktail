@@ -1,5 +1,5 @@
 import { CopyButton } from "@/components/copy-button";
-import { EndpointForm } from "@/components/endpoint-form";
+
 import { EndpointPanel } from "@/components/endpoint-panel";
 import { ImportDropzone } from "@/components/import-dropzone";
 import { ImportModal } from "@/components/import-modal";
@@ -32,7 +32,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Loader2,
-	Pencil,
 	Plus,
 	RefreshCw,
 	Route as RouteIcon,
@@ -59,7 +58,7 @@ function EndpointRow({
 	stat,
 	variantCount,
 	onClick,
-	onEdit,
+
 	hasProxyBaseUrl,
 }: {
 	endpoint: Endpoint;
@@ -68,7 +67,6 @@ function EndpointRow({
 	stat?: { requestCount: number };
 	variantCount?: number;
 	onClick: () => void;
-	onEdit: () => void;
 	hasProxyBaseUrl: boolean;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -148,14 +146,7 @@ function EndpointRow({
 					>
 						cURL
 					</CopyButton>
-					<Button
-						variant="ghost"
-						size="icon"
-						className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-						onClick={onEdit}
-					>
-						<Pencil className="h-4 w-4" />
-					</Button>
+
 					{showConfirm ? (
 						<>
 							<Button
@@ -400,6 +391,12 @@ function ProjectSettings({
 	const [showConfirmRotate, setShowConfirmRotate] = useState(false);
 	const [proxyBaseUrl, setProxyBaseUrl] = useState(project.proxyBaseUrl ?? "");
 	const [proxyTimeout, setProxyTimeout] = useState(project.proxyTimeout);
+	const [proxyPassThroughAuth, setProxyPassThroughAuth] = useState(
+		project.proxyPassThroughAuth,
+	);
+	const [proxyAuthHeader, setProxyAuthHeader] = useState(
+		project.proxyAuthHeader ?? "",
+	);
 	const [showAdvanced, setShowAdvanced] = useState(false);
 	const queryClient = useQueryClient();
 
@@ -430,6 +427,8 @@ function ProjectSettings({
 		updateProxyMutation.mutate({
 			proxyBaseUrl: proxyBaseUrl.trim() || null,
 			proxyTimeout,
+			proxyPassThroughAuth,
+			proxyAuthHeader: proxyAuthHeader.trim() || null,
 		});
 	}
 
@@ -441,7 +440,9 @@ function ProjectSettings({
 
 	const hasProxyChanges =
 		proxyBaseUrl !== (project.proxyBaseUrl ?? "") ||
-		proxyTimeout !== project.proxyTimeout;
+		proxyTimeout !== project.proxyTimeout ||
+		proxyPassThroughAuth !== project.proxyPassThroughAuth ||
+		proxyAuthHeader !== (project.proxyAuthHeader ?? "");
 
 	return (
 		<div>
@@ -472,6 +473,37 @@ function ProjectSettings({
 								Leave empty to disable proxy mode
 							</p>
 						</div>
+
+						<div className="flex items-center gap-2">
+							<button
+								type="button"
+								onClick={() => setProxyPassThroughAuth(!proxyPassThroughAuth)}
+								className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${proxyPassThroughAuth ? "bg-[var(--glow-violet)]" : "bg-white/10"}`}
+							>
+								<span
+									className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${proxyPassThroughAuth ? "translate-x-4.5" : "translate-x-1"}`}
+								/>
+							</button>
+							<Label htmlFor="proxyPassThroughAuth" className="cursor-pointer">
+								Pass through incoming Authorization header
+							</Label>
+						</div>
+
+						{!proxyPassThroughAuth && (
+							<div>
+								<Label htmlFor="proxyAuthHeader">Upstream Auth Header</Label>
+								<Input
+									id="proxyAuthHeader"
+									value={proxyAuthHeader}
+									onChange={(e) => setProxyAuthHeader(e.target.value)}
+									placeholder="Bearer <token> or Basic <base64>"
+									className="mt-1.5 font-mono"
+								/>
+								<p className="text-xs text-[var(--text-muted)] mt-1">
+									Sent as Authorization header to upstream
+								</p>
+							</div>
+						)}
 
 						<button
 							type="button"
@@ -610,17 +642,11 @@ function ProjectDetailPage() {
 	const navigate = useNavigate();
 
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");
-	const [endpointModalOpen, setEndpointModalOpen] = useState(false);
 	const [importModalOpen, setImportModalOpen] = useState(false);
 	const [endpointPanelOpen, setEndpointPanelOpen] = useState(false);
 	const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(
 		null,
 	);
-	const [editingEndpoint, setEditingEndpoint] = useState<Endpoint | null>(null);
-	const [prefillData, setPrefillData] = useState<{
-		method: HttpMethod;
-		path: string;
-	} | null>(null);
 
 	const { data: project, isLoading: projectLoading } = useQuery({
 		queryKey: ["project", projectId],
@@ -646,8 +672,8 @@ function ProjectDetailPage() {
 	);
 
 	function handleNewEndpoint() {
-		setPrefillData(null);
-		setEndpointModalOpen(true);
+		setSelectedEndpoint(null);
+		setEndpointPanelOpen(true);
 	}
 
 	function handleEndpointClick(endpoint: Endpoint) {
@@ -845,7 +871,6 @@ function ProjectDetailPage() {
 											apiKey={project.apiKey}
 											stat={statsMap.get(endpoint.id)}
 											onClick={() => handleEndpointClick(endpoint)}
-											onEdit={() => setEditingEndpoint(endpoint)}
 											hasProxyBaseUrl={!!project.proxyBaseUrl}
 										/>
 									))}
@@ -877,21 +902,6 @@ function ProjectDetailPage() {
 			</div>
 
 			{/* Modals */}
-			<EndpointForm
-				projectId={projectId}
-				apiKey={project.apiKey}
-				endpoint={editingEndpoint ?? undefined}
-				prefill={prefillData ?? undefined}
-				open={endpointModalOpen || editingEndpoint !== null}
-				onOpenChange={(open) => {
-					if (!open) {
-						setEditingEndpoint(null);
-						setPrefillData(null);
-					}
-					setEndpointModalOpen(open);
-				}}
-				proxyBaseUrl={project.proxyBaseUrl}
-			/>
 
 			<ImportModal
 				projectId={projectId}
@@ -905,10 +915,7 @@ function ProjectDetailPage() {
 				endpoint={selectedEndpoint}
 				open={endpointPanelOpen}
 				onOpenChange={setEndpointPanelOpen}
-				onEditEndpoint={(ep) => {
-					setEndpointPanelOpen(false);
-					setEditingEndpoint(ep);
-				}}
+				proxyBaseUrl={project.proxyBaseUrl}
 			/>
 		</main>
 	);

@@ -6,6 +6,11 @@ export type ProxyRequest = {
 	body: unknown;
 };
 
+export type ProxyAuthConfig = {
+	passThrough: boolean;
+	header?: string | null;
+};
+
 export type ProxyResult =
 	| {
 			success: true;
@@ -31,6 +36,11 @@ const HEADERS_TO_STRIP = new Set([
 	"content-length",
 ]);
 
+const HEADERS_TO_STRIP_WITH_AUTH = new Set([
+	...HEADERS_TO_STRIP,
+	"authorization",
+]);
+
 function buildTargetUrl(
 	baseUrl: string,
 	path: string,
@@ -45,10 +55,12 @@ function buildTargetUrl(
 
 function filterHeaders(
 	headers: Record<string, string>,
+	stripAuth: boolean,
 ): Record<string, string> {
+	const toStrip = stripAuth ? HEADERS_TO_STRIP_WITH_AUTH : HEADERS_TO_STRIP;
 	const filtered: Record<string, string> = {};
 	for (const [key, value] of Object.entries(headers)) {
-		if (!HEADERS_TO_STRIP.has(key.toLowerCase())) {
+		if (!toStrip.has(key.toLowerCase())) {
 			filtered[key] = value;
 		}
 	}
@@ -81,6 +93,7 @@ export async function proxyRequest(
 	proxyBaseUrl: string,
 	request: ProxyRequest,
 	timeout: number,
+	authConfig: ProxyAuthConfig = { passThrough: true },
 ): Promise<ProxyResult> {
 	const startTime = Date.now();
 
@@ -96,7 +109,13 @@ export async function proxyRequest(
 		};
 	}
 
-	const filteredHeaders = filterHeaders(request.headers);
+	const stripAuth = !authConfig.passThrough;
+	const filteredHeaders = filterHeaders(request.headers, stripAuth);
+
+	// If not passing through and custom header is set, add it
+	if (stripAuth && authConfig.header) {
+		filteredHeaders.Authorization = authConfig.header;
+	}
 
 	const fetchOptions: RequestInit = {
 		method: request.method,

@@ -258,6 +258,83 @@ describe("proxy.service", () => {
 					expect(result.body).toBe("Plain text response");
 				}
 			});
+
+			it("passes through Authorization header by default", async () => {
+				vi.mocked(global.fetch).mockResolvedValueOnce(
+					new Response("{}", {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}),
+				);
+
+				await proxyRequest(
+					"https://api.example.com",
+					{
+						method: "GET",
+						path: "/auth",
+						headers: { Authorization: "Bearer incoming-token" },
+						query: {},
+						body: null,
+					},
+					10000,
+				);
+
+				const fetchCall = vi.mocked(global.fetch).mock.calls[0];
+				const requestHeaders = fetchCall[1]?.headers as Record<string, string>;
+				expect(requestHeaders.Authorization).toBe("Bearer incoming-token");
+			});
+
+			it("strips Authorization when passThrough is false", async () => {
+				vi.mocked(global.fetch).mockResolvedValueOnce(
+					new Response("{}", {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}),
+				);
+
+				await proxyRequest(
+					"https://api.example.com",
+					{
+						method: "GET",
+						path: "/auth",
+						headers: { Authorization: "Bearer incoming-token" },
+						query: {},
+						body: null,
+					},
+					10000,
+					{ passThrough: false },
+				);
+
+				const fetchCall = vi.mocked(global.fetch).mock.calls[0];
+				const requestHeaders = fetchCall[1]?.headers as Record<string, string>;
+				expect(requestHeaders.Authorization).toBeUndefined();
+			});
+
+			it("uses configured auth header when passThrough is false", async () => {
+				vi.mocked(global.fetch).mockResolvedValueOnce(
+					new Response("{}", {
+						status: 200,
+						headers: { "Content-Type": "application/json" },
+					}),
+				);
+
+				await proxyRequest(
+					"https://api.example.com",
+					{
+						method: "GET",
+						path: "/auth",
+						headers: { Authorization: "Bearer incoming-token" },
+						query: {},
+						body: null,
+					},
+					10000,
+					{ passThrough: false, header: "Basic upstream-creds" },
+				);
+
+				const fetchCall = vi.mocked(global.fetch).mock.calls[0];
+				const requestHeaders = fetchCall[1]?.headers as Record<string, string>;
+				expect(requestHeaders.Authorization).toBe("Basic upstream-creds");
+			});
 		});
 	});
 });

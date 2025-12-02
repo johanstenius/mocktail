@@ -1,6 +1,4 @@
-import { CopyButton } from "@/components/copy-button";
 import { MethodBadge } from "@/components/method-badge";
-import { Skeleton } from "@/components/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,23 +14,24 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import {
 	Sheet,
-	SheetBody,
 	SheetContent,
-	SheetDescription,
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	createEndpoint,
 	createVariant,
 	deleteVariant,
 	getVariants,
 	reorderVariants,
+	updateEndpoint,
 	updateVariant,
 } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
-import { getCurlCommand, getMockUrl } from "@/lib/url";
+
 import type {
+	CreateEndpointInput,
 	DelayType,
 	Endpoint,
 	HttpMethod,
@@ -40,15 +39,17 @@ import type {
 	MatchRule,
 	MatchTarget,
 	RuleLogic,
+	ValidationMode,
 	Variant,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GripVertical, Pencil, Plus, Settings2, Trash2, X } from "lucide-react";
+import { GripVertical, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const COMMON_STATUS_CODES = [200, 201, 204, 400, 401, 403, 404, 500];
 const NO_BODY_STATUS_CODES = [204, 304];
+const HTTP_METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
 const MATCH_TARGETS: { value: MatchTarget; label: string }[] = [
 	{ value: "header", label: "Header" },
@@ -772,24 +773,109 @@ type EndpointPanelProps = {
 	endpoint: Endpoint | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onEditEndpoint?: (endpoint: Endpoint) => void;
+	proxyBaseUrl?: string | null;
 };
 
 export function EndpointPanel({
 	projectId,
-	apiKey,
 	endpoint,
 	open,
 	onOpenChange,
-	onEditEndpoint,
+	proxyBaseUrl,
 }: EndpointPanelProps) {
+	const [activeTab, setActiveTab] = useState<"variants" | "config">("variants");
 	const [variantModalOpen, setVariantModalOpen] = useState(false);
 	const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+	const queryClient = useQueryClient();
+
+	// Endpoint Config State
+	const [method, setMethod] = useState<HttpMethod>("GET");
+	const [path, setPath] = useState("/");
+	const [status, setStatus] = useState(200);
+	const [body, setBody] = useState("{}");
+	const [delay, setDelay] = useState(0);
+	const [failRate, setFailRate] = useState(0);
+	const [validationEnabled, setValidationEnabled] = useState(false);
+	const [requestBodySchema, setRequestBodySchema] = useState("");
+	const [validationMode, setValidationMode] =
+		useState<ValidationMode>("strict");
+	const [proxyEnabled, setProxyEnabled] = useState(false);
+	const [configError, setConfigError] = useState<string | null>(null);
+
+	const isTemplate = body.includes("{{");
+
+	// Reset/Sync state when endpoint changes or panel opens
+	useEffect(() => {
+		if (open) {
+			if (endpoint) {
+				setMethod(endpoint.method);
+				setPath(endpoint.path);
+				setStatus(endpoint.status);
+				setBody(
+					endpoint.bodyType === "template"
+						? String(endpoint.body)
+						: JSON.stringify(endpoint.body, null, 2),
+				);
+				setDelay(endpoint.delay);
+				setFailRate(endpoint.failRate);
+				const hasSchema =
+					endpoint.requestBodySchema != null &&
+					Object.keys(endpoint.requestBodySchema as object).length > 0;
+				setValidationEnabled(endpoint.validationMode !== "none" && hasSchema);
+				setRequestBodySchema(
+					hasSchema ? JSON.stringify(endpoint.requestBodySchema, null, 2) : "",
+				);
+				setValidationMode(endpoint.validationMode ?? "strict");
+				setProxyEnabled(endpoint.proxyEnabled ?? false);
+			} else {
+				// Create mode defaults
+				setMethod("GET");
+				setPath("/");
+				setStatus(200);
+				setBody("{}");
+				setDelay(0);
+				setFailRate(0);
+				setValidationEnabled(false);
+				setRequestBodySchema("");
+				setValidationMode("strict");
+				setProxyEnabled(false);
+			}
+			setConfigError(null);
+		}
+	}, [open, endpoint]);
 
 	const { data: variants = [], isLoading: variantsLoading } = useQuery({
 		queryKey: ["variants", projectId, endpoint?.id],
 		queryFn: () => getVariants(projectId, endpoint?.id ?? ""),
 		enabled: open && !!endpoint,
+	});
+
+	const createEndpointMutation = useMutation({
+		mutationFn: (input: CreateEndpointInput) =>
+			createEndpoint(projectId, input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["endpoints", projectId] });
+			queryClient.invalidateQueries({ queryKey: ["statistics", projectId] });
+			onOpenChange(false);
+			toast.success("Endpoint created");
+		},
+		onError: (err: unknown) => {
+			setConfigError(getErrorMessage(err));
+			toast.error(getErrorMessage(err));
+		},
+	});
+
+	const updateEndpointMutation = useMutation({
+		mutationFn: (input: CreateEndpointInput) =>
+			updateEndpoint(projectId, endpoint?.id ?? "", input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["endpoints", projectId] });
+			toast.success("Endpoint updated");
+		},
+		onError: (err: unknown) => {
+			setConfigError(getErrorMessage(err));
+			toast.error(getErrorMessage(err));
+		},
 	});
 
 	function handleNewVariant() {
@@ -802,107 +888,401 @@ export function EndpointPanel({
 		setVariantModalOpen(true);
 	}
 
-	if (!endpoint) return null;
+	function formatJsonBody() {
+		if (isTemplate) return;
+		try {
+			const parsed = JSON.parse(body);
+			setBody(JSON.stringify(parsed, null, 2));
+		} catch {
+			// invalid JSON, leave as-is
+		}
+	}
 
-	const mockUrl = getMockUrl(endpoint.path);
-	const curlCommand = getCurlCommand(
-		endpoint.method as HttpMethod,
-		mockUrl,
-		apiKey,
-	);
+	function handleSaveConfig(e: React.FormEvent) {
+		e.preventDefault();
+		setConfigError(null);
+
+		const statusAllowsBody = !NO_BODY_STATUS_CODES.includes(status);
+		const bodyType = isTemplate ? "template" : "static";
+
+		let parsedBody: unknown = null;
+		if (statusAllowsBody) {
+			if (isTemplate) {
+				parsedBody = body;
+			} else {
+				try {
+					parsedBody = JSON.parse(body);
+				} catch {
+					setConfigError("Invalid JSON in response body");
+					return;
+				}
+			}
+		}
+
+		let parsedSchema: unknown = {};
+		if (validationEnabled && requestBodySchema) {
+			try {
+				parsedSchema = JSON.parse(requestBodySchema);
+			} catch {
+				setConfigError("Invalid JSON in request body schema");
+				return;
+			}
+		}
+
+		const input: CreateEndpointInput = {
+			method,
+			path,
+			status,
+			body: parsedBody,
+			bodyType: statusAllowsBody ? bodyType : "static",
+			delay,
+			failRate,
+			requestBodySchema: parsedSchema,
+			validationMode: validationEnabled ? validationMode : "none",
+			proxyEnabled,
+		};
+
+		if (endpoint) {
+			updateEndpointMutation.mutate(input);
+		} else {
+			createEndpointMutation.mutate(input);
+		}
+	}
+
+	const isPending =
+		createEndpointMutation.isPending || updateEndpointMutation.isPending;
+	const statusAllowsBody = !NO_BODY_STATUS_CODES.includes(status);
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent>
-				<SheetHeader>
-					<div className="flex items-center gap-3 pr-8">
-						<MethodBadge method={endpoint.method} />
-						<SheetTitle className="font-mono text-base">
-							{endpoint.path}
+		<>
+			<Sheet open={open} onOpenChange={onOpenChange}>
+				<SheetContent className="w-[500px] sm:w-[600px] p-0 flex flex-col bg-[var(--bg-void)] border-l border-[var(--border-subtle)]">
+					<SheetHeader className="px-6 py-4 border-b border-[var(--border-subtle)]">
+						<SheetTitle className="font-['Outfit'] text-xl">
+							{endpoint ? "Endpoint Details" : "Create Endpoint"}
 						</SheetTitle>
-						{onEditEndpoint && (
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-8 w-8 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-								onClick={() => onEditEndpoint(endpoint)}
-							>
-								<Pencil className="h-4 w-4" />
-							</Button>
+						{endpoint && (
+							<div className="flex items-center gap-2 text-sm font-mono text-[var(--text-muted)] mt-1">
+								<MethodBadge method={endpoint.method} />
+								<span className="truncate">{endpoint.path}</span>
+							</div>
+						)}
+					</SheetHeader>
+
+					{/* Tabs - Only show if editing an existing endpoint */}
+					{endpoint ? (
+						<div className="px-6 pt-4 pb-2">
+							<div className="flex p-1 bg-[var(--bg-surface)] rounded-lg border border-[var(--border-subtle)]">
+								<button
+									type="button"
+									onClick={() => setActiveTab("variants")}
+									className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
+										activeTab === "variants"
+											? "bg-[var(--bg-surface-active)] text-[var(--text-primary)] shadow-sm"
+											: "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+									}`}
+								>
+									Variants
+								</button>
+								<button
+									type="button"
+									onClick={() => setActiveTab("config")}
+									className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-all ${
+										activeTab === "config"
+											? "bg-[var(--bg-surface-active)] text-[var(--text-primary)] shadow-sm"
+											: "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+									}`}
+								>
+									Configuration
+								</button>
+							</div>
+						</div>
+					) : null}
+
+					{/* Content */}
+					<div className="flex-1 overflow-y-auto px-6 py-4">
+						{endpoint && activeTab === "variants" ? (
+							<div className="space-y-4">
+								<div className="flex items-center justify-between">
+									<p className="text-sm text-[var(--text-muted)]">
+										{variants.length} variant{variants.length !== 1 ? "s" : ""}{" "}
+										defined
+									</p>
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={handleNewVariant}
+										className="h-8"
+									>
+										<Plus className="h-3.5 w-3.5 mr-1.5" />
+										New Variant
+									</Button>
+								</div>
+
+								{variantsLoading ? (
+									<div className="space-y-2">
+										<div className="h-16 bg-[var(--bg-surface)] rounded-xl animate-pulse" />
+										<div className="h-16 bg-[var(--bg-surface)] rounded-xl animate-pulse" />
+									</div>
+								) : variants.length === 0 ? (
+									<div className="text-center py-8 border border-dashed border-[var(--border-subtle)] rounded-xl">
+										<p className="text-sm text-[var(--text-muted)] mb-2">
+											No variants yet
+										</p>
+										<Button size="sm" onClick={handleNewVariant}>
+											Create your first variant
+										</Button>
+									</div>
+								) : (
+									<VariantList
+										variants={variants}
+										projectId={projectId}
+										endpointId={endpoint.id}
+										onEdit={handleEditVariant}
+									/>
+								)}
+							</div>
+						) : (
+							<form onSubmit={handleSaveConfig} className="space-y-6 pb-8">
+								{/* Method + Path */}
+								<div className="space-y-3">
+									<div>
+										<Label>Method</Label>
+										<div className="mt-1.5 flex gap-2">
+											{HTTP_METHODS.map((m) => (
+												<button
+													key={m}
+													type="button"
+													onClick={() => setMethod(m)}
+													className={`transition-all ${
+														method === m
+															? "scale-110 ring-2 ring-white/30 rounded-md"
+															: "opacity-50 hover:opacity-80"
+													}`}
+												>
+													<MethodBadge method={m} className="cursor-pointer" />
+												</button>
+											))}
+										</div>
+									</div>
+									<div>
+										<Label htmlFor="path">Path</Label>
+										<Input
+											id="path"
+											value={path}
+											onChange={(e) => setPath(e.target.value)}
+											placeholder="/users/:id"
+											className="mt-1.5 font-mono"
+											required
+										/>
+									</div>
+								</div>
+
+								{/* Proxy Toggle */}
+								{proxyBaseUrl && (
+									<div className="space-y-3 bg-[var(--glow-blue)]/5 rounded-xl p-4 border border-[var(--glow-blue)]/20">
+										<div className="flex items-center justify-between">
+											<div>
+												<Label>Proxy to Upstream</Label>
+												<p className="text-xs text-[var(--text-muted)] mt-0.5">
+													Forward requests to {proxyBaseUrl}
+												</p>
+											</div>
+											<button
+												type="button"
+												onClick={() => setProxyEnabled(!proxyEnabled)}
+												className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+													proxyEnabled ? "bg-[var(--glow-blue)]" : "bg-white/10"
+												}`}
+											>
+												<span
+													className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+														proxyEnabled ? "translate-x-4.5" : "translate-x-1"
+													}`}
+												/>
+											</button>
+										</div>
+										{proxyEnabled && (
+											<p className="text-xs text-[var(--glow-blue)]">
+												Response config below will be ignored - real upstream
+												response will be returned.
+											</p>
+										)}
+									</div>
+								)}
+
+								{/* Request Validation */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<Label>Request Validation</Label>
+										<button
+											type="button"
+											onClick={() => setValidationEnabled(!validationEnabled)}
+											className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+												validationEnabled
+													? "bg-[var(--glow-violet)]"
+													: "bg-white/10"
+											}`}
+										>
+											<span
+												className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+													validationEnabled
+														? "translate-x-4.5"
+														: "translate-x-1"
+												}`}
+											/>
+										</button>
+									</div>
+
+									{validationEnabled && (
+										<div className="space-y-3 pl-4 border-l-2 border-[var(--border-subtle)]">
+											<Textarea
+												value={requestBodySchema}
+												onChange={(e) => setRequestBodySchema(e.target.value)}
+												placeholder='{"type": "object", "properties": {...}}'
+												className="min-h-[100px] font-mono text-sm"
+											/>
+											<div>
+												<Label htmlFor="validationMode">
+													On Validation Failure
+												</Label>
+												<Select
+													id="validationMode"
+													value={validationMode}
+													onChange={(e) =>
+														setValidationMode(e.target.value as ValidationMode)
+													}
+													className="mt-1.5"
+												>
+													<option value="strict">
+														Strict - Return 400 error
+													</option>
+													<option value="warn">
+														Warn - Log errors, return response
+													</option>
+												</Select>
+											</div>
+										</div>
+									)}
+								</div>
+
+								{/* Response Config */}
+								{!proxyEnabled && (
+									<>
+										<div>
+											<Label htmlFor="status">Status Code</Label>
+											<div className="mt-1.5 flex flex-wrap gap-2">
+												{COMMON_STATUS_CODES.map((code) => {
+													const isSuccess = code >= 200 && code < 300;
+													const isError = code >= 400;
+													return (
+														<button
+															key={code}
+															type="button"
+															onClick={() => setStatus(code)}
+															className={`rounded-md px-3 py-1.5 text-sm font-mono transition-all ${
+																status === code
+																	? isSuccess
+																		? "bg-[var(--status-success)]/20 text-[var(--status-success)] border border-[var(--status-success)]/30"
+																		: isError
+																			? "bg-red-500/20 text-red-400 border border-red-500/30"
+																			: "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)] border border-[var(--glow-violet)]/30"
+																	: "bg-white/5 text-[var(--text-muted)] border border-white/10 hover:border-white/20"
+															}`}
+														>
+															{code}
+														</button>
+													);
+												})}
+												<Input
+													type="number"
+													min={100}
+													max={599}
+													value={status}
+													onChange={(e) => setStatus(Number(e.target.value))}
+													className="w-20 font-mono"
+												/>
+											</div>
+										</div>
+
+										{statusAllowsBody ? (
+											<div>
+												<div className="flex items-center gap-2">
+													<Label htmlFor="body">Response Body</Label>
+													{isTemplate && (
+														<span className="text-xs bg-[var(--glow-blue)]/20 text-[var(--glow-blue)] px-2 py-0.5 rounded-full">
+															Template
+														</span>
+													)}
+												</div>
+												<Textarea
+													id="body"
+													value={body}
+													onChange={(e) => setBody(e.target.value)}
+													onBlur={formatJsonBody}
+													className="mt-1.5 min-h-[160px] font-mono text-sm"
+													placeholder='{"message": "Hello, world!"}'
+												/>
+											</div>
+										) : (
+											<p className="text-sm text-[var(--text-muted)] italic">
+												Status {status} does not allow a response body
+											</p>
+										)}
+
+										<div className="grid grid-cols-2 gap-4">
+											<div>
+												<Label htmlFor="delay">Delay (ms)</Label>
+												<Input
+													id="delay"
+													type="number"
+													min={0}
+													max={30000}
+													value={delay}
+													onChange={(e) => setDelay(Number(e.target.value))}
+													className="mt-1.5"
+												/>
+											</div>
+											<div>
+												<Label htmlFor="failRate">Fail Rate (%)</Label>
+												<Input
+													id="failRate"
+													type="number"
+													min={0}
+													max={100}
+													value={failRate}
+													onChange={(e) => setFailRate(Number(e.target.value))}
+													className="mt-1.5"
+												/>
+											</div>
+										</div>
+									</>
+								)}
+
+								{configError && (
+									<p className="text-sm text-red-400">{configError}</p>
+								)}
+
+								<Button type="submit" className="w-full" disabled={isPending}>
+									{isPending
+										? "Saving..."
+										: endpoint
+											? "Save Changes"
+											: "Create Endpoint"}
+								</Button>
+							</form>
 						)}
 					</div>
-					<SheetDescription>
-						<div className="flex items-center gap-2 mt-2">
-							<CopyButton
-								value={mockUrl}
-								label="Copy URL"
-								variant="outline"
-								size="sm"
-							>
-								Copy URL
-							</CopyButton>
-							<CopyButton
-								value={curlCommand}
-								label="Copy cURL"
-								variant="outline"
-								size="sm"
-								className="font-mono text-xs"
-							>
-								cURL
-							</CopyButton>
-						</div>
-					</SheetDescription>
-				</SheetHeader>
+				</SheetContent>
+			</Sheet>
 
-				<SheetBody>
-					<div className="flex items-center justify-between mb-4">
-						<div>
-							<h3 className="text-lg font-semibold font-['Outfit']">
-								Response Variants
-							</h3>
-							<p className="text-sm text-[var(--text-muted)]">
-								Drag to reorder priority
-							</p>
-						</div>
-						<Button size="sm" onClick={handleNewVariant}>
-							<Plus className="h-4 w-4 mr-2" />
-							Add Variant
-						</Button>
-					</div>
-
-					{variantsLoading ? (
-						<div className="space-y-2">
-							<Skeleton className="h-16 w-full rounded-xl" />
-							<Skeleton className="h-16 w-full rounded-xl" />
-						</div>
-					) : variants.length === 0 ? (
-						<div className="text-center py-8 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl">
-							<p className="text-[var(--text-muted)] mb-4">
-								No variants configured
-							</p>
-							<Button size="sm" onClick={handleNewVariant}>
-								<Plus className="h-4 w-4 mr-2" />
-								Create First Variant
-							</Button>
-						</div>
-					) : (
-						<VariantList
-							variants={variants}
-							projectId={projectId}
-							endpointId={endpoint.id}
-							onEdit={handleEditVariant}
-						/>
-					)}
-				</SheetBody>
-
-				<VariantFormModal
-					projectId={projectId}
-					endpointId={endpoint.id}
-					variant={selectedVariant ?? undefined}
-					open={variantModalOpen}
-					onOpenChange={setVariantModalOpen}
-				/>
-			</SheetContent>
-		</Sheet>
+			<VariantFormModal
+				projectId={projectId}
+				endpointId={endpoint?.id ?? ""}
+				variant={selectedVariant ?? undefined}
+				open={variantModalOpen}
+				onOpenChange={setVariantModalOpen}
+			/>
+		</>
 	);
 }

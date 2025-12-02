@@ -63,6 +63,8 @@ export type Project = {
 	apiKey: string;
 	proxyBaseUrl: string | null;
 	proxyTimeout: number;
+	proxyAuthHeader: string | null;
+	proxyPassThroughAuth: boolean;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -126,6 +128,8 @@ export type UpdateProjectInput = {
 	name?: string;
 	proxyBaseUrl?: string | null;
 	proxyTimeout?: number;
+	proxyAuthHeader?: string | null;
+	proxyPassThroughAuth?: boolean;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;

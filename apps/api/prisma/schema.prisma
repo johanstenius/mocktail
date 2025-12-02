@@ -136,18 +136,20 @@ model RefreshToken {
 }
 
 model Project {
-  id              String       @id @default(cuid())
-  name            String
-  slug            String
-  apiKey          String       @unique
-  orgId           String
-  monthlyRequests Int          @default(0)
-  requestResetAt  DateTime?
-  proxyBaseUrl    String?
-  proxyTimeout    Int          @default(30000)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(cuid())
+  name                 String
+  slug                 String
+  apiKey               String       @unique
+  orgId                String
+  monthlyRequests      Int          @default(0)
+  requestResetAt       DateTime?
+  proxyBaseUrl         String?
+  proxyTimeout         Int          @default(30000)
+  proxyAuthHeader      String?
+  proxyPassThroughAuth Boolean      @default(true)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  org                  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   endpoints   Endpoint[]
   requestLogs RequestLog[]

@@ -90,6 +90,8 @@ export function update(
 		slug?: string;
 		proxyBaseUrl?: string | null;
 		proxyTimeout?: number;
+		proxyAuthHeader?: string | null;
+		proxyPassThroughAuth?: boolean;
 	},
 ) {
 	return prisma.project.update({

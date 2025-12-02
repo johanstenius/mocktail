@@ -13,6 +13,8 @@ export type ProjectModel = {
 	requestResetAt: Date | null;
 	proxyBaseUrl: string | null;
 	proxyTimeout: number;
+	proxyAuthHeader: string | null;
+	proxyPassThroughAuth: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -70,6 +72,8 @@ export async function update(
 		slug?: string;
 		proxyBaseUrl?: string | null;
 		proxyTimeout?: number;
+		proxyAuthHeader?: string | null;
+		proxyPassThroughAuth?: boolean;
 	},
 	ctx?: AuditContext,
 ): Promise<ProjectModel | null> {
@@ -84,6 +88,7 @@ export async function update(
 		"slug",
 		"proxyBaseUrl",
 		"proxyTimeout",
+		"proxyPassThroughAuth",
 	]);
 	if (Object.keys(diff).length > 0) {
 		await auditService.log({

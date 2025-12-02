@@ -8,6 +8,8 @@ export const projectSchema = z.object({
 	apiKey: z.string().nullable(),
 	proxyBaseUrl: z.string().nullable(),
 	proxyTimeout: z.number(),
+	proxyAuthHeader: z.string().nullable(),
+	proxyPassThroughAuth: z.boolean(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -28,6 +30,8 @@ export const updateProjectSchema = z.object({
 	apiKey: z.string().nullable().optional(),
 	proxyBaseUrl: z.string().url().nullable().optional(),
 	proxyTimeout: z.number().int().min(1000).max(120000).optional(),
+	proxyAuthHeader: z.string().nullable().optional(),
+	proxyPassThroughAuth: z.boolean().optional(),
 });
 
 export const projectListSchema = z.object({
