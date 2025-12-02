@@ -2,7 +2,7 @@ import { importOpenApiSpec } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileJson, Loader2, Upload } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -11,17 +11,20 @@ type ImportDropzoneProps = {
 	projectId: string;
 	variant?: "full" | "compact";
 	onSuccess?: () => void;
+	autoImport?: boolean;
 };
 
 export function ImportDropzone({
 	projectId,
 	variant = "full",
 	onSuccess,
+	autoImport = false,
 }: ImportDropzoneProps) {
 	const [specInput, setSpecInput] = useState("");
 	const [overwrite, setOverwrite] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [dragOver, setDragOver] = useState(false);
+	const [pendingAutoImport, setPendingAutoImport] = useState(false);
 
 	const queryClient = useQueryClient();
 
@@ -32,6 +35,7 @@ export function ImportDropzone({
 			queryClient.invalidateQueries({ queryKey: ["endpoints", projectId] });
 			setSpecInput("");
 			setError(null);
+			setPendingAutoImport(false);
 			if (result.created > 0) {
 				toast.success(
 					`Imported ${result.created} endpoint${result.created !== 1 ? "s" : ""}${result.skipped > 0 ? ` (${result.skipped} skipped)` : ""}`,
@@ -46,22 +50,40 @@ export function ImportDropzone({
 		onError: (err: unknown) => {
 			setError(getErrorMessage(err));
 			toast.error(getErrorMessage(err));
+			setPendingAutoImport(false);
 		},
 	});
 
-	const handleDrop = useCallback((e: React.DragEvent) => {
-		e.preventDefault();
-		setDragOver(false);
-
-		const file = e.dataTransfer.files[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onload = (event) => {
-				setSpecInput(event.target?.result as string);
-			};
-			reader.readAsText(file);
+	useEffect(() => {
+		if (
+			autoImport &&
+			pendingAutoImport &&
+			specInput.trim() &&
+			!mutation.isPending
+		) {
+			mutation.mutate(specInput);
 		}
-	}, []);
+	}, [autoImport, pendingAutoImport, specInput, mutation]);
+
+	const handleDrop = useCallback(
+		(e: React.DragEvent) => {
+			e.preventDefault();
+			setDragOver(false);
+
+			const file = e.dataTransfer.files[0];
+			if (file) {
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					setSpecInput(event.target?.result as string);
+					if (autoImport) {
+						setPendingAutoImport(true);
+					}
+				};
+				reader.readAsText(file);
+			}
+		},
+		[autoImport],
+	);
 
 	const handleFileSelect = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,11 +92,14 @@ export function ImportDropzone({
 				const reader = new FileReader();
 				reader.onload = (event) => {
 					setSpecInput(event.target?.result as string);
+					if (autoImport) {
+						setPendingAutoImport(true);
+					}
 				};
 				reader.readAsText(file);
 			}
 		},
-		[],
+		[autoImport],
 	);
 
 	function handleSubmit(e: React.FormEvent) {
@@ -129,40 +154,50 @@ export function ImportDropzone({
 				{specInput && (
 					<div className="mt-4 space-y-3">
 						<div className="flex items-center gap-2 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] p-3">
-							<FileJson className="h-5 w-5 text-[var(--glow-violet)]" />
+							{mutation.isPending ? (
+								<Loader2 className="h-5 w-5 text-[var(--glow-violet)] animate-spin" />
+							) : (
+								<FileJson className="h-5 w-5 text-[var(--glow-violet)]" />
+							)}
 							<span className="text-sm text-[var(--text-secondary)]">
-								Spec loaded ({specInput.length.toLocaleString()} characters)
+								{mutation.isPending
+									? "Importing..."
+									: `Spec loaded (${specInput.length.toLocaleString()} characters)`}
 							</span>
 						</div>
 
-						<label className="flex items-center gap-2 cursor-pointer">
-							<input
-								type="checkbox"
-								checked={overwrite}
-								onChange={(e) => setOverwrite(e.target.checked)}
-								className="h-4 w-4 rounded border-[var(--border-subtle)] bg-[var(--bg-surface)]"
-							/>
-							<span className="text-sm text-[var(--text-muted)]">
-								Overwrite existing endpoints
-							</span>
-						</label>
+						{!autoImport && (
+							<>
+								<label className="flex items-center gap-2 cursor-pointer">
+									<input
+										type="checkbox"
+										checked={overwrite}
+										onChange={(e) => setOverwrite(e.target.checked)}
+										className="h-4 w-4 rounded border-[var(--border-subtle)] bg-[var(--bg-surface)]"
+									/>
+									<span className="text-sm text-[var(--text-muted)]">
+										Overwrite existing endpoints
+									</span>
+								</label>
+
+								<Button
+									type="submit"
+									disabled={mutation.isPending}
+									className="w-full bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white"
+								>
+									{mutation.isPending ? (
+										<>
+											<Loader2 className="h-4 w-4 animate-spin mr-2" />
+											Importing...
+										</>
+									) : (
+										"Import Endpoints"
+									)}
+								</Button>
+							</>
+						)}
 
 						{error && <p className="text-sm text-red-400">{error}</p>}
-
-						<Button
-							type="submit"
-							disabled={mutation.isPending}
-							className="w-full bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white"
-						>
-							{mutation.isPending ? (
-								<>
-									<Loader2 className="h-4 w-4 animate-spin mr-2" />
-									Importing...
-								</>
-							) : (
-								"Import Endpoints"
-							)}
-						</Button>
 					</div>
 				)}
 			</form>

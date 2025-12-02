@@ -31,6 +31,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+	FolderOpen,
 	Loader2,
 	Plus,
 	RefreshCw,
@@ -751,6 +752,7 @@ function ProjectDetailPage() {
 					{ label: "Projects", href: "/projects" },
 					{ label: project.name },
 				]}
+				icon={<FolderOpen className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
 					<>
 						<Button
@@ -859,7 +861,11 @@ function ProjectDetailPage() {
 											create one manually
 										</button>
 									</p>
-									<ImportDropzone projectId={projectId} variant="compact" />
+									<ImportDropzone
+										projectId={projectId}
+										variant="compact"
+										autoImport
+									/>
 								</div>
 							) : (
 								<div className="space-y-2">
