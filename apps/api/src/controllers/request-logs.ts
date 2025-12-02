@@ -22,6 +22,7 @@ function mapRequestLogToResponse(log: RequestLogModel) {
 		method: log.method,
 		path: log.path,
 		status: log.status,
+		source: log.source as "mock" | "proxy" | "proxy_fallback",
 		requestHeaders: log.requestHeaders,
 		requestBody: log.requestBody,
 		responseBody: log.responseBody,
@@ -47,6 +48,7 @@ requestLogsRouter.openapi(listRequestLogsRoute, async (c) => {
 		method: query.method,
 		status: query.status,
 		endpointId: query.endpointId,
+		source: query.source,
 	});
 
 	return c.json(

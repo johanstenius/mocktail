@@ -143,6 +143,8 @@ model Project {
   orgId           String
   monthlyRequests Int          @default(0)
   requestResetAt  DateTime?
+  proxyBaseUrl    String?
+  proxyTimeout    Int          @default(30000)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
@@ -161,8 +163,9 @@ model Endpoint {
   path      String // /users, /users/:id
 
   // Request validation
-  requestBodySchema Json   @default("{}")
-  validationMode    String @default("none")
+  requestBodySchema Json    @default("{}")
+  validationMode    String  @default("none")
+  proxyEnabled      Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,6 +213,7 @@ model RequestLog {
   method           String
   path             String
   status           Int
+  source           String   @default("mock") // "mock" | "proxy" | "proxy_fallback"
   requestHeaders   Json     @default("{}")
   requestBody      Json?
   responseBody     Json?

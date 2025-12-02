@@ -36,6 +36,7 @@ type EndpointFormProps = {
 	prefill?: { method: HttpMethod; path: string };
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	proxyBaseUrl?: string | null;
 };
 
 export function EndpointForm({
@@ -45,6 +46,7 @@ export function EndpointForm({
 	prefill,
 	open,
 	onOpenChange,
+	proxyBaseUrl,
 }: EndpointFormProps) {
 	const isEditing = !!endpoint;
 
@@ -71,6 +73,9 @@ export function EndpointForm({
 	});
 	const [validationMode, setValidationMode] = useState<ValidationMode>(
 		endpoint?.validationMode ?? "strict",
+	);
+	const [proxyEnabled, setProxyEnabled] = useState(
+		endpoint?.proxyEnabled ?? false,
 	);
 	const [error, setError] = useState<string | null>(null);
 
@@ -107,6 +112,7 @@ export function EndpointForm({
 					hasSchema ? JSON.stringify(endpoint.requestBodySchema, null, 2) : "",
 				);
 				setValidationMode(endpoint.validationMode ?? "strict");
+				setProxyEnabled(endpoint.proxyEnabled ?? false);
 			} else if (prefill) {
 				setMethod(prefill.method);
 				setPath(prefill.path);
@@ -117,6 +123,7 @@ export function EndpointForm({
 				setValidationEnabled(false);
 				setRequestBodySchema("");
 				setValidationMode("strict");
+				setProxyEnabled(false);
 			} else {
 				setMethod("GET");
 				setPath("/");
@@ -127,6 +134,7 @@ export function EndpointForm({
 				setValidationEnabled(false);
 				setRequestBodySchema("");
 				setValidationMode("strict");
+				setProxyEnabled(false);
 			}
 			setError(null);
 		}
@@ -174,6 +182,7 @@ export function EndpointForm({
 		setValidationEnabled(false);
 		setRequestBodySchema("");
 		setValidationMode("strict");
+		setProxyEnabled(false);
 		setError(null);
 	}
 
@@ -218,6 +227,7 @@ export function EndpointForm({
 			failRate,
 			requestBodySchema: parsedSchema,
 			validationMode: validationEnabled ? validationMode : "none",
+			proxyEnabled,
 		};
 
 		if (isEditing) {
@@ -299,6 +309,37 @@ export function EndpointForm({
 							</div>
 						</div>
 
+						{/* Proxy Toggle - only show if project has proxyBaseUrl */}
+						{proxyBaseUrl && (
+							<div className="space-y-3 bg-[var(--glow-blue)]/5 rounded-xl p-4 border border-[var(--glow-blue)]/20">
+								<div className="flex items-center justify-between">
+									<div>
+										<Label>Proxy to Upstream</Label>
+										<p className="text-xs text-[var(--text-muted)] mt-0.5">
+											Forward requests to {proxyBaseUrl}
+										</p>
+									</div>
+									<button
+										type="button"
+										onClick={() => setProxyEnabled(!proxyEnabled)}
+										className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${proxyEnabled ? "bg-[var(--glow-blue)]" : "bg-white/10"}`}
+									>
+										<span
+											className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+												proxyEnabled ? "translate-x-4.5" : "translate-x-1"
+											}`}
+										/>
+									</button>
+								</div>
+								{proxyEnabled && (
+									<p className="text-xs text-[var(--glow-blue)]">
+										Response config below will be ignored - real upstream
+										response will be returned.
+									</p>
+								)}
+							</div>
+						)}
+
 						{/* Request Validation */}
 						<div className="space-y-3">
 							<div className="flex items-center justify-between">
@@ -355,123 +396,128 @@ export function EndpointForm({
 							)}
 						</div>
 
-						{/* Status */}
-						<div>
-							<Label htmlFor="status">Status Code</Label>
-							<div className="mt-1.5 flex flex-wrap gap-2">
-								{COMMON_STATUS_CODES.map((code) => {
-									const isSuccess = code >= 200 && code < 300;
-									const isError = code >= 400;
-									return (
-										<button
-											key={code}
-											type="button"
-											onClick={() => setStatus(code)}
-											className={`rounded-md px-3 py-1.5 text-sm font-mono transition-all ${
-												status === code
-													? isSuccess
-														? "bg-[var(--status-success)]/20 text-[var(--status-success)] border border-[var(--status-success)]/30 ring-2 ring-[var(--status-success)]/20"
-														: isError
-															? "bg-red-500/20 text-red-400 border border-red-500/30 ring-2 ring-red-500/20"
-															: "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)] border border-[var(--glow-violet)]/30 ring-2 ring-[var(--glow-violet)]/20"
-													: "bg-white/5 text-[var(--text-muted)] border border-white/10 hover:border-white/20 hover:text-[var(--text-secondary)]"
-											}`}
-										>
-											{code}
-										</button>
-									);
-								})}
-								<Input
-									type="number"
-									min={100}
-									max={599}
-									value={status}
-									onChange={(e) => setStatus(Number(e.target.value))}
-									className="w-20 font-mono"
-								/>
-							</div>
-						</div>
-
-						{/* Response Body - only show when status allows body */}
-						{statusAllowsBody ? (
-							<div>
-								<div className="flex items-center gap-2">
-									<Label htmlFor="body">Response Body</Label>
-									{isTemplate && (
-										<span className="text-xs bg-[var(--glow-blue)]/20 text-[var(--glow-blue)] px-2 py-0.5 rounded-full">
-											Template
-										</span>
-									)}
+						{/* Response Config - hidden when proxy enabled */}
+						{!proxyEnabled && (
+							<>
+								{/* Status */}
+								<div>
+									<Label htmlFor="status">Status Code</Label>
+									<div className="mt-1.5 flex flex-wrap gap-2">
+										{COMMON_STATUS_CODES.map((code) => {
+											const isSuccess = code >= 200 && code < 300;
+											const isError = code >= 400;
+											return (
+												<button
+													key={code}
+													type="button"
+													onClick={() => setStatus(code)}
+													className={`rounded-md px-3 py-1.5 text-sm font-mono transition-all ${
+														status === code
+															? isSuccess
+																? "bg-[var(--status-success)]/20 text-[var(--status-success)] border border-[var(--status-success)]/30 ring-2 ring-[var(--status-success)]/20"
+																: isError
+																	? "bg-red-500/20 text-red-400 border border-red-500/30 ring-2 ring-red-500/20"
+																	: "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)] border border-[var(--glow-violet)]/30 ring-2 ring-[var(--glow-violet)]/20"
+															: "bg-white/5 text-[var(--text-muted)] border border-white/10 hover:border-white/20 hover:text-[var(--text-secondary)]"
+													}`}
+												>
+													{code}
+												</button>
+											);
+										})}
+										<Input
+											type="number"
+											min={100}
+											max={599}
+											value={status}
+											onChange={(e) => setStatus(Number(e.target.value))}
+											className="w-20 font-mono"
+										/>
+									</div>
 								</div>
-								<Textarea
-									id="body"
-									value={body}
-									onChange={(e) => setBody(e.target.value)}
-									onBlur={formatJsonBody}
-									className="mt-1.5 min-h-[160px] font-mono text-sm"
-									placeholder='{"message": "Hello, world!"}'
-								/>
-								<p className="mt-2 text-xs text-[var(--text-muted)]">
-									Supports{" "}
-									<a
-										href="/docs#response-templates"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-[var(--glow-blue)] hover:underline"
-									>
-										templates
-									</a>{" "}
-									and{" "}
-									<a
-										href="/docs#faker-helpers"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-[var(--glow-pink)] hover:underline"
-									>
-										faker helpers
-									</a>{" "}
-									for dynamic responses
-								</p>
-							</div>
-						) : (
-							<p className="text-sm text-[var(--text-muted)] italic">
-								Status {status} does not allow a response body
-							</p>
-						)}
 
-						{/* Advanced: Delay + Fail Rate */}
-						<div className="grid grid-cols-2 gap-4">
-							<div>
-								<Label htmlFor="delay">Delay (ms)</Label>
-								<Input
-									id="delay"
-									type="number"
-									min={0}
-									max={30000}
-									value={delay}
-									onChange={(e) => setDelay(Number(e.target.value))}
-									className="mt-1.5"
-								/>
-								<p className="mt-1 text-xs text-[var(--text-muted)]">
-									Simulate network latency
-								</p>
-							</div>
-							<div>
-								<Label htmlFor="failRate">Fail Rate (%)</Label>
-								<Input
-									id="failRate"
-									type="number"
-									min={0}
-									max={100}
-									value={failRate}
-									onChange={(e) => setFailRate(Number(e.target.value))}
-									className="mt-1.5"
-								/>
-								<p className="mt-1 text-xs text-[var(--text-muted)]">
-									Random 500 errors
-								</p>
-							</div>
-						</div>
+								{/* Response Body - only show when status allows body */}
+								{statusAllowsBody ? (
+									<div>
+										<div className="flex items-center gap-2">
+											<Label htmlFor="body">Response Body</Label>
+											{isTemplate && (
+												<span className="text-xs bg-[var(--glow-blue)]/20 text-[var(--glow-blue)] px-2 py-0.5 rounded-full">
+													Template
+												</span>
+											)}
+										</div>
+										<Textarea
+											id="body"
+											value={body}
+											onChange={(e) => setBody(e.target.value)}
+											onBlur={formatJsonBody}
+											className="mt-1.5 min-h-[160px] font-mono text-sm"
+											placeholder='{"message": "Hello, world!"}'
+										/>
+										<p className="mt-2 text-xs text-[var(--text-muted)]">
+											Supports{" "}
+											<a
+												href="/docs#response-templates"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[var(--glow-blue)] hover:underline"
+											>
+												templates
+											</a>{" "}
+											and{" "}
+											<a
+												href="/docs#faker-helpers"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[var(--glow-pink)] hover:underline"
+											>
+												faker helpers
+											</a>{" "}
+											for dynamic responses
+										</p>
+									</div>
+								) : (
+									<p className="text-sm text-[var(--text-muted)] italic">
+										Status {status} does not allow a response body
+									</p>
+								)}
+
+								{/* Advanced: Delay + Fail Rate */}
+								<div className="grid grid-cols-2 gap-4">
+									<div>
+										<Label htmlFor="delay">Delay (ms)</Label>
+										<Input
+											id="delay"
+											type="number"
+											min={0}
+											max={30000}
+											value={delay}
+											onChange={(e) => setDelay(Number(e.target.value))}
+											className="mt-1.5"
+										/>
+										<p className="mt-1 text-xs text-[var(--text-muted)]">
+											Simulate network latency
+										</p>
+									</div>
+									<div>
+										<Label htmlFor="failRate">Fail Rate (%)</Label>
+										<Input
+											id="failRate"
+											type="number"
+											min={0}
+											max={100}
+											value={failRate}
+											onChange={(e) => setFailRate(Number(e.target.value))}
+											className="mt-1.5"
+										/>
+										<p className="mt-1 text-xs text-[var(--text-muted)]">
+											Random 500 errors
+										</p>
+									</div>
+								</div>
+							</>
+						)}
 
 						{error && <p className="text-sm text-red-400">{error}</p>}
 					</div>

@@ -61,6 +61,8 @@ export type Project = {
 	name: string;
 	slug: string;
 	apiKey: string;
+	proxyBaseUrl: string | null;
+	proxyTimeout: number;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -78,9 +80,12 @@ export type Endpoint = {
 	failRate: number;
 	requestBodySchema: unknown;
 	validationMode: ValidationMode;
+	proxyEnabled: boolean;
 	createdAt: string;
 	updatedAt: string;
 };
+
+export type RequestSource = "mock" | "proxy" | "proxy_fallback";
 
 export type RequestLog = {
 	id: string;
@@ -89,6 +94,7 @@ export type RequestLog = {
 	method: string;
 	path: string;
 	status: number;
+	source: RequestSource;
 	requestHeaders: Record<string, string>;
 	requestBody: string | null;
 	responseBody: string | null;
@@ -113,6 +119,13 @@ export type CreateEndpointInput = {
 	failRate?: number;
 	requestBodySchema?: unknown;
 	validationMode?: ValidationMode;
+	proxyEnabled?: boolean;
+};
+
+export type UpdateProjectInput = {
+	name?: string;
+	proxyBaseUrl?: string | null;
+	proxyTimeout?: number;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;

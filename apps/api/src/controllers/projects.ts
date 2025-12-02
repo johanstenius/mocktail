@@ -23,6 +23,8 @@ function mapProjectToResponse(project: ProjectModel) {
 		name: project.name,
 		slug: project.slug,
 		apiKey: project.apiKey,
+		proxyBaseUrl: project.proxyBaseUrl,
+		proxyTimeout: project.proxyTimeout,
 		createdAt: project.createdAt.toISOString(),
 		updatedAt: project.updatedAt.toISOString(),
 	};

@@ -2,6 +2,7 @@ import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
 import { findBestMatch } from "../utils/path-matcher";
 import type { ValidationMode } from "./endpoint.service";
+import { proxyRequest } from "./proxy.service";
 import {
 	isEmptySchema,
 	validateRequestBody,
@@ -9,6 +10,8 @@ import {
 import { type MatchContext, findMatchingVariant } from "./rule-matcher.service";
 import { type RequestContext, processTemplate } from "./template-engine";
 import type { MatchRule, RuleLogic, VariantModel } from "./variant.service";
+
+export type RequestSource = "mock" | "proxy" | "proxy_fallback";
 
 type Variant = {
 	id: string;
@@ -35,6 +38,7 @@ type Endpoint = {
 	path: string;
 	requestBodySchema: unknown;
 	validationMode: string;
+	proxyEnabled: boolean;
 	variants: Variant[];
 };
 
@@ -96,7 +100,18 @@ export async function handleMockRequest(
 
 	const match = findBestMatch(project.endpoints as Endpoint[], request.path);
 
+	// No endpoint match - try proxy fallback or 404
 	if (!match) {
+		if (project.proxyBaseUrl) {
+			return handleProxyRequest(
+				project,
+				null,
+				request,
+				startTime,
+				"proxy_fallback",
+			);
+		}
+
 		const duration = Date.now() - startTime;
 		const errorResponse = {
 			error: "not_found",
@@ -110,6 +125,7 @@ export async function handleMockRequest(
 			method: request.method,
 			path: request.path,
 			status: 404,
+			source: "mock",
 			requestHeaders: request.headers,
 			requestBody: request.body,
 			responseBody: errorResponse,
@@ -121,6 +137,18 @@ export async function handleMockRequest(
 
 	const { endpoint, params } = match;
 
+	// Endpoint matched - check if proxy enabled
+	if (endpoint.proxyEnabled && project.proxyBaseUrl) {
+		return handleProxyRequest(
+			project,
+			endpoint.id,
+			request,
+			startTime,
+			"proxy",
+		);
+	}
+
+	// Mock response path
 	const matchContext: MatchContext = {
 		params,
 		query: request.query,
@@ -144,6 +172,7 @@ export async function handleMockRequest(
 			method: request.method,
 			path: request.path,
 			status: 500,
+			source: "mock",
 			requestHeaders: request.headers,
 			requestBody: request.body,
 			responseBody: errorResponse,
@@ -178,6 +207,7 @@ export async function handleMockRequest(
 					method: request.method,
 					path: request.path,
 					status: 400,
+					source: "mock",
 					requestHeaders: request.headers,
 					requestBody: request.body,
 					responseBody: errorResponse,
@@ -251,6 +281,7 @@ export async function handleMockRequest(
 		method: request.method,
 		path: request.path,
 		status,
+		source: "mock",
 		requestHeaders: request.headers,
 		requestBody: request.body,
 		responseBody,
@@ -263,6 +294,89 @@ export async function handleMockRequest(
 		response: { status, headers, body: responseBody },
 		endpointId: endpoint.id,
 		variantId: variant.id,
+	};
+}
+
+async function handleProxyRequest(
+	project: { id: string; proxyBaseUrl: string | null; proxyTimeout: number },
+	endpointId: string | null,
+	request: MockRequest,
+	startTime: number,
+	source: "proxy" | "proxy_fallback",
+): Promise<MockResult> {
+	if (!project.proxyBaseUrl) {
+		return { success: false, error: "endpoint_not_found" };
+	}
+
+	const proxyResult = await proxyRequest(
+		project.proxyBaseUrl,
+		{
+			method: request.method,
+			path: request.path,
+			headers: request.headers,
+			query: request.query,
+			body: request.body,
+		},
+		project.proxyTimeout,
+	);
+
+	if (proxyResult.success) {
+		await logRepo.create({
+			projectId: project.id,
+			endpointId,
+			variantId: null,
+			method: request.method,
+			path: request.path,
+			status: proxyResult.status,
+			source,
+			requestHeaders: request.headers,
+			requestBody: request.body,
+			responseBody: proxyResult.body,
+			duration: proxyResult.duration,
+		});
+
+		return {
+			success: true,
+			response: {
+				status: proxyResult.status,
+				headers: proxyResult.headers,
+				body: proxyResult.body,
+			},
+			endpointId: endpointId ?? "",
+			variantId: null,
+		};
+	}
+
+	// Proxy failed - return 502 Bad Gateway
+	const errorResponse = {
+		error: "proxy_error",
+		message: proxyResult.message,
+		type: proxyResult.error,
+	};
+
+	await logRepo.create({
+		projectId: project.id,
+		endpointId,
+		variantId: null,
+		method: request.method,
+		path: request.path,
+		status: 502,
+		source,
+		requestHeaders: request.headers,
+		requestBody: request.body,
+		responseBody: errorResponse,
+		duration: proxyResult.duration,
+	});
+
+	return {
+		success: true,
+		response: {
+			status: 502,
+			headers: { "Content-Type": "application/json" },
+			body: errorResponse,
+		},
+		endpointId: endpointId ?? "",
+		variantId: null,
 	};
 }
 

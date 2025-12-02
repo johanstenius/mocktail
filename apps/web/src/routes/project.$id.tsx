@@ -8,17 +8,26 @@ import { PageHeader } from "@/components/page-header";
 import { RequestLogTable } from "@/components/request-log-table";
 import { EndpointRowSkeleton, Skeleton } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	deleteEndpoint,
 	getEndpoints,
 	getProject,
 	getProjectStatistics,
 	rotateProjectApiKey,
+	updateProject,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { requireAuth } from "@/lib/route-guards";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
-import type { Endpoint, HttpMethod, ProjectStatistics } from "@/types";
+import type {
+	Endpoint,
+	HttpMethod,
+	Project,
+	ProjectStatistics,
+	UpdateProjectInput,
+} from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -51,6 +60,7 @@ function EndpointRow({
 	variantCount,
 	onClick,
 	onEdit,
+	hasProxyBaseUrl,
 }: {
 	endpoint: Endpoint;
 	projectId: string;
@@ -59,6 +69,7 @@ function EndpointRow({
 	variantCount?: number;
 	onClick: () => void;
 	onEdit: () => void;
+	hasProxyBaseUrl: boolean;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
 	const queryClient = useQueryClient();
@@ -97,6 +108,14 @@ function EndpointRow({
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
+				{endpoint.proxyEnabled && hasProxyBaseUrl && (
+					<Badge
+						variant="outline"
+						className="border-[var(--glow-blue)]/30 text-[var(--glow-blue)]"
+					>
+						PROXY
+					</Badge>
+				)}
 				{variantCount !== undefined && variantCount > 1 && (
 					<Badge
 						variant="outline"
@@ -373,12 +392,15 @@ function ProjectAnalytics({
 
 function ProjectSettings({
 	projectId,
-	apiKey,
+	project,
 }: {
 	projectId: string;
-	apiKey: string;
+	project: Project;
 }) {
 	const [showConfirmRotate, setShowConfirmRotate] = useState(false);
+	const [proxyBaseUrl, setProxyBaseUrl] = useState(project.proxyBaseUrl ?? "");
+	const [proxyTimeout, setProxyTimeout] = useState(project.proxyTimeout);
+	const [showAdvanced, setShowAdvanced] = useState(false);
 	const queryClient = useQueryClient();
 
 	const rotateMutation = useMutation({
@@ -393,17 +415,100 @@ function ProjectSettings({
 		},
 	});
 
+	const updateProxyMutation = useMutation({
+		mutationFn: (input: UpdateProjectInput) => updateProject(projectId, input),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["project", projectId] });
+			toast.success("Proxy settings saved");
+		},
+		onError: () => {
+			toast.error("Failed to save proxy settings");
+		},
+	});
+
+	function handleSaveProxy() {
+		updateProxyMutation.mutate({
+			proxyBaseUrl: proxyBaseUrl.trim() || null,
+			proxyTimeout,
+		});
+	}
+
 	const exampleCurl = getCurlCommand(
 		"GET",
 		`${getMockBaseUrl()}/users`,
-		apiKey,
+		project.apiKey,
 	);
+
+	const hasProxyChanges =
+		proxyBaseUrl !== (project.proxyBaseUrl ?? "") ||
+		proxyTimeout !== project.proxyTimeout;
 
 	return (
 		<div>
 			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Settings</h3>
 
 			<div className="space-y-6">
+				{/* Proxy Section */}
+				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+					<h4 className="text-lg font-semibold mb-2 font-['Outfit']">
+						Proxy Mode
+					</h4>
+					<p className="text-sm text-[var(--text-muted)] mb-4">
+						Forward requests to a real API. Unmatched requests will be proxied
+						when a base URL is set.
+					</p>
+
+					<div className="space-y-4">
+						<div>
+							<Label htmlFor="proxyBaseUrl">Upstream Base URL</Label>
+							<Input
+								id="proxyBaseUrl"
+								value={proxyBaseUrl}
+								onChange={(e) => setProxyBaseUrl(e.target.value)}
+								placeholder="https://api.example.com"
+								className="mt-1.5 font-mono"
+							/>
+							<p className="text-xs text-[var(--text-muted)] mt-1">
+								Leave empty to disable proxy mode
+							</p>
+						</div>
+
+						<button
+							type="button"
+							onClick={() => setShowAdvanced(!showAdvanced)}
+							className="text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] flex items-center gap-1"
+						>
+							{showAdvanced ? "▼" : "▶"} Advanced settings
+						</button>
+
+						{showAdvanced && (
+							<div>
+								<Label htmlFor="proxyTimeout">Timeout (ms)</Label>
+								<Input
+									id="proxyTimeout"
+									type="number"
+									min={1000}
+									max={60000}
+									value={proxyTimeout}
+									onChange={(e) => setProxyTimeout(Number(e.target.value))}
+									className="mt-1.5 w-32"
+								/>
+							</div>
+						)}
+
+						<Button
+							onClick={handleSaveProxy}
+							disabled={!hasProxyChanges || updateProxyMutation.isPending}
+							size="sm"
+						>
+							{updateProxyMutation.isPending ? (
+								<Loader2 className="h-4 w-4 animate-spin mr-2" />
+							) : null}
+							Save Proxy Settings
+						</Button>
+					</div>
+				</div>
+
 				{/* API Key Section */}
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">
@@ -422,10 +527,10 @@ function ProjectSettings({
 
 					<div className="flex items-center gap-2 mb-4">
 						<code className="flex-1 text-[var(--text-primary)] font-['JetBrains_Mono'] text-sm bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-xl border border-[var(--border-subtle)]">
-							{apiKey}
+							{project.apiKey}
 						</code>
 						<CopyButton
-							value={apiKey}
+							value={project.apiKey}
 							label="Copy API key"
 							variant="outline"
 							size="icon"
@@ -741,6 +846,7 @@ function ProjectDetailPage() {
 											stat={statsMap.get(endpoint.id)}
 											onClick={() => handleEndpointClick(endpoint)}
 											onEdit={() => setEditingEndpoint(endpoint)}
+											hasProxyBaseUrl={!!project.proxyBaseUrl}
 										/>
 									))}
 								</div>
@@ -765,7 +871,7 @@ function ProjectDetailPage() {
 
 					{/* Settings Tab */}
 					{activeTab === "settings" && (
-						<ProjectSettings projectId={projectId} apiKey={project.apiKey} />
+						<ProjectSettings projectId={projectId} project={project} />
 					)}
 				</div>
 			</div>
@@ -784,6 +890,7 @@ function ProjectDetailPage() {
 					}
 					setEndpointModalOpen(open);
 				}}
+				proxyBaseUrl={project.proxyBaseUrl}
 			/>
 
 			<ImportModal

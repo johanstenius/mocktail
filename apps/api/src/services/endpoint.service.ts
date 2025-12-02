@@ -14,6 +14,7 @@ export type EndpointModel = {
 	path: string;
 	requestBodySchema: unknown;
 	validationMode: ValidationMode;
+	proxyEnabled: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 	// For API response, we include the default variant's response config
@@ -32,6 +33,7 @@ type PrismaEndpoint = {
 	path: string;
 	requestBodySchema: unknown;
 	validationMode: string;
+	proxyEnabled: boolean;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -56,6 +58,7 @@ function toEndpointModel(
 		path: e.path,
 		requestBodySchema: e.requestBodySchema,
 		validationMode: e.validationMode as ValidationMode,
+		proxyEnabled: e.proxyEnabled,
 		createdAt: e.createdAt,
 		updatedAt: e.updatedAt,
 		// Response config from default variant or defaults
@@ -79,6 +82,7 @@ export type CreateEndpointInput = {
 	failRate: number;
 	requestBodySchema?: unknown;
 	validationMode?: ValidationMode;
+	proxyEnabled?: boolean;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;
@@ -139,6 +143,7 @@ export async function create(
 		path: input.path,
 		requestBodySchema: input.requestBodySchema ?? {},
 		validationMode: input.validationMode ?? "none",
+		proxyEnabled: input.proxyEnabled ?? false,
 	});
 
 	const variant = await variantRepo.create({
@@ -189,7 +194,7 @@ export async function update(
 		}
 	}
 
-	// Update endpoint (only method, path, validation fields)
+	// Update endpoint (only method, path, validation fields, proxyEnabled)
 	const endpoint = await endpointRepo.update(endpointId, {
 		...(input.method && { method: input.method }),
 		...(input.path && { path: input.path }),
@@ -198,6 +203,9 @@ export async function update(
 		}),
 		...(input.validationMode !== undefined && {
 			validationMode: input.validationMode,
+		}),
+		...(input.proxyEnabled !== undefined && {
+			proxyEnabled: input.proxyEnabled,
 		}),
 	});
 
@@ -237,6 +245,7 @@ export async function update(
 	if (input.requestBodySchema !== undefined)
 		changedFields.push("requestBodySchema");
 	if (input.validationMode !== undefined) changedFields.push("validationMode");
+	if (input.proxyEnabled !== undefined) changedFields.push("proxyEnabled");
 
 	if (changedFields.length > 0) {
 		await auditService.log({

@@ -30,6 +30,7 @@ export const endpointSchema = z.object({
 	failRate: z.number(),
 	requestBodySchema: z.unknown(),
 	validationMode: validationModeSchema,
+	proxyEnabled: z.boolean(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -45,6 +46,7 @@ export const createEndpointSchema = z.object({
 	failRate: z.number().min(0).max(100).default(0),
 	requestBodySchema: z.unknown().optional(),
 	validationMode: validationModeSchema.optional(),
+	proxyEnabled: z.boolean().default(false),
 });
 
 export const updateEndpointSchema = z.object({
@@ -58,6 +60,7 @@ export const updateEndpointSchema = z.object({
 	failRate: z.number().min(0).max(100).optional(),
 	requestBodySchema: z.unknown().optional(),
 	validationMode: validationModeSchema.optional(),
+	proxyEnabled: z.boolean().optional(),
 });
 
 export const endpointListSchema = z.object({

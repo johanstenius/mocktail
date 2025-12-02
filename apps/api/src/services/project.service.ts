@@ -11,6 +11,8 @@ export type ProjectModel = {
 	orgId: string;
 	monthlyRequests: number;
 	requestResetAt: Date | null;
+	proxyBaseUrl: string | null;
+	proxyTimeout: number;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -63,7 +65,12 @@ export async function create(
 
 export async function update(
 	id: string,
-	data: { name?: string; slug?: string },
+	data: {
+		name?: string;
+		slug?: string;
+		proxyBaseUrl?: string | null;
+		proxyTimeout?: number;
+	},
 	ctx?: AuditContext,
 ): Promise<ProjectModel | null> {
 	const existing = await projectRepo.findById(id);
@@ -72,7 +79,12 @@ export async function update(
 	const updated = await projectRepo.update(id, data);
 	if (!updated) return null;
 
-	const diff = auditService.buildDiff(existing, data, ["name", "slug"]);
+	const diff = auditService.buildDiff(existing, data, [
+		"name",
+		"slug",
+		"proxyBaseUrl",
+		"proxyTimeout",
+	]);
 	if (Object.keys(diff).length > 0) {
 		await auditService.log({
 			orgId: existing.orgId,

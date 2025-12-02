@@ -8,6 +8,7 @@ type CreateLogData = {
 	method: string;
 	path: string;
 	status: number;
+	source?: string;
 	requestHeaders: unknown;
 	requestBody: unknown;
 	responseBody: unknown;
@@ -30,6 +31,7 @@ type FindLogsOptions = {
 	method?: string;
 	status?: number;
 	endpointId?: string;
+	source?: string;
 };
 
 export function findByProjectId(options: FindLogsOptions) {
@@ -40,6 +42,7 @@ export function findByProjectId(options: FindLogsOptions) {
 		method,
 		status,
 		endpointId,
+		source,
 	} = options;
 
 	return prisma.requestLog.findMany({
@@ -48,6 +51,7 @@ export function findByProjectId(options: FindLogsOptions) {
 			...(method && { method }),
 			...(status && { status }),
 			...(endpointId && { endpointId }),
+			...(source && { source }),
 		},
 		orderBy: { createdAt: "desc" },
 		take: limit,
@@ -58,7 +62,7 @@ export function findByProjectId(options: FindLogsOptions) {
 export function countByProjectId(
 	options: Omit<FindLogsOptions, "limit" | "offset">,
 ) {
-	const { projectId, method, status, endpointId } = options;
+	const { projectId, method, status, endpointId, source } = options;
 
 	return prisma.requestLog.count({
 		where: {
@@ -66,6 +70,7 @@ export function countByProjectId(
 			...(method && { method }),
 			...(status && { status }),
 			...(endpointId && { endpointId }),
+			...(source && { source }),
 		},
 	});
 }
@@ -91,6 +96,7 @@ export function create(data: CreateLogData) {
 			method: data.method,
 			path: data.path,
 			status: data.status,
+			source: data.source ?? "mock",
 			requestHeaders: data.requestHeaders as Prisma.InputJsonValue,
 			requestBody: toJsonOrDbNull(data.requestBody),
 			responseBody: toJsonOrDbNull(data.responseBody),

@@ -23,9 +23,11 @@ import type {
 	ProjectStatistics,
 	RegisterInput,
 	RequestLog,
+	RequestSource,
 	SampleProjectResult,
 	TokenResponse,
 	UpdateEndpointInput,
+	UpdateProjectInput,
 	UpdateVariantInput,
 	Usage,
 	Variant,
@@ -115,6 +117,16 @@ export async function createProject(
 	});
 }
 
+export async function updateProject(
+	id: string,
+	input: UpdateProjectInput,
+): Promise<Project> {
+	return fetchJson<Project>(`${API_BASE}/api/projects/${id}`, {
+		method: "PATCH",
+		body: JSON.stringify(input),
+	});
+}
+
 export async function deleteProject(id: string): Promise<void> {
 	await fetchVoid(`${API_BASE}/api/projects/${id}`, { method: "DELETE" });
 }
@@ -180,6 +192,7 @@ type GetLogsParams = {
 	method?: string;
 	status?: number;
 	endpointId?: string;
+	source?: RequestSource;
 };
 
 export async function getRequestLogs(
@@ -192,6 +205,7 @@ export async function getRequestLogs(
 	if (params?.method) searchParams.set("method", params.method);
 	if (params?.status) searchParams.set("status", String(params.status));
 	if (params?.endpointId) searchParams.set("endpointId", params.endpointId);
+	if (params?.source) searchParams.set("source", params.source);
 
 	const query = searchParams.toString();
 	const url = `${API_BASE}/api/projects/${projectId}/logs${query ? `?${query}` : ""}`;

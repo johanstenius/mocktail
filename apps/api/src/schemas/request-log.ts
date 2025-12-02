@@ -5,6 +5,8 @@ import {
 	requestLogIdParamSchema,
 } from "./shared";
 
+export const requestSourceSchema = z.enum(["mock", "proxy", "proxy_fallback"]);
+
 export const requestLogSchema = z.object({
 	id: z.string(),
 	projectId: z.string(),
@@ -12,6 +14,7 @@ export const requestLogSchema = z.object({
 	method: z.string(),
 	path: z.string(),
 	status: z.number(),
+	source: requestSourceSchema,
 	requestHeaders: z.unknown(),
 	requestBody: z.unknown(),
 	responseBody: z.unknown(),
@@ -26,6 +29,7 @@ export const requestLogListQuerySchema = z.object({
 	method: z.string().optional(),
 	status: z.coerce.number().optional(),
 	endpointId: z.string().optional(),
+	source: requestSourceSchema.optional(),
 });
 
 export const requestLogListSchema = z.object({

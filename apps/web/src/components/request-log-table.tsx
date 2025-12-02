@@ -1,6 +1,5 @@
 import { getRequestLogs } from "@/lib/api";
-import type { RequestLog } from "@/types";
-import type { HttpMethod } from "@/types";
+import type { HttpMethod, RequestLog, RequestSource } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -11,6 +10,31 @@ import { Select } from "./ui/select";
 type RequestLogTableProps = {
 	projectId: string;
 };
+
+function SourceBadge({ source }: { source: RequestSource }) {
+	const config = {
+		mock: {
+			label: "MOCK",
+			className: "bg-[var(--glow-violet)]/20 text-[var(--glow-violet)]",
+		},
+		proxy: {
+			label: "PROXY",
+			className: "bg-[var(--glow-blue)]/20 text-[var(--glow-blue)]",
+		},
+		proxy_fallback: {
+			label: "PROXY (fallback)",
+			className: "bg-amber-500/20 text-amber-400",
+		},
+	};
+	const { label, className } = config[source] ?? config.mock;
+	return (
+		<span
+			className={`px-2 py-0.5 rounded text-xs font-medium font-mono ${className}`}
+		>
+			{label}
+		</span>
+	);
+}
 
 function LogRow({ log }: { log: RequestLog }) {
 	const [expanded, setExpanded] = useState(false);
@@ -44,13 +68,16 @@ function LogRow({ log }: { log: RequestLog }) {
 				<td className="px-4 py-3">
 					<StatusBadge status={log.status} />
 				</td>
+				<td className="px-4 py-3">
+					<SourceBadge source={log.source} />
+				</td>
 				<td className="px-4 py-3 text-sm text-[var(--color-text-muted)] text-right">
 					{log.duration}ms
 				</td>
 			</tr>
 			{expanded && (
 				<tr className="border-b border-white/5 bg-white/[0.01]">
-					<td colSpan={6} className="p-4">
+					<td colSpan={7} className="p-4">
 						<div className="grid grid-cols-2 gap-4">
 							<div>
 								<h4 className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
@@ -104,18 +131,20 @@ function LogRow({ log }: { log: RequestLog }) {
 export function RequestLogTable({ projectId }: RequestLogTableProps) {
 	const [methodFilter, setMethodFilter] = useState<string>("");
 	const [statusFilter, setStatusFilter] = useState<string>("");
+	const [sourceFilter, setSourceFilter] = useState<string>("");
 
 	const { data, isLoading } = useQuery({
 		queryKey: [
 			"logs",
 			projectId,
-			{ method: methodFilter, status: statusFilter },
+			{ method: methodFilter, status: statusFilter, source: sourceFilter },
 		],
 		queryFn: () =>
 			getRequestLogs(projectId, {
 				limit: 50,
 				method: methodFilter || undefined,
 				status: statusFilter ? Number(statusFilter) : undefined,
+				source: (sourceFilter as RequestSource) || undefined,
 			}),
 		refetchInterval: 5000,
 	});
@@ -150,6 +179,17 @@ export function RequestLogTable({ projectId }: RequestLogTableProps) {
 						<option value="500">5xx</option>
 					</Select>
 				</div>
+				<div className="w-36">
+					<Select
+						value={sourceFilter}
+						onChange={(e) => setSourceFilter(e.target.value)}
+					>
+						<option value="">All Sources</option>
+						<option value="mock">Mock</option>
+						<option value="proxy">Proxy</option>
+						<option value="proxy_fallback">Proxy (fallback)</option>
+					</Select>
+				</div>
 			</div>
 
 			{/* Table */}
@@ -170,6 +210,9 @@ export function RequestLogTable({ projectId }: RequestLogTableProps) {
 							<th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
 								Status
 							</th>
+							<th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
+								Source
+							</th>
 							<th className="px-4 py-3 text-right text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
 								Duration
 							</th>
@@ -179,7 +222,7 @@ export function RequestLogTable({ projectId }: RequestLogTableProps) {
 						{isLoading ? (
 							<tr>
 								<td
-									colSpan={6}
+									colSpan={7}
 									className="px-4 py-12 text-center text-[var(--color-text-muted)]"
 								>
 									Loading...
@@ -188,7 +231,7 @@ export function RequestLogTable({ projectId }: RequestLogTableProps) {
 						) : logs.length === 0 ? (
 							<tr>
 								<td
-									colSpan={6}
+									colSpan={7}
 									className="px-4 py-12 text-center text-[var(--color-text-muted)]"
 								>
 									No requests yet. Make some requests to your mock endpoints.

@@ -28,6 +28,7 @@ function mapEndpointToResponse(endpoint: EndpointModel) {
 		failRate: endpoint.failRate,
 		requestBodySchema: endpoint.requestBodySchema,
 		validationMode: endpoint.validationMode as "none" | "warn" | "strict",
+		proxyEnabled: endpoint.proxyEnabled,
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};
@@ -69,6 +70,7 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 		failRate: body.failRate,
 		requestBodySchema: body.requestBodySchema,
 		validationMode: body.validationMode,
+		proxyEnabled: body.proxyEnabled,
 	});
 
 	if ("error" in result) {

@@ -7,6 +7,7 @@ export type RequestLogModel = {
 	method: string;
 	path: string;
 	status: number;
+	source: string;
 	requestHeaders: unknown;
 	requestBody: unknown;
 	responseBody: unknown;
@@ -22,6 +23,7 @@ export type FindLogsOptions = {
 	method?: string;
 	status?: number;
 	endpointId?: string;
+	source?: string;
 };
 
 export type CreateLogInput = {

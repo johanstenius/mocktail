@@ -83,7 +83,15 @@ export function create(data: {
 	return prisma.project.create({ data });
 }
 
-export function update(id: string, data: { name?: string; slug?: string }) {
+export function update(
+	id: string,
+	data: {
+		name?: string;
+		slug?: string;
+		proxyBaseUrl?: string | null;
+		proxyTimeout?: number;
+	},
+) {
 	return prisma.project.update({
 		where: { id },
 		data,

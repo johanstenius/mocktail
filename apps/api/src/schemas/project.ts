@@ -6,6 +6,8 @@ export const projectSchema = z.object({
 	name: z.string(),
 	slug: z.string(),
 	apiKey: z.string().nullable(),
+	proxyBaseUrl: z.string().nullable(),
+	proxyTimeout: z.number(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -17,11 +19,15 @@ export const createProjectSchema = z.object({
 		.min(1)
 		.max(50)
 		.regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with dashes"),
+	proxyBaseUrl: z.string().url().nullable().optional(),
+	proxyTimeout: z.number().int().min(1000).max(120000).optional(),
 });
 
 export const updateProjectSchema = z.object({
 	name: z.string().min(1).max(100).optional(),
 	apiKey: z.string().nullable().optional(),
+	proxyBaseUrl: z.string().url().nullable().optional(),
+	proxyTimeout: z.number().int().min(1000).max(120000).optional(),
 });
 
 export const projectListSchema = z.object({

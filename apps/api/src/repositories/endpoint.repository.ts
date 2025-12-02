@@ -7,6 +7,7 @@ type CreateEndpointData = {
 	path: string;
 	requestBodySchema?: unknown;
 	validationMode?: string;
+	proxyEnabled?: boolean;
 };
 
 type UpdateEndpointData = Partial<Omit<CreateEndpointData, "projectId">>;
@@ -49,6 +50,7 @@ export function create(data: CreateEndpointData) {
 			requestBodySchema:
 				(data.requestBodySchema as Prisma.InputJsonValue) ?? {},
 			validationMode: data.validationMode ?? "none",
+			proxyEnabled: data.proxyEnabled ?? false,
 		},
 	});
 }
@@ -63,6 +65,9 @@ export function update(id: string, data: UpdateEndpointData) {
 				requestBodySchema: data.requestBodySchema as Prisma.InputJsonValue,
 			}),
 			...(data.validationMode && { validationMode: data.validationMode }),
+			...(data.proxyEnabled !== undefined && {
+				proxyEnabled: data.proxyEnabled,
+			}),
 		},
 	});
 }
