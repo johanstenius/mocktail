@@ -7,6 +7,8 @@ export const oauthRouter = new OpenAPIHono();
 
 // GitHub OAuth
 oauthRouter.get("/github", async (c) => {
+	const inviteToken = c.req.query("invite_token");
+
 	const githubAuthUrl = new URL("https://github.com/login/oauth/authorize");
 	githubAuthUrl.searchParams.set("client_id", config.githubClientId);
 	githubAuthUrl.searchParams.set("scope", "user:email");
@@ -14,6 +16,9 @@ oauthRouter.get("/github", async (c) => {
 		"redirect_uri",
 		`${config.apiUrl}/auth/github/callback`,
 	);
+	if (inviteToken) {
+		githubAuthUrl.searchParams.set("state", inviteToken);
+	}
 
 	return c.redirect(githubAuthUrl.toString());
 });
@@ -21,6 +26,7 @@ oauthRouter.get("/github", async (c) => {
 oauthRouter.get("/github/callback", async (c) => {
 	const code = c.req.query("code");
 	const error = c.req.query("error");
+	const inviteToken = c.req.query("state");
 
 	if (error || !code) {
 		const errorMsg = error || "No code provided";
@@ -30,7 +36,7 @@ oauthRouter.get("/github/callback", async (c) => {
 	}
 
 	try {
-		const result = await oauthService.exchangeGitHubCode(code);
+		const result = await oauthService.exchangeGitHubCode(code, inviteToken);
 
 		if (result.type === "pending_onboarding") {
 			const params = new URLSearchParams({
@@ -56,6 +62,8 @@ oauthRouter.get("/github/callback", async (c) => {
 
 // Google OAuth
 oauthRouter.get("/google", async (c) => {
+	const inviteToken = c.req.query("invite_token");
+
 	const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 	googleAuthUrl.searchParams.set("client_id", config.googleClientId);
 	googleAuthUrl.searchParams.set("response_type", "code");
@@ -64,6 +72,9 @@ oauthRouter.get("/google", async (c) => {
 		`${config.apiUrl}/auth/google/callback`,
 	);
 	googleAuthUrl.searchParams.set("scope", "openid email profile");
+	if (inviteToken) {
+		googleAuthUrl.searchParams.set("state", inviteToken);
+	}
 
 	return c.redirect(googleAuthUrl.toString());
 });
@@ -71,6 +82,7 @@ oauthRouter.get("/google", async (c) => {
 oauthRouter.get("/google/callback", async (c) => {
 	const code = c.req.query("code");
 	const error = c.req.query("error");
+	const inviteToken = c.req.query("state");
 
 	if (error || !code) {
 		const errorMsg = error || "No code provided";
@@ -80,7 +92,7 @@ oauthRouter.get("/google/callback", async (c) => {
 	}
 
 	try {
-		const result = await oauthService.exchangeGoogleCode(code);
+		const result = await oauthService.exchangeGoogleCode(code, inviteToken);
 
 		if (result.type === "pending_onboarding") {
 			const params = new URLSearchParams({

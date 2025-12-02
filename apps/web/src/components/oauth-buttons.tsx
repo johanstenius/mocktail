@@ -2,13 +2,25 @@ import { Button } from "@/components/ui/button";
 import { API_URL } from "@/lib/config";
 import { Github } from "lucide-react";
 
-export function OAuthButtons() {
+type OAuthButtonsProps = {
+	inviteToken?: string;
+};
+
+export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
 	const handleGitHubLogin = () => {
-		window.location.href = `${API_URL}/auth/github`;
+		const url = new URL(`${API_URL}/auth/github`);
+		if (inviteToken) {
+			url.searchParams.set("invite_token", inviteToken);
+		}
+		window.location.href = url.toString();
 	};
 
 	const handleGoogleLogin = () => {
-		window.location.href = `${API_URL}/auth/google`;
+		const url = new URL(`${API_URL}/auth/google`);
+		if (inviteToken) {
+			url.searchParams.set("invite_token", inviteToken);
+		}
+		window.location.href = url.toString();
 	};
 
 	return (

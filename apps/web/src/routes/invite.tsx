@@ -226,7 +226,7 @@ function InvitePage() {
 
 							{needsPassword && (
 								<>
-									<OAuthButtons />
+									<OAuthButtons inviteToken={token} />
 
 									<div className="space-y-2">
 										<Label htmlFor="password">Create password</Label>

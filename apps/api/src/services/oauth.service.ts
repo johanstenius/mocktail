@@ -78,7 +78,10 @@ async function fetchGoogleUser(accessToken: string): Promise<GoogleUser> {
 	return response.json();
 }
 
-export async function exchangeGitHubCode(code: string): Promise<OAuthResult> {
+export async function exchangeGitHubCode(
+	code: string,
+	inviteToken?: string,
+): Promise<OAuthResult> {
 	const tokenResponse = await fetch(
 		"https://github.com/login/oauth/access_token",
 		{
@@ -114,10 +117,13 @@ export async function exchangeGitHubCode(code: string): Promise<OAuthResult> {
 		name: githubUser.name || githubUser.login,
 	};
 
-	return handleOAuthCallback(profile);
+	return handleOAuthCallback(profile, inviteToken);
 }
 
-export async function exchangeGoogleCode(code: string): Promise<OAuthResult> {
+export async function exchangeGoogleCode(
+	code: string,
+	inviteToken?: string,
+): Promise<OAuthResult> {
 	const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
 		method: "POST",
 		headers: {
@@ -151,11 +157,12 @@ export async function exchangeGoogleCode(code: string): Promise<OAuthResult> {
 		name: googleUser.name,
 	};
 
-	return handleOAuthCallback(profile);
+	return handleOAuthCallback(profile, inviteToken);
 }
 
 async function handleOAuthCallback(
 	profile: OAuthUserProfile,
+	inviteToken?: string,
 ): Promise<OAuthResult> {
 	// 1. Check if user exists by OAuth provider (returning user)
 	const existingOAuthUser = await userRepo.findByOAuthProvider(
@@ -164,6 +171,29 @@ async function handleOAuthCallback(
 	);
 
 	if (existingOAuthUser) {
+		// If invite token provided, try to accept invite for existing user
+		if (inviteToken) {
+			const invite = await inviteRepo.findByToken(inviteToken);
+			if (invite && invite.email === profile.email) {
+				await inviteRepo.acceptForExistingUser(
+					invite.id,
+					existingOAuthUser.id,
+					invite.orgId,
+					invite.role,
+				);
+				const tokens = await tokenService.generateTokenPair(
+					existingOAuthUser.id,
+					invite.orgId,
+				);
+				return {
+					type: "login",
+					...tokens,
+					userId: existingOAuthUser.id,
+					orgId: invite.orgId,
+				};
+			}
+		}
+
 		const membership = await orgRepo.findMembershipsByUserId(
 			existingOAuthUser.id,
 		);
@@ -197,30 +227,30 @@ async function handleOAuthCallback(
 		);
 	}
 
-	// 3. Check for pending invite
-	const pendingInvite = await inviteRepo.findActiveByEmail(profile.email);
-	if (pendingInvite) {
+	// 3. Check for invite (explicit token or by email)
+	const invite = inviteToken
+		? await inviteRepo.findByToken(inviteToken)
+		: await inviteRepo.findActiveByEmail(profile.email);
+
+	if (invite && invite.email === profile.email) {
 		// Create OAuth user and accept invite atomically
 		const { user } = await inviteRepo.acceptWithOAuthUser(
-			pendingInvite.id,
+			invite.id,
 			{
 				email: profile.email,
 				name: profile.name,
 				oauthProvider: profile.provider,
 				oauthId: profile.oauthId,
 			},
-			pendingInvite.orgId,
-			pendingInvite.role,
+			invite.orgId,
+			invite.role,
 		);
-		const tokens = await tokenService.generateTokenPair(
-			user.id,
-			pendingInvite.orgId,
-		);
+		const tokens = await tokenService.generateTokenPair(user.id, invite.orgId);
 		return {
 			type: "login",
 			...tokens,
 			userId: user.id,
-			orgId: pendingInvite.orgId,
+			orgId: invite.orgId,
 		};
 	}
 
