@@ -1,6 +1,6 @@
 import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
 import { verifyEmail } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/verify-email")({
 function VerifyEmailPage() {
 	const { token } = Route.useSearch();
 	const navigate = useNavigate();
+	const { refreshUser } = useAuth();
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [isSuccess, setIsSuccess] = useState(false);
@@ -31,8 +32,10 @@ function VerifyEmailPage() {
 		}
 
 		verifyEmail(token)
-			.then(() => {
+			.then(async () => {
+				await refreshUser();
 				setIsSuccess(true);
+				setTimeout(() => navigate({ to: "/dashboard" }), 1500);
 			})
 			.catch((err) => {
 				setError(getErrorMessage(err));
@@ -40,7 +43,7 @@ function VerifyEmailPage() {
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [token]);
+	}, [token, refreshUser, navigate]);
 
 	return (
 		<div className="min-h-screen flex flex-col">
@@ -71,12 +74,9 @@ function VerifyEmailPage() {
 								<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
 									Email verified!
 								</h1>
-								<p className="text-[var(--text-secondary)] mb-6">
-									Your email has been successfully verified.
+								<p className="text-[var(--text-secondary)]">
+									Redirecting to dashboard...
 								</p>
-								<Button onClick={() => navigate({ to: "/dashboard" })}>
-									Go to Dashboard
-								</Button>
 							</>
 						) : (
 							<>

@@ -34,24 +34,33 @@ type AuthContextValue = AuthState & {
 		org: AuthOrg,
 		role?: string,
 	) => void;
+	refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKEN_KEY = "mocktail_tokens";
 
-function getStoredTokens(): TokenResponse | null {
+type StoredTokens = TokenResponse & { emailVerifiedAt?: string | null };
+
+function getStoredTokens(): StoredTokens | null {
 	const stored = localStorage.getItem(TOKEN_KEY);
 	if (!stored) return null;
 	try {
-		return JSON.parse(stored) as TokenResponse;
+		return JSON.parse(stored) as StoredTokens;
 	} catch {
 		return null;
 	}
 }
 
-function storeTokens(tokens: TokenResponse): void {
-	localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+function storeTokens(
+	tokens: TokenResponse,
+	emailVerifiedAt?: string | null,
+): void {
+	localStorage.setItem(
+		TOKEN_KEY,
+		JSON.stringify({ ...tokens, emailVerifiedAt }),
+	);
 }
 
 function clearTokens(): void {
@@ -82,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				refreshToken,
 				expiresIn: Number(expiresIn),
 			};
-			storeTokens(tokens);
+			storeTokens(tokens, null);
 			// Clean URL params
 			window.history.replaceState({}, document.title, window.location.pathname);
 		}
@@ -103,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 		try {
 			const me: MeResponse = await api.getMe(tokens.accessToken);
+			storeTokens(tokens, me.emailVerifiedAt);
 			setState({
 				user: {
 					id: me.id,
@@ -120,8 +130,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			// Token might be expired, try refresh
 			try {
 				const newTokens = await api.refreshTokens(tokens.refreshToken);
-				storeTokens(newTokens);
 				const me = await api.getMe(newTokens.accessToken);
+				storeTokens(newTokens, me.emailVerifiedAt);
 				setState({
 					user: {
 						id: me.id,
@@ -156,8 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const login = useCallback(async (email: string, password: string) => {
 		const response = await api.login({ email, password });
-		storeTokens(response.tokens);
 		const me = await api.getMe(response.tokens.accessToken);
+		storeTokens(response.tokens, me.emailVerifiedAt);
 		setState({
 			user: response.user,
 			org: response.org,
@@ -172,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const register = useCallback(
 		async (email: string, password: string, organization: string) => {
 			const response = await api.register({ email, password, organization });
-			storeTokens(response.tokens);
+			storeTokens(response.tokens, null);
 			setState({
 				user: response.user,
 				org: response.org,
@@ -212,7 +222,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	const setTokens = useCallback(
 		(tokens: TokenResponse, user: AuthUser, org: AuthOrg, role?: string) => {
-			storeTokens(tokens);
+			storeTokens(tokens, user.emailVerifiedAt);
 			setState({
 				user,
 				org,
@@ -226,6 +236,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[],
 	);
 
+	const refreshUser = useCallback(async () => {
+		const tokens = getStoredTokens();
+		if (!tokens) return;
+		const me = await api.getMe(tokens.accessToken);
+		storeTokens(tokens, me.emailVerifiedAt);
+		setState((prev) => ({
+			...prev,
+			emailVerifiedAt: me.emailVerifiedAt,
+			user: prev.user
+				? { ...prev.user, emailVerifiedAt: me.emailVerifiedAt }
+				: null,
+		}));
+	}, []);
+
 	return (
 		<AuthContext.Provider
 			value={{
@@ -235,6 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				logout,
 				setOnboardingComplete,
 				setTokens,
+				refreshUser,
 			}}
 		>
 			{children}
