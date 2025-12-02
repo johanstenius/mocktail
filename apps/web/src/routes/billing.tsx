@@ -17,7 +17,7 @@ import {
 	retryPayment,
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { requireAuth } from "@/lib/route-guards";
+import { requireAuth, requireBilling } from "@/lib/route-guards";
 import type { Tier } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -39,7 +39,10 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
-	beforeLoad: requireAuth,
+	beforeLoad: () => {
+		requireBilling();
+		requireAuth();
+	},
 	component: BillingPage,
 	validateSearch: (search: Record<string, unknown>) => {
 		const result: { success?: boolean; canceled?: boolean } = {};

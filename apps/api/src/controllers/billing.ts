@@ -1,4 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { config } from "../config";
 import type { AuthVariables } from "../middleware/auth";
 import { getAuth, requireRole } from "../middleware/auth";
 import * as orgRepo from "../repositories/organization.repository";
@@ -16,6 +17,14 @@ import { badRequest, notFound } from "../utils/errors";
 import { logger } from "../utils/logger";
 
 export const billingRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
+
+// Block all billing routes except webhook when billing disabled
+billingRouter.use("/*", async (c, next) => {
+	if (!config.billingEnabled && !c.req.path.endsWith("/webhook")) {
+		return c.json({ error: "Billing is disabled" }, 404);
+	}
+	await next();
+});
 
 // Role checks for admin-only routes
 billingRouter.use("/checkout", requireRole("admin", "owner"));

@@ -5,6 +5,8 @@ export const config = {
 	isProduction: process.env.NODE_ENV === "production",
 	appUrl: process.env.APP_URL || "http://localhost:3000",
 	apiUrl: process.env.API_URL || "http://localhost:4000",
+	// Feature flags
+	billingEnabled: process.env.BILLING_ENABLED !== "false",
 	// Stripe
 	stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
 	stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
