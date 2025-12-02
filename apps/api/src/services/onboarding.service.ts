@@ -8,10 +8,7 @@ import { conflict } from "../utils/errors";
 import { ensureUniqueOrgSlug, slugify } from "../utils/slug";
 import * as auditService from "./audit.service";
 import type { AuditContext } from "./audit.service";
-import {
-	type OAuthPendingPayload,
-	verifyOAuthPendingToken,
-} from "./oauth-pending-token";
+import { consumeOAuthPendingToken } from "./oauth-pending-token";
 import * as tokenService from "./token.service";
 
 export async function createOrganization(
@@ -73,7 +70,8 @@ export async function completeOAuthOnboarding(
 	organizationName: string,
 	ctx?: AuditContext,
 ): Promise<CompleteOAuthOnboardingResult> {
-	const payload = await verifyOAuthPendingToken(oauthToken);
+	// Consume token - this deletes it from DB making it single-use
+	const payload = await consumeOAuthPendingToken(oauthToken);
 
 	const baseSlug = slugify(organizationName);
 	const slug = await ensureUniqueOrgSlug(baseSlug);

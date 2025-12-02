@@ -16,42 +16,34 @@ import type { TokenResponse } from "@/types";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
+import { z } from "zod";
+
+const onboardingSearchSchema = z.object({
+	oauth_token: z.string().optional(),
+	suggested_org_name: z.string().optional(),
+});
 
 export const Route = createFileRoute("/onboarding")({
+	validateSearch: onboardingSearchSchema,
 	component: OnboardingPage,
 });
 
 function OnboardingPage() {
 	const navigate = useNavigate();
+	const { oauth_token, suggested_org_name } = Route.useSearch();
 	const { setTokens, setOnboardingComplete } = useAuth();
-	const [organization, setOrganization] = useState("");
+	const [organization, setOrganization] = useState(suggested_org_name ?? "");
 	const [error, setError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [isInitializing, setIsInitializing] = useState(true);
-	const [oauthToken, setOauthToken] = useState<string | null>(null);
 
 	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const oauthTokenParam = params.get("oauth_token");
-		const suggestedOrgName = params.get("suggested_org_name");
-
-		if (oauthTokenParam) {
-			setOauthToken(oauthTokenParam);
-			if (suggestedOrgName) {
-				setOrganization(suggestedOrgName);
-			}
-			window.history.replaceState({}, document.title, "/onboarding");
-			setIsInitializing(false);
-		} else {
-			// No OAuth token and no existing auth - redirect to login
+		if (!oauth_token) {
 			const tokens = localStorage.getItem("mocktail_tokens");
 			if (!tokens || !JSON.parse(tokens).accessToken) {
 				navigate({ to: "/login" });
-				return;
 			}
-			setIsInitializing(false);
 		}
-	}, [navigate]);
+	}, [oauth_token, navigate]);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
@@ -59,10 +51,9 @@ function OnboardingPage() {
 		setIsLoading(true);
 
 		try {
-			if (oauthToken) {
-				// OAuth flow - complete onboarding with pending token
+			if (oauth_token) {
 				const result = await api.completeOAuthOnboarding(
-					oauthToken,
+					oauth_token,
 					organization,
 				);
 				const tokens: TokenResponse = {
@@ -82,7 +73,6 @@ function OnboardingPage() {
 				setOnboardingComplete();
 				navigate({ to: "/dashboard" });
 			} else {
-				// Legacy authenticated flow
 				const tokens = JSON.parse(
 					localStorage.getItem("mocktail_tokens") || "{}",
 				) as TokenResponse;
@@ -117,12 +107,15 @@ function OnboardingPage() {
 		}
 	}
 
-	if (isInitializing) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
-			</div>
-		);
+	if (!oauth_token) {
+		const tokens = localStorage.getItem("mocktail_tokens");
+		if (!tokens || !JSON.parse(tokens).accessToken) {
+			return (
+				<div className="min-h-screen flex items-center justify-center">
+					<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+				</div>
+			);
+		}
 	}
 
 	return (

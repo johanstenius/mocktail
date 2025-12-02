@@ -182,12 +182,13 @@ model ResponseVariant {
   isDefault  Boolean @default(false)
 
   // Response config
-  status   Int    @default(200)
-  headers  Json   @default("{}")
-  body     Json   @default("{}")
-  bodyType String @default("static") // "static" | "template"
-  delay    Int    @default(0) // ms
-  failRate Int    @default(0) // 0-100 percentage
+  status    Int    @default(200)
+  headers   Json   @default("{}")
+  body      Json   @default("{}")
+  bodyType  String @default("static") // "static" | "template"
+  delay     Int    @default(0) // ms
+  delayType String @default("fixed") // "fixed" | "random"
+  failRate  Int    @default(0) // 0-100 percentage
 
   // Match rules
   rules     Json   @default("[]")
@@ -293,4 +294,18 @@ model AuditLog {
   @@index([orgId, createdAt])
   @@index([actorId])
   @@index([action])
+}
+
+model OAuthPendingToken {
+  id        String        @id @default(cuid())
+  token     String        @unique
+  provider  OAuthProvider
+  oauthId   String
+  email     String
+  name      String
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
 }

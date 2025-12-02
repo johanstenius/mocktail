@@ -5,6 +5,7 @@ import * as orgRepo from "../repositories/organization.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
 import * as tokenRepo from "../repositories/token.repository";
 import { logger } from "../utils/logger";
+import { cleanupExpiredOAuthTokens } from "./oauth-pending-token";
 
 export type OrgCleanupResult = {
 	orgId: string;
@@ -71,11 +72,15 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 			}
 		}
 
-		const [expiredVerificationTokens, expiredPasswordResets] =
-			await Promise.all([
-				tokenRepo.removeExpiredEmailVerifications(),
-				tokenRepo.removeExpiredPasswordResets(),
-			]);
+		const [
+			expiredVerificationTokens,
+			expiredPasswordResets,
+			expiredOAuthTokens,
+		] = await Promise.all([
+			tokenRepo.removeExpiredEmailVerifications(),
+			tokenRepo.removeExpiredPasswordResets(),
+			cleanupExpiredOAuthTokens(),
+		]);
 
 		logger.info(
 			{
@@ -85,6 +90,7 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 				expiredTokens: {
 					emailVerification: expiredVerificationTokens.count,
 					passwordReset: expiredPasswordResets.count,
+					oauthPending: expiredOAuthTokens,
 				},
 			},
 			"log cleanup completed",
@@ -96,6 +102,7 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 			expiredTokens: {
 				emailVerification: expiredVerificationTokens.count,
 				passwordReset: expiredPasswordResets.count,
+				oauthPending: expiredOAuthTokens,
 			},
 		});
 

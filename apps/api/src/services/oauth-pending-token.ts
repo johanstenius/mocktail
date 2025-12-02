@@ -1,5 +1,5 @@
-import { SignJWT, jwtVerify } from "jose";
-import { AUTH_CONFIG } from "../config/auth";
+import { randomBytes } from "node:crypto";
+import { prisma } from "../repositories/db/prisma";
 import { badRequest } from "../utils/errors";
 import type { OAuthProvider } from "./oauth.service";
 
@@ -10,54 +10,63 @@ export type OAuthPendingPayload = {
 	name: string;
 };
 
-type JWTPayload = OAuthPendingPayload & { type: "oauth_pending" };
+const PENDING_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
-const PENDING_TOKEN_EXPIRY = 15 * 60; // 15 minutes
-
-function getSecret(): Uint8Array {
-	return new TextEncoder().encode(AUTH_CONFIG.jwtSecret);
+function generateToken(): string {
+	return randomBytes(32).toString("base64url");
 }
 
-export async function signOAuthPendingToken(
+export async function createOAuthPendingToken(
 	payload: OAuthPendingPayload,
 ): Promise<string> {
-	const jwtPayload: JWTPayload = { ...payload, type: "oauth_pending" };
-	return new SignJWT(jwtPayload as unknown as Record<string, unknown>)
-		.setProtectedHeader({ alg: "HS256" })
-		.setIssuedAt()
-		.setExpirationTime(`${PENDING_TOKEN_EXPIRY}s`)
-		.sign(getSecret());
-}
+	const token = generateToken();
+	const expiresAt = new Date(Date.now() + PENDING_TOKEN_EXPIRY_MS);
 
-export async function verifyOAuthPendingToken(
-	token: string,
-): Promise<OAuthPendingPayload> {
-	try {
-		const { payload } = await jwtVerify(token, getSecret());
-
-		if (payload.type !== "oauth_pending") {
-			throw badRequest("Invalid OAuth pending token");
-		}
-
-		if (
-			typeof payload.provider !== "string" ||
-			typeof payload.oauthId !== "string" ||
-			typeof payload.email !== "string" ||
-			typeof payload.name !== "string"
-		) {
-			throw badRequest("Invalid OAuth pending token payload");
-		}
-
-		return {
-			provider: payload.provider as OAuthProvider,
+	await prisma.oAuthPendingToken.create({
+		data: {
+			token,
+			provider: payload.provider,
 			oauthId: payload.oauthId,
 			email: payload.email,
 			name: payload.name,
-		};
-	} catch (error) {
-		if (error instanceof Error && error.message.includes("expired")) {
-			throw badRequest("OAuth session expired. Please try again.");
-		}
-		throw badRequest("Invalid OAuth pending token");
+			expiresAt,
+		},
+	});
+
+	return token;
+}
+
+export async function consumeOAuthPendingToken(
+	token: string,
+): Promise<OAuthPendingPayload> {
+	const pending = await prisma.oAuthPendingToken.findUnique({
+		where: { token },
+	});
+
+	if (!pending) {
+		throw badRequest("Invalid or already used OAuth token");
 	}
+
+	if (pending.expiresAt < new Date()) {
+		await prisma.oAuthPendingToken.delete({ where: { id: pending.id } });
+		throw badRequest("OAuth session expired. Please try again.");
+	}
+
+	// Delete token to make it single-use
+	await prisma.oAuthPendingToken.delete({ where: { id: pending.id } });
+
+	return {
+		provider: pending.provider,
+		oauthId: pending.oauthId,
+		email: pending.email,
+		name: pending.name,
+	};
+}
+
+// Cleanup expired tokens (call periodically)
+export async function cleanupExpiredOAuthTokens(): Promise<number> {
+	const result = await prisma.oAuthPendingToken.deleteMany({
+		where: { expiresAt: { lt: new Date() } },
+	});
+	return result.count;
 }

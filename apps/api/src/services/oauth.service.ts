@@ -3,7 +3,7 @@ import * as inviteRepo from "../repositories/invite.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import { badRequest, unauthorized } from "../utils/errors";
-import { signOAuthPendingToken } from "./oauth-pending-token";
+import { createOAuthPendingToken } from "./oauth-pending-token";
 import * as tokenService from "./token.service";
 
 export type OAuthProvider = "github" | "google";
@@ -169,7 +169,7 @@ async function handleOAuthCallback(
 		);
 		if (membership.length === 0) {
 			// Existing OAuth user but no org - send to onboarding
-			const pendingToken = await signOAuthPendingToken(profile);
+			const pendingToken = await createOAuthPendingToken(profile);
 			return {
 				type: "pending_onboarding",
 				pendingToken,
@@ -224,8 +224,8 @@ async function handleOAuthCallback(
 		};
 	}
 
-	// 4. New user, no invite - sign pending token for onboarding
-	const pendingToken = await signOAuthPendingToken(profile);
+	// 4. New user, no invite - create pending token for onboarding
+	const pendingToken = await createOAuthPendingToken(profile);
 	return {
 		type: "pending_onboarding",
 		pendingToken,
