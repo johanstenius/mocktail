@@ -1,6 +1,8 @@
 import { createProject } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import type { Project } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -28,17 +30,19 @@ export function CreateProjectModal({
 	const [slug, setSlug] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
+	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 
 	const mutation = useMutation({
 		mutationFn: createProject,
-		onSuccess: () => {
+		onSuccess: (project: Project) => {
 			queryClient.invalidateQueries({ queryKey: ["projects"] });
 			onOpenChange(false);
 			setName("");
 			setSlug("");
 			setError(null);
 			toast.success("Project created");
+			navigate({ to: "/project/$id", params: { id: project.id } });
 		},
 		onError: (err: unknown) => {
 			setError(getErrorMessage(err));
@@ -91,7 +95,7 @@ export function CreateProjectModal({
 								placeholder="my-api"
 								value={slug}
 								onChange={(e) => setSlug(e.target.value)}
-								pattern="^[a-z0-9-]+$"
+								pattern="^[a-z0-9\-]+$"
 								required
 							/>
 							<p className="text-xs text-[var(--color-text-subtle)]">
