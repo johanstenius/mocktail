@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { requireAuth } from "@/lib/route-guards";
+import { createSSEConnection } from "@/lib/sse";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
 import type {
 	Endpoint,
@@ -40,7 +41,7 @@ import {
 	TrendingUp,
 	Upload,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/project/$id")({
@@ -661,12 +662,37 @@ function ProjectDetailPage() {
 		enabled: isAuthenticated,
 	});
 
+	const queryClient = useQueryClient();
+
 	const { data: statistics } = useQuery({
 		queryKey: ["statistics", projectId],
 		queryFn: () => getProjectStatistics(projectId),
-		refetchInterval: 5000,
 		enabled: isAuthenticated,
 	});
+
+	// SSE subscription for real-time stats updates
+	useEffect(() => {
+		if (!isAuthenticated || !projectId) return;
+
+		let connection: ReturnType<typeof createSSEConnection> | null = null;
+		try {
+			connection = createSSEConnection("project", projectId);
+
+			connection.on("stats.initial", (payload) => {
+				queryClient.setQueryData(["statistics", projectId], payload);
+			});
+
+			connection.on("stats.updated", () => {
+				queryClient.invalidateQueries({ queryKey: ["statistics", projectId] });
+			});
+		} catch {
+			// SSE connection failed, stats will be fetched once via React Query
+		}
+
+		return () => {
+			connection?.close();
+		};
+	}, [isAuthenticated, projectId, queryClient]);
 
 	const statsMap = new Map(
 		statistics?.endpoints.map((s) => [s.endpointId, s]) ?? [],

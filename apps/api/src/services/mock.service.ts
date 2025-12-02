@@ -1,3 +1,5 @@
+import { eventBus } from "../events/event-bus";
+import { createEvent } from "../events/types";
 import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
 import { findBestMatch } from "../utils/path-matcher";
@@ -132,6 +134,7 @@ export async function handleMockRequest(
 			duration,
 		});
 
+		emitStatsUpdate(project.id, null);
 		return { success: false, error: "endpoint_not_found" };
 	}
 
@@ -179,6 +182,7 @@ export async function handleMockRequest(
 			duration,
 		});
 
+		emitStatsUpdate(project.id, endpoint.id);
 		return { success: false, error: "endpoint_not_found" };
 	}
 
@@ -215,6 +219,7 @@ export async function handleMockRequest(
 					duration,
 				});
 
+				emitStatsUpdate(project.id, endpoint.id);
 				return {
 					success: true,
 					response: {
@@ -289,6 +294,7 @@ export async function handleMockRequest(
 		duration,
 	});
 
+	emitStatsUpdate(project.id, endpoint.id);
 	return {
 		success: true,
 		response: { status, headers, body: responseBody },
@@ -345,6 +351,7 @@ async function handleProxyRequest(
 			duration: proxyResult.duration,
 		});
 
+		emitStatsUpdate(project.id, endpointId);
 		return {
 			success: true,
 			response: {
@@ -378,6 +385,7 @@ async function handleProxyRequest(
 		duration: proxyResult.duration,
 	});
 
+	emitStatsUpdate(project.id, endpointId);
 	return {
 		success: true,
 		response: {
@@ -408,4 +416,12 @@ function interpolateParams(
 		return result;
 	}
 	return obj;
+}
+
+function emitStatsUpdate(projectId: string, endpointId: string | null): void {
+	const event = createEvent("stats.updated", "project", projectId, {
+		projectId,
+		endpointId,
+	});
+	eventBus.emitDebounced(event, 500);
 }

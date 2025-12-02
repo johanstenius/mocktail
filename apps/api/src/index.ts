@@ -8,6 +8,7 @@ import { authRouter } from "./controllers/auth";
 import { billingRouter } from "./controllers/billing";
 import { dashboardRouter } from "./controllers/dashboard";
 import { endpointsRouter } from "./controllers/endpoints";
+import { eventsRouter } from "./controllers/events";
 import { importRouter } from "./controllers/import";
 import { invitesRouter } from "./controllers/invites";
 import { membersRouter } from "./controllers/members";
@@ -56,6 +57,8 @@ const PUBLIC_ROUTES = [
 	"/api/billing/webhook",
 	// OAuth onboarding
 	"/api/onboarding/complete-oauth",
+	// SSE events (auth via query param)
+	"/api/events/*",
 ];
 
 app.use(
@@ -86,6 +89,7 @@ app.route("/api", auditRouter);
 app.route("/api/invites", invitesRouter);
 app.route("/api/onboarding", onboardingRouter);
 app.route("/api/dashboard", dashboardRouter);
+app.route("/api/events", eventsRouter);
 
 // Mock server routes
 app.route("/mock", mockRouter);
