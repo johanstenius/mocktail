@@ -1,5 +1,9 @@
 [build]
 builder = "nixpacks"
+buildCommand = "pnpm build"
+
+[build.envs]
+NODE_ENV = "production"
 
 [deploy]
 healthcheckPath = "/"
