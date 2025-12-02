@@ -3,29 +3,26 @@ import { BILLING_ENABLED } from "./config";
 
 const TOKEN_KEY = "mocktail_tokens";
 
-type StoredData = {
+type StoredTokens = {
 	accessToken?: string;
-	emailVerifiedAt?: string | null;
 };
 
-function getStoredData(): StoredData | null {
+function getStoredTokens(): StoredTokens | null {
 	const stored = localStorage.getItem(TOKEN_KEY);
 	if (!stored) return null;
 	try {
-		return JSON.parse(stored) as StoredData;
+		return JSON.parse(stored) as StoredTokens;
 	} catch {
 		return null;
 	}
 }
 
 export function requireAuth() {
-	const data = getStoredData();
-	if (!data?.accessToken) {
+	const tokens = getStoredTokens();
+	if (!tokens?.accessToken) {
 		throw redirect({ to: "/login" });
 	}
-	if (!data.emailVerifiedAt) {
-		throw redirect({ to: "/check-email" });
-	}
+	// Email verification is checked in AuthProvider after /me returns
 }
 
 export function requireBilling() {

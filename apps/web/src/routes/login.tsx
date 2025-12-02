@@ -21,12 +21,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-	const {
-		login,
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-	} = useAuth();
+	const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -42,11 +37,7 @@ function LoginPage() {
 	}
 
 	if (isAuthenticated) {
-		if (!emailVerifiedAt) {
-			navigate({ to: "/check-email" });
-		} else {
-			navigate({ to: "/dashboard" });
-		}
+		navigate({ to: "/dashboard" });
 		return null;
 	}
 

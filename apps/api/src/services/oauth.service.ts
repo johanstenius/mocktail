@@ -171,6 +171,11 @@ async function handleOAuthCallback(
 	);
 
 	if (existingOAuthUser) {
+		// Backfill emailVerifiedAt for OAuth users created before this was set
+		if (!existingOAuthUser.emailVerifiedAt) {
+			await userRepo.updateEmailVerifiedAt(existingOAuthUser.id, new Date());
+		}
+
 		// If invite token provided, try to accept invite for existing user
 		if (inviteToken) {
 			const invite = await inviteRepo.findByToken(inviteToken);
