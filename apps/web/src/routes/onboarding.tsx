@@ -61,14 +61,16 @@ function OnboardingPage() {
 					refreshToken: result.refreshToken,
 					expiresIn: result.expiresIn,
 				};
+				const me = await api.getMe(tokens.accessToken);
 				setTokens(
 					tokens,
 					{
-						id: result.user.id,
-						email: result.user.email,
-						emailVerifiedAt: new Date().toISOString(),
+						id: me.id,
+						email: me.email,
+						emailVerifiedAt: me.emailVerifiedAt,
 					},
 					result.org,
+					me.role,
 				);
 				setOnboardingComplete();
 				navigate({ to: "/dashboard" });
@@ -96,6 +98,7 @@ function OnboardingPage() {
 						name: org.name,
 						slug: org.slug,
 					},
+					me.role,
 				);
 				setOnboardingComplete();
 				navigate({ to: "/dashboard" });
