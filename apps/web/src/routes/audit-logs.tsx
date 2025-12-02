@@ -239,6 +239,7 @@ function AuditLogsPage() {
 		<main className="flex-1 flex flex-col overflow-hidden">
 			<PageHeader
 				title="Audit Logs"
+				icon={<FileText className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
 					<div className="flex items-center gap-2">
 						<Button

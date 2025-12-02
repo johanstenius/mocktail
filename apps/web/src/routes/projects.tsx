@@ -19,7 +19,7 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FolderPlus, Loader2, Plus, Trash2 } from "lucide-react";
+import { FolderOpen, FolderPlus, Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -191,6 +191,7 @@ function ProjectsPage() {
 		<main className="flex-1 flex flex-col overflow-hidden">
 			<PageHeader
 				title="Projects"
+				icon={<FolderOpen className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
 					<Button
 						onClick={() => setCreateModalOpen(true)}

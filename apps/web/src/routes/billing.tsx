@@ -418,7 +418,10 @@ function BillingPage() {
 				}}
 			/>
 
-			<PageHeader title="Billing" />
+			<PageHeader
+				title="Billing"
+				icon={<CreditCard className="h-4 w-4 text-[var(--glow-violet)]" />}
+			/>
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-5xl mx-auto">

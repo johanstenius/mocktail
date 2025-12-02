@@ -22,6 +22,7 @@ import {
 	Activity,
 	ArrowRight,
 	FolderOpen,
+	LayoutDashboard,
 	Loader2,
 	Plus,
 	Route as RouteIcon,
@@ -434,7 +435,10 @@ function DashboardPage() {
 
 	return (
 		<main className="flex-1 flex flex-col overflow-hidden">
-			<PageHeader title="Dashboard" />
+			<PageHeader
+				title="Dashboard"
+				icon={<LayoutDashboard className="h-4 w-4 text-[var(--glow-violet)]" />}
+			/>
 
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-6xl mx-auto space-y-8">

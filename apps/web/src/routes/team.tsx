@@ -25,7 +25,7 @@ import { requireAuth } from "@/lib/route-guards";
 import type { Invite, Member, OrgRole } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Trash2, UserPlus } from "lucide-react";
+import { Loader2, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -362,6 +362,7 @@ function TeamPage() {
 		<main className="flex-1 flex flex-col overflow-hidden">
 			<PageHeader
 				title="Team"
+				icon={<Users className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
 					canInvite && (
 						<Button
