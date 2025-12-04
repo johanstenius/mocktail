@@ -18,7 +18,7 @@ export type AuditLogModel = {
 	ipAddress: string | null;
 	userAgent: string | null;
 	createdAt: Date;
-	actor: { id: string; email: string; name: string | null } | null;
+	actor: { id: string; email: string } | null;
 };
 
 export type FindAuditLogsOptions = {

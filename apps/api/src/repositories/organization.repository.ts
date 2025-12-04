@@ -1,4 +1,3 @@
-import type { OrgRole, Tier } from "@prisma/client";
 import { prisma } from "./db/prisma";
 
 export function findById(id: string) {
@@ -13,22 +12,6 @@ export function findBySlug(slug: string) {
 	});
 }
 
-export function findByOwnerId(ownerId: string) {
-	return prisma.organization.findFirst({
-		where: { ownerId },
-	});
-}
-
-export function findByStripeCustomerId(stripeCustomerId: string) {
-	return prisma.organization.findUnique({
-		where: { stripeCustomerId },
-	});
-}
-
-export function create(data: { name: string; slug: string; ownerId: string }) {
-	return prisma.organization.create({ data });
-}
-
 export function countProjectsByOrgId(orgId: string) {
 	return prisma.project.count({
 		where: { orgId },
@@ -36,94 +19,17 @@ export function countProjectsByOrgId(orgId: string) {
 }
 
 export function countMembersByOrgId(orgId: string) {
-	return prisma.orgMembership.count({
-		where: { orgId },
+	return prisma.organizationMember.count({
+		where: { organizationId: orgId },
 	});
 }
 
 export function countPendingInvitesByOrgId(orgId: string) {
-	return prisma.orgInvite.count({
+	return prisma.organizationInvite.count({
 		where: {
-			orgId,
+			organizationId: orgId,
+			status: "pending",
 			expiresAt: { gt: new Date() },
-		},
-	});
-}
-
-export function updateStripeCustomerId(
-	orgId: string,
-	stripeCustomerId: string,
-) {
-	return prisma.organization.update({
-		where: { id: orgId },
-		data: { stripeCustomerId },
-	});
-}
-
-export type SubscriptionUpdate = {
-	tier?: Tier;
-	stripeSubscriptionId?: string | null;
-	stripeCancelAtPeriodEnd?: boolean;
-	stripeCurrentPeriodEnd?: Date | null;
-	paymentFailedAt?: Date | null;
-	lastFailedInvoiceId?: string | null;
-};
-
-export function updateSubscription(orgId: string, data: SubscriptionUpdate) {
-	return prisma.organization.update({
-		where: { id: orgId },
-		data,
-	});
-}
-
-export function incrementMonthlyRequests(orgId: string) {
-	return prisma.organization.update({
-		where: { id: orgId },
-		data: { monthlyRequests: { increment: 1 } },
-	});
-}
-
-export function resetMonthlyRequests(orgId: string) {
-	return prisma.organization.update({
-		where: { id: orgId },
-		data: {
-			monthlyRequests: 0,
-			requestResetAt: new Date(),
-		},
-	});
-}
-
-export function findOrgsWithExpiredGrace(graceDays: number) {
-	const cutoff = new Date();
-	cutoff.setDate(cutoff.getDate() - graceDays);
-
-	return prisma.organization.findMany({
-		where: {
-			paymentFailedAt: { lt: cutoff },
-			tier: "pro",
-		},
-	});
-}
-
-export function findOrgsNeedingReminder(reminderDay: number) {
-	const startOfWindow = new Date();
-	startOfWindow.setDate(startOfWindow.getDate() - reminderDay);
-	startOfWindow.setHours(0, 0, 0, 0);
-
-	const endOfWindow = new Date();
-	endOfWindow.setDate(endOfWindow.getDate() - reminderDay + 1);
-	endOfWindow.setHours(0, 0, 0, 0);
-
-	return prisma.organization.findMany({
-		where: {
-			paymentFailedAt: {
-				gte: startOfWindow,
-				lt: endOfWindow,
-			},
-			tier: "pro",
-		},
-		include: {
-			owner: { select: { email: true } },
 		},
 	});
 }
@@ -132,6 +38,7 @@ export function findByIdWithUsage(id: string) {
 	return prisma.organization.findUnique({
 		where: { id },
 		include: {
+			subscription: true,
 			_count: {
 				select: {
 					projects: true,
@@ -149,61 +56,17 @@ export function findByIdWithUsage(id: string) {
 
 export function findAllWithProjectsForCleanup() {
 	return prisma.organization.findMany({
-		select: {
-			id: true,
-			name: true,
-			tier: true,
+		include: {
+			subscription: { select: { tier: true } },
 			projects: { select: { id: true } },
 		},
 	});
 }
 
-// Membership functions
-
-export function findMembershipByUserAndOrg(userId: string, orgId: string) {
-	return prisma.orgMembership.findUnique({
-		where: { userId_orgId: { userId, orgId } },
-	});
-}
-
-export function createMembership(data: {
-	userId: string;
-	orgId: string;
-	role: OrgRole;
-}) {
-	return prisma.orgMembership.create({ data });
-}
-
-export function findMembershipsByUserId(userId: string) {
-	return prisma.orgMembership.findMany({
-		where: { userId },
-		include: { org: true },
-	});
-}
-
-export function findMembershipsByOrgId(orgId: string) {
-	return prisma.orgMembership.findMany({
-		where: { orgId },
-		include: { user: { select: { email: true } } },
-		orderBy: { createdAt: "asc" },
-	});
-}
-
-export function findMembershipById(id: string) {
-	return prisma.orgMembership.findUnique({
-		where: { id },
+// Find owner of an organization (for billing emails etc)
+export function findOwnerEmail(orgId: string) {
+	return prisma.organizationMember.findFirst({
+		where: { organizationId: orgId, role: "owner" },
 		include: { user: { select: { email: true } } },
 	});
-}
-
-export function updateMembershipRole(id: string, role: OrgRole) {
-	return prisma.orgMembership.update({
-		where: { id },
-		data: { role },
-		include: { user: { select: { email: true } } },
-	});
-}
-
-export function removeMembership(id: string) {
-	return prisma.orgMembership.delete({ where: { id } });
 }

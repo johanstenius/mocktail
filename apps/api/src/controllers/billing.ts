@@ -1,7 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { config } from "../config";
-import type { AuthVariables } from "../middleware/auth";
-import { getAuth, requireRole } from "../middleware/auth";
+import { type AuthVariables, getAuth } from "../lib/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -25,12 +24,6 @@ billingRouter.use("/*", async (c, next) => {
 	}
 	await next();
 });
-
-// Role checks for admin-only routes
-billingRouter.use("/checkout", requireRole("admin", "owner"));
-billingRouter.use("/cancel", requireRole("admin", "owner"));
-billingRouter.use("/reactivate", requireRole("admin", "owner"));
-billingRouter.use("/retry-payment", requireRole("admin", "owner"));
 
 function toLimit(value: number): number | null {
 	return Number.isFinite(value) ? value : null;

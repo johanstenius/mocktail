@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { config } from "../config";
 import * as orgRepo from "../repositories/organization.repository";
-import * as userRepo from "../repositories/user.repository";
+import * as subRepo from "../repositories/subscription.repository";
 import { logger } from "../utils/logger";
 import * as auditService from "./audit.service";
 import type { AuditContext } from "./audit.service";
@@ -28,13 +28,13 @@ export async function createCheckoutSession(
 		throw new Error("Stripe Pro price ID not configured");
 	}
 
-	const org = await orgRepo.findById(params.orgId);
+	const sub = await subRepo.findByOrgId(params.orgId);
 
-	if (!org) {
-		throw new Error("Organization not found");
+	if (!sub) {
+		throw new Error("Subscription not found");
 	}
 
-	let customerId = org.stripeCustomerId;
+	let customerId = sub.stripeCustomerId;
 
 	if (!customerId) {
 		const customer = await stripe.customers.create({
@@ -44,7 +44,7 @@ export async function createCheckoutSession(
 		});
 		customerId = customer.id;
 
-		await orgRepo.updateStripeCustomerId(params.orgId, customerId);
+		await subRepo.updateStripeCustomerId(params.orgId, customerId);
 	}
 
 	const successUrl = `${config.appUrl}/billing?success=true`;
@@ -74,24 +74,24 @@ export async function cancelSubscription(
 		throw new Error("Stripe not configured");
 	}
 
-	const org = await orgRepo.findById(orgId);
+	const sub = await subRepo.findByOrgId(orgId);
 
-	if (!org?.stripeSubscriptionId) {
+	if (!sub?.stripeSubscriptionId) {
 		throw new Error("No active subscription found");
 	}
 
-	await stripe.subscriptions.update(org.stripeSubscriptionId, {
+	await stripe.subscriptions.update(sub.stripeSubscriptionId, {
 		cancel_at_period_end: true,
 	});
 
 	const subscription = await stripe.subscriptions.retrieve(
-		org.stripeSubscriptionId,
+		sub.stripeSubscriptionId,
 	);
 	const periodEnd = subscription.cancel_at
 		? new Date(subscription.cancel_at * 1000)
 		: null;
 
-	await orgRepo.updateSubscription(orgId, {
+	await subRepo.update(orgId, {
 		stripeCancelAtPeriodEnd: true,
 		stripeCurrentPeriodEnd: periodEnd,
 	});
@@ -100,7 +100,7 @@ export async function cancelSubscription(
 		orgId,
 		action: "subscription_cancelled",
 		targetType: "subscription",
-		targetId: org.stripeSubscriptionId,
+		targetId: sub.stripeSubscriptionId,
 		metadata: { cancelAtPeriodEnd: periodEnd?.toISOString() },
 		ctx,
 	});
@@ -114,17 +114,17 @@ export async function reactivateSubscription(
 		throw new Error("Stripe not configured");
 	}
 
-	const org = await orgRepo.findById(orgId);
+	const sub = await subRepo.findByOrgId(orgId);
 
-	if (!org?.stripeSubscriptionId) {
+	if (!sub?.stripeSubscriptionId) {
 		throw new Error("No subscription found");
 	}
 
-	await stripe.subscriptions.update(org.stripeSubscriptionId, {
+	await stripe.subscriptions.update(sub.stripeSubscriptionId, {
 		cancel_at_period_end: false,
 	});
 
-	await orgRepo.updateSubscription(orgId, {
+	await subRepo.update(orgId, {
 		stripeCancelAtPeriodEnd: false,
 	});
 
@@ -132,7 +132,7 @@ export async function reactivateSubscription(
 		orgId,
 		action: "subscription_updated",
 		targetType: "subscription",
-		targetId: org.stripeSubscriptionId,
+		targetId: sub.stripeSubscriptionId,
 		metadata: { action: "reactivated" },
 		ctx,
 	});
@@ -143,13 +143,13 @@ export async function retryPayment(orgId: string): Promise<void> {
 		throw new Error("Stripe not configured");
 	}
 
-	const org = await orgRepo.findById(orgId);
+	const sub = await subRepo.findByOrgId(orgId);
 
-	if (!org?.lastFailedInvoiceId) {
+	if (!sub?.lastFailedInvoiceId) {
 		throw new Error("No failed invoice found");
 	}
 
-	await stripe.invoices.pay(org.lastFailedInvoiceId);
+	await stripe.invoices.pay(sub.lastFailedInvoiceId);
 }
 
 export async function handleWebhookEvent(
@@ -203,7 +203,7 @@ async function handleCheckoutCompleted(
 			? session.subscription
 			: session.subscription?.id;
 
-	await orgRepo.updateSubscription(orgId, {
+	await subRepo.update(orgId, {
 		tier: "pro",
 		stripeSubscriptionId: subscriptionId ?? null,
 	});
@@ -227,29 +227,29 @@ async function handleSubscriptionUpdated(
 			? subscription.customer
 			: subscription.customer.id;
 
-	const org = await orgRepo.findByStripeCustomerId(customerId);
+	const sub = await subRepo.findByStripeCustomerId(customerId);
 
-	if (!org) {
-		logger.error({ customerId }, "no org found for customer");
+	if (!sub) {
+		logger.error({ customerId }, "no subscription found for customer");
 		return;
 	}
 
-	const oldTier = org.tier;
+	const oldTier = sub.tier;
 	const status = subscription.status;
 	const tier = status === "active" || status === "trialing" ? "pro" : "free";
 	const cancelAtPeriodEnd = subscription.cancel_at_period_end;
 	const cancelAt = subscription.cancel_at;
 	const currentPeriodEnd = cancelAt ? new Date(cancelAt * 1000) : null;
 
-	await orgRepo.updateSubscription(org.id, {
+	await subRepo.update(sub.organizationId, {
 		tier,
 		stripeCancelAtPeriodEnd: cancelAtPeriodEnd,
 		stripeCurrentPeriodEnd: currentPeriodEnd,
 	});
 
-	if (oldTier !== tier || org.stripeCancelAtPeriodEnd !== cancelAtPeriodEnd) {
+	if (oldTier !== tier || sub.stripeCancelAtPeriodEnd !== cancelAtPeriodEnd) {
 		await auditService.log({
-			orgId: org.id,
+			orgId: sub.organizationId,
 			action: "subscription_updated",
 			targetType: "subscription",
 			targetId: subscription.id,
@@ -261,7 +261,7 @@ async function handleSubscriptionUpdated(
 		});
 	}
 
-	logger.info({ orgId: org.id, tier }, "subscription updated");
+	logger.info({ orgId: sub.organizationId, tier }, "subscription updated");
 }
 
 async function handleSubscriptionDeleted(
@@ -272,14 +272,14 @@ async function handleSubscriptionDeleted(
 			? subscription.customer
 			: subscription.customer.id;
 
-	const org = await orgRepo.findByStripeCustomerId(customerId);
+	const sub = await subRepo.findByStripeCustomerId(customerId);
 
-	if (!org) {
-		logger.error({ customerId }, "no org found for customer");
+	if (!sub) {
+		logger.error({ customerId }, "no subscription found for customer");
 		return;
 	}
 
-	await orgRepo.updateSubscription(org.id, {
+	await subRepo.update(sub.organizationId, {
 		tier: "free",
 		stripeSubscriptionId: null,
 		stripeCancelAtPeriodEnd: false,
@@ -287,14 +287,17 @@ async function handleSubscriptionDeleted(
 	});
 
 	await auditService.log({
-		orgId: org.id,
+		orgId: sub.organizationId,
 		action: "subscription_cancelled",
 		targetType: "subscription",
 		targetId: subscription.id,
-		metadata: { tier: { old: org.tier, new: "free" }, reason: "deleted" },
+		metadata: { tier: { old: sub.tier, new: "free" }, reason: "deleted" },
 	});
 
-	logger.info({ orgId: org.id }, "subscription deleted, downgraded to FREE");
+	logger.info(
+		{ orgId: sub.organizationId },
+		"subscription deleted, downgraded to FREE",
+	);
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
@@ -305,33 +308,40 @@ async function handlePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
 
 	if (!customerId) return;
 
-	const org = await orgRepo.findByStripeCustomerId(customerId);
+	const sub = await subRepo.findByStripeCustomerId(customerId);
 
-	if (!org) {
-		logger.error({ customerId }, "no org found for customer");
+	if (!sub) {
+		logger.error({ customerId }, "no subscription found for customer");
 		return;
 	}
 
-	if (org.paymentFailedAt) {
-		logger.info({ orgId: org.id }, "payment failed again, already in grace");
+	if (sub.paymentFailedAt) {
+		logger.info(
+			{ orgId: sub.organizationId },
+			"payment failed again, already in grace",
+		);
 		return;
 	}
 
-	await orgRepo.updateSubscription(org.id, {
+	await subRepo.update(sub.organizationId, {
 		paymentFailedAt: new Date(),
 		lastFailedInvoiceId: invoice.id,
 	});
 
-	const owner = await getOrgOwnerEmail(org.id);
+	const owner = await getOrgOwnerEmail(sub.organizationId);
 	if (owner) {
+		const org = await orgRepo.findById(sub.organizationId);
 		await sendPaymentFailedEmail({
 			to: owner.email,
-			orgName: org.name,
+			orgName: org?.name ?? "Your organization",
 			graceDays: 7,
 		});
 	}
 
-	logger.warn({ orgId: org.id }, "payment failed, grace period started");
+	logger.warn(
+		{ orgId: sub.organizationId },
+		"payment failed, grace period started",
+	);
 }
 
 async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
@@ -342,28 +352,30 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
 
 	if (!customerId) return;
 
-	const org = await orgRepo.findByStripeCustomerId(customerId);
+	const sub = await subRepo.findByStripeCustomerId(customerId);
 
-	if (!org) {
-		logger.error({ customerId }, "no org found for customer");
+	if (!sub) {
+		logger.error({ customerId }, "no subscription found for customer");
 		return;
 	}
 
-	if (!org.paymentFailedAt) return;
+	if (!sub.paymentFailedAt) return;
 
-	await orgRepo.updateSubscription(org.id, {
+	await subRepo.update(sub.organizationId, {
 		paymentFailedAt: null,
 		lastFailedInvoiceId: null,
 	});
 
-	logger.info({ orgId: org.id }, "payment succeeded, grace period cleared");
+	logger.info(
+		{ orgId: sub.organizationId },
+		"payment succeeded, grace period cleared",
+	);
 }
 
 async function getOrgOwnerEmail(
 	orgId: string,
 ): Promise<{ email: string } | null> {
-	const org = await orgRepo.findById(orgId);
-	if (!org) return null;
-
-	return userRepo.findEmailById(org.ownerId);
+	const owner = await orgRepo.findOwnerEmail(orgId);
+	if (!owner) return null;
+	return { email: owner.user.email };
 }

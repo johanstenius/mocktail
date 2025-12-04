@@ -1,6 +1,6 @@
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import * as orgRepo from "../repositories/organization.repository";
-import * as userRepo from "../repositories/user.repository";
+import * as subRepo from "../repositories/subscription.repository";
 import { logger } from "../utils/logger";
 import { sendDowngradedEmail, sendPaymentReminderEmail } from "./email.service";
 
@@ -50,11 +50,11 @@ export async function processGracePeriods(): Promise<GraceExpiryResult> {
 async function downgradeExpiredOrgs(): Promise<
 	{ orgId: string; orgName: string }[]
 > {
-	const expired = await orgRepo.findOrgsWithExpiredGrace(GRACE_DAYS);
+	const expired = await subRepo.findWithExpiredGrace(GRACE_DAYS);
 	const results: { orgId: string; orgName: string }[] = [];
 
-	for (const org of expired) {
-		await orgRepo.updateSubscription(org.id, {
+	for (const sub of expired) {
+		await subRepo.update(sub.organizationId, {
 			tier: "free",
 			stripeSubscriptionId: null,
 			stripeCancelAtPeriodEnd: false,
@@ -63,42 +63,45 @@ async function downgradeExpiredOrgs(): Promise<
 			lastFailedInvoiceId: null,
 		});
 
-		const owner = await getOrgOwnerEmail(org.ownerId);
+		const owner = await orgRepo.findOwnerEmail(sub.organizationId);
 		if (owner) {
 			await sendDowngradedEmail({
-				to: owner.email,
-				orgName: org.name,
+				to: owner.user.email,
+				orgName: sub.organization.name,
 			});
 		}
 
-		logger.info({ orgId: org.id }, "org downgraded after grace expiry");
-		results.push({ orgId: org.id, orgName: org.name });
+		logger.info(
+			{ orgId: sub.organizationId },
+			"org downgraded after grace expiry",
+		);
+		results.push({ orgId: sub.organizationId, orgName: sub.organization.name });
 	}
 
 	return results;
 }
 
 async function sendReminders(): Promise<{ orgId: string; orgName: string }[]> {
-	const orgs = await orgRepo.findOrgsNeedingReminder(REMINDER_DAY);
+	const subs = await subRepo.findNeedingReminder(REMINDER_DAY);
 	const results: { orgId: string; orgName: string }[] = [];
 	const daysRemaining = GRACE_DAYS - REMINDER_DAY;
 
-	for (const org of orgs) {
-		await sendPaymentReminderEmail({
-			to: org.owner.email,
-			orgName: org.name,
-			daysRemaining,
-		});
+	for (const sub of subs) {
+		const owner = await orgRepo.findOwnerEmail(sub.organizationId);
+		if (owner) {
+			await sendPaymentReminderEmail({
+				to: owner.user.email,
+				orgName: sub.organization.name,
+				daysRemaining,
+			});
+		}
 
-		logger.info({ orgId: org.id, daysRemaining }, "sent payment reminder");
-		results.push({ orgId: org.id, orgName: org.name });
+		logger.info(
+			{ orgId: sub.organizationId, daysRemaining },
+			"sent payment reminder",
+		);
+		results.push({ orgId: sub.organizationId, orgName: sub.organization.name });
 	}
 
 	return results;
-}
-
-async function getOrgOwnerEmail(
-	ownerId: string,
-): Promise<{ email: string } | null> {
-	return userRepo.findEmailById(ownerId);
 }

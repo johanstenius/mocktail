@@ -1,6 +1,7 @@
 import type { Tier } from "@prisma/client";
 import type { Context, Next } from "hono";
 import * as projectRepo from "../repositories/project.repository";
+import * as subRepo from "../repositories/subscription.repository";
 import { unauthorized } from "../utils/errors";
 import { LRUCache } from "../utils/lru-cache";
 
@@ -74,10 +75,12 @@ async function validateProjectApiKey(
 	const project = await projectRepo.findByApiKey(key);
 	if (!project) return null;
 
+	const sub = await subRepo.findByOrgId(project.org.id);
+
 	const result: CachedProject = {
 		projectId: project.id,
 		orgId: project.org.id,
-		tier: project.org.tier,
+		tier: sub?.tier ?? "free",
 	};
 	projectKeyCache.set(key, result);
 	return result;

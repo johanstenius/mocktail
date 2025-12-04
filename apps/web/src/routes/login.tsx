@@ -10,9 +10,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useAuth, useLogin } from "@johanstenius/auth-react";
+import {
+	Link,
+	Navigate,
+	createFileRoute,
+	useNavigate,
+} from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 
@@ -21,12 +26,12 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-	const { login, isAuthenticated, isLoading: authLoading } = useAuth();
+	const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const { login, isLoading: loginLoading, error: loginError } = useLogin();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 
 	if (authLoading) {
 		return (
@@ -37,17 +42,15 @@ function LoginPage() {
 	}
 
 	if (isAuthenticated) {
-		navigate({ to: "/dashboard" });
-		return null;
+		return <Navigate to="/dashboard" />;
 	}
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setError("");
-		setIsLoading(true);
 
 		try {
-			await login(email, password);
+			await login({ email, password });
 			navigate({ to: "/dashboard" });
 		} catch (err) {
 			const error = err as { code?: string };
@@ -56,8 +59,6 @@ function LoginPage() {
 			} else {
 				setError(getErrorMessage(err));
 			}
-		} finally {
-			setIsLoading(false);
 		}
 	}
 
@@ -80,9 +81,9 @@ function LoginPage() {
 							<OAuthButtons />
 
 							<form onSubmit={handleSubmit} className="space-y-6 mt-6">
-								{error && (
+								{(error || loginError) && (
 									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-										{error}
+										{error || loginError?.message}
 									</div>
 								)}
 
@@ -120,8 +121,12 @@ function LoginPage() {
 									/>
 								</div>
 
-								<Button type="submit" disabled={isLoading} className="w-full">
-									{isLoading ? (
+								<Button
+									type="submit"
+									disabled={loginLoading}
+									className="w-full"
+								>
+									{loginLoading ? (
 										<>
 											<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 											Signing in...

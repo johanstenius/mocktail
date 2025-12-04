@@ -11,19 +11,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import {
-	createInvite,
-	getInvites,
-	getMembers,
-	removeMember,
-	revokeInvite,
-	updateMemberRole,
-} from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { getErrorMessage } from "@/lib/errors";
 import { requireAuth } from "@/lib/route-guards";
-import type { Invite, Member, OrgRole } from "@/types";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	useActiveOrganization,
+	useAuth,
+	useCancelInvite,
+	useOrganizationInvites,
+	useOrganizationMembers,
+	useRemoveMember,
+	useSendInvite,
+	useUpdateMemberRole,
+} from "@johanstenius/auth-react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
@@ -34,7 +32,9 @@ export const Route = createFileRoute("/team")({
 	component: TeamPage,
 });
 
-function getRoleBadgeVariant(role: OrgRole) {
+type OrgRole = "owner" | "admin" | "member";
+
+function getRoleBadgeVariant(role: string) {
 	switch (role) {
 		case "owner":
 			return "violet";
@@ -45,6 +45,14 @@ function getRoleBadgeVariant(role: OrgRole) {
 	}
 }
 
+type MemberData = {
+	id: string;
+	userId: string;
+	email: string;
+	role: string;
+	createdAt: string;
+};
+
 function MemberRow({
 	member,
 	currentUserId,
@@ -52,9 +60,9 @@ function MemberRow({
 	onRoleChange,
 	onRemove,
 }: {
-	member: Member;
+	member: MemberData;
 	currentUserId: string;
-	currentRole: OrgRole;
+	currentRole: string;
 	onRoleChange: (role: OrgRole) => void;
 	onRemove: () => void;
 }) {
@@ -129,11 +137,18 @@ function MemberRow({
 	);
 }
 
+type InviteData = {
+	id: string;
+	email: string;
+	role: string;
+	expiresAt: string;
+};
+
 function InviteRow({
 	invite,
 	onRevoke,
 }: {
-	invite: Invite;
+	invite: InviteData;
 	onRevoke: () => void;
 }) {
 	const [showConfirm, setShowConfirm] = useState(false);
@@ -192,35 +207,33 @@ function InviteRow({
 function InviteModal({
 	open,
 	onOpenChange,
+	orgId,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	orgId: string | null;
 }) {
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState<OrgRole>("member");
 	const [error, setError] = useState("");
-	const queryClient = useQueryClient();
+	const { sendInvite, isLoading } = useSendInvite();
 
-	const mutation = useMutation({
-		mutationFn: () => createInvite({ email, role }),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["invites"] });
+	async function handleSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		if (!orgId) return;
+		setError("");
+		try {
+			await sendInvite({ orgId, email, role });
 			onOpenChange(false);
 			setEmail("");
 			setRole("member");
-			setError("");
 			toast.success("Invite sent");
-		},
-		onError: (err: unknown) => {
-			setError(getErrorMessage(err));
-			toast.error(getErrorMessage(err));
-		},
-	});
-
-	function handleSubmit(e: React.FormEvent) {
-		e.preventDefault();
-		setError("");
-		mutation.mutate();
+		} catch (err) {
+			const message =
+				err instanceof Error ? err.message : "Failed to send invite";
+			setError(message);
+			toast.error(message);
+		}
 	}
 
 	return (
@@ -263,10 +276,8 @@ function InviteModal({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={mutation.isPending}>
-							{mutation.isPending && (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							)}
+						<Button type="submit" disabled={isLoading}>
+							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							Send Invite
 						</Button>
 					</div>
@@ -277,63 +288,65 @@ function InviteModal({
 }
 
 function TeamPage() {
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-		user,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { activeOrganizationId: orgId } = useActiveOrganization();
 	const navigate = useNavigate();
 	const [inviteModalOpen, setInviteModalOpen] = useState(false);
-	const queryClient = useQueryClient();
 
-	const isVerified = Boolean(emailVerifiedAt);
+	const isVerified = Boolean(user?.emailVerified);
 
-	const { data: members = [], isLoading: membersLoading } = useQuery({
-		queryKey: ["members"],
-		queryFn: getMembers,
-		enabled: isAuthenticated && isVerified,
-	});
+	const { members: membersData, isLoading: membersLoading } =
+		useOrganizationMembers(orgId);
+	const { invites: invitesData, isLoading: invitesLoading } =
+		useOrganizationInvites(orgId);
+	const { updateMemberRole } = useUpdateMemberRole();
+	const { removeMember } = useRemoveMember();
+	const { cancelInvite } = useCancelInvite();
 
-	const { data: invites = [], isLoading: invitesLoading } = useQuery({
-		queryKey: ["invites"],
-		queryFn: getInvites,
-		enabled: isAuthenticated && isVerified,
-	});
+	const members: MemberData[] = (membersData ?? []).map((m) => ({
+		id: m.id,
+		userId: m.userId,
+		email: m.user?.email ?? "",
+		role: m.role,
+		createdAt: m.createdAt,
+	}));
 
-	const updateRoleMutation = useMutation({
-		mutationFn: ({ memberId, role }: { memberId: string; role: OrgRole }) =>
-			updateMemberRole(memberId, role),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["members"] });
+	const invites: InviteData[] = (invitesData ?? []).map((i) => ({
+		id: i.id,
+		email: i.email,
+		role: i.role,
+		expiresAt: i.expiresAt,
+	}));
+
+	async function handleUpdateRole(memberId: string, role: OrgRole) {
+		if (!orgId) return;
+		try {
+			await updateMemberRole({ orgId, memberId, role });
 			toast.success("Role updated");
-		},
-		onError: () => {
+		} catch {
 			toast.error("Failed to update role");
-		},
-	});
+		}
+	}
 
-	const removeMemberMutation = useMutation({
-		mutationFn: removeMember,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["members"] });
+	async function handleRemoveMember(memberId: string) {
+		if (!orgId) return;
+		try {
+			await removeMember({ orgId, memberId });
 			toast.success("Member removed");
-		},
-		onError: () => {
+		} catch {
 			toast.error("Failed to remove member");
-		},
-	});
+		}
+	}
 
-	const revokeInviteMutation = useMutation({
-		mutationFn: revokeInvite,
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["invites"] });
+	async function handleRevokeInvite(inviteId: string) {
+		if (!orgId) return;
+		try {
+			await cancelInvite({ orgId, inviteId });
 			toast.success("Invite revoked");
-		},
-		onError: () => {
+		} catch {
 			toast.error("Failed to revoke invite");
-		},
-	});
+		}
+	}
 
 	if (authLoading) {
 		return (
@@ -348,7 +361,7 @@ function TeamPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}
@@ -402,10 +415,8 @@ function TeamPage() {
 										member={member}
 										currentUserId={user?.id ?? ""}
 										currentRole={currentRole}
-										onRoleChange={(role) =>
-											updateRoleMutation.mutate({ memberId: member.id, role })
-										}
-										onRemove={() => removeMemberMutation.mutate(member.id)}
+										onRoleChange={(role) => handleUpdateRole(member.id, role)}
+										onRemove={() => handleRemoveMember(member.id)}
 									/>
 								))}
 							</div>
@@ -420,7 +431,7 @@ function TeamPage() {
 											<InviteRow
 												key={invite.id}
 												invite={invite}
-												onRevoke={() => revokeInviteMutation.mutate(invite.id)}
+												onRevoke={() => handleRevokeInvite(invite.id)}
 											/>
 										))}
 									</div>
@@ -431,7 +442,11 @@ function TeamPage() {
 				</div>
 			</div>
 
-			<InviteModal open={inviteModalOpen} onOpenChange={setInviteModalOpen} />
+			<InviteModal
+				open={inviteModalOpen}
+				onOpenChange={setInviteModalOpen}
+				orgId={orgId}
+			/>
 		</main>
 	);
 }

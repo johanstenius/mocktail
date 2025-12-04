@@ -3,9 +3,7 @@ import * as auditRepo from "../repositories/audit.repository";
 import * as batchJobRepo from "../repositories/batch-job.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as requestLogRepo from "../repositories/request-log.repository";
-import * as tokenRepo from "../repositories/token.repository";
 import { logger } from "../utils/logger";
-import { cleanupExpiredOAuthTokens } from "./oauth-pending-token";
 
 export type OrgCleanupResult = {
 	orgId: string;
@@ -34,7 +32,8 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 		let totalDeleted = 0;
 
 		for (const org of orgs) {
-			const limits = getLimits(org.tier);
+			const tier = org.subscription?.tier ?? "free";
+			const limits = getLimits(tier);
 
 			const requestLogCutoff = new Date();
 			requestLogCutoff.setDate(
@@ -72,26 +71,11 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 			}
 		}
 
-		const [
-			expiredVerificationTokens,
-			expiredPasswordResets,
-			expiredOAuthTokens,
-		] = await Promise.all([
-			tokenRepo.removeExpiredEmailVerifications(),
-			tokenRepo.removeExpiredPasswordResets(),
-			cleanupExpiredOAuthTokens(),
-		]);
-
 		logger.info(
 			{
 				jobId: job.id,
 				totalDeleted,
 				orgsAffected: results.length,
-				expiredTokens: {
-					emailVerification: expiredVerificationTokens.count,
-					passwordReset: expiredPasswordResets.count,
-					oauthPending: expiredOAuthTokens,
-				},
 			},
 			"log cleanup completed",
 		);
@@ -99,11 +83,6 @@ export async function cleanupExpiredLogs(): Promise<CleanupResult> {
 		await batchJobRepo.markCompleted(job.id, {
 			results,
 			totalDeleted,
-			expiredTokens: {
-				emailVerification: expiredVerificationTokens.count,
-				passwordReset: expiredPasswordResets.count,
-				oauthPending: expiredOAuthTokens,
-			},
 		});
 
 		return { jobId: job.id, results, totalDeleted };

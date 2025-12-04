@@ -8,17 +8,17 @@ type OAuthButtonsProps = {
 
 export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
 	const handleGitHubLogin = () => {
-		const url = new URL(`${API_URL}/auth/github`);
+		const url = new URL(`${API_URL}/auth/oauth/github`);
 		if (inviteToken) {
-			url.searchParams.set("invite_token", inviteToken);
+			url.searchParams.set("invite", inviteToken);
 		}
 		window.location.href = url.toString();
 	};
 
 	const handleGoogleLogin = () => {
-		const url = new URL(`${API_URL}/auth/google`);
+		const url = new URL(`${API_URL}/auth/oauth/google`);
 		if (inviteToken) {
-			url.searchParams.set("invite_token", inviteToken);
+			url.searchParams.set("invite", inviteToken);
 		}
 		window.location.href = url.toString();
 	};

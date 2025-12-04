@@ -39,7 +39,6 @@ export const auditLogSchema = z.object({
 		.object({
 			id: z.string(),
 			email: z.string(),
-			name: z.string().nullable(),
 		})
 		.nullable(),
 });

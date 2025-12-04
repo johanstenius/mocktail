@@ -1,15 +1,15 @@
 import { Logo } from "@/components/logo";
-import { OAuthButtons } from "@/components/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { acceptInvite, getInviteByToken } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { getErrorMessage } from "@/lib/errors";
-import type { InviteInfo } from "@/types";
+import {
+	useAcceptInvite,
+	useAuth,
+	useInviteDetails,
+} from "@johanstenius/auth-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CheckCircle, Loader2, Users } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { z } from "zod";
 
 const searchSchema = z.object({
@@ -24,43 +24,24 @@ export const Route = createFileRoute("/invite")({
 function InvitePage() {
 	const { token } = Route.useSearch();
 	const navigate = useNavigate();
-	const {
-		setTokens,
-		isAuthenticated,
-		user,
-		isLoading: authLoading,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 
-	const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
-	const [isLoadingInvite, setIsLoadingInvite] = useState(true);
-	const [inviteError, setInviteError] = useState("");
+	const {
+		invite: inviteInfo,
+		isLoading: isLoadingInvite,
+		error: inviteError,
+	} = useInviteDetails(token ?? "");
+
+	const {
+		acceptInvite,
+		isLoading: isAccepting,
+		error: acceptError,
+	} = useAcceptInvite();
 
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isSuccess, setIsSuccess] = useState(false);
-
-	useEffect(() => {
-		if (!token) {
-			setIsLoadingInvite(false);
-			setInviteError("Invalid invite link");
-			return;
-		}
-
-		async function fetchInvite() {
-			try {
-				const info = await getInviteByToken(token as string);
-				setInviteInfo(info);
-			} catch (err) {
-				setInviteError(getErrorMessage(err));
-			} finally {
-				setIsLoadingInvite(false);
-			}
-		}
-
-		fetchInvite();
-	}, [token]);
 
 	const isExistingUser = inviteInfo && user?.email === inviteInfo.email;
 	const needsPassword = inviteInfo && !isExistingUser && !isAuthenticated;
@@ -85,35 +66,11 @@ function InvitePage() {
 			return;
 		}
 
-		setIsSubmitting(true);
-
 		try {
-			const result = await acceptInvite(
-				token,
-				needsPassword ? password : undefined,
-			);
-			setTokens(
-				{
-					accessToken: result.accessToken,
-					refreshToken: result.refreshToken,
-					expiresIn: result.expiresIn,
-				},
-				{
-					id: result.user.id,
-					email: result.user.email,
-					emailVerifiedAt: result.user.emailVerifiedAt,
-				},
-				{
-					id: result.user.orgId,
-					name: result.user.orgName,
-					slug: result.user.orgSlug,
-				},
-			);
+			await acceptInvite(token);
 			setIsSuccess(true);
 		} catch (err) {
-			setError(getErrorMessage(err));
-		} finally {
-			setIsSubmitting(false);
+			setError(err instanceof Error ? err.message : "Failed to accept invite");
 		}
 	}
 
@@ -125,7 +82,7 @@ function InvitePage() {
 		);
 	}
 
-	if (inviteError || !inviteInfo) {
+	if (!token || inviteError || !inviteInfo) {
 		return (
 			<div className="min-h-screen flex flex-col">
 				<header className="container mx-auto px-8 py-8 flex justify-between items-center relative z-10">
@@ -144,7 +101,8 @@ function InvitePage() {
 								Invalid invite
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
-								{inviteError || "This invite link is invalid or has expired."}
+								{inviteError?.message ||
+									"This invite link is invalid or has expired."}
 							</p>
 							<Link
 								to="/login"
@@ -175,7 +133,7 @@ function InvitePage() {
 								<CheckCircle className="w-8 h-8 text-[var(--glow-emerald)]" />
 							</div>
 							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
-								Welcome to {inviteInfo.orgName}!
+								Welcome to {inviteInfo.organization.name}!
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
 								You've joined as {inviteInfo.role}.
@@ -206,7 +164,7 @@ function InvitePage() {
 								<Users className="w-8 h-8 text-[var(--glow-violet)]" />
 							</div>
 							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
-								Join {inviteInfo.orgName}
+								Join {inviteInfo.organization.name}
 							</h1>
 							<p className="text-[var(--text-secondary)]">
 								You've been invited to join as{" "}
@@ -218,16 +176,14 @@ function InvitePage() {
 						</div>
 
 						<form onSubmit={handleSubmit} className="space-y-6">
-							{error && (
+							{(error || acceptError) && (
 								<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-									{error}
+									{error || acceptError?.message}
 								</div>
 							)}
 
 							{needsPassword && (
 								<>
-									<OAuthButtons inviteToken={token} />
-
 									<div className="space-y-2">
 										<Label htmlFor="password">Create password</Label>
 										<Input
@@ -262,8 +218,8 @@ function InvitePage() {
 								</p>
 							)}
 
-							<Button type="submit" disabled={isSubmitting} className="w-full">
-								{isSubmitting ? (
+							<Button type="submit" disabled={isAccepting} className="w-full">
+								{isAccepting ? (
 									<>
 										<Loader2 className="h-4 w-4 mr-2 animate-spin" />
 										Joining...

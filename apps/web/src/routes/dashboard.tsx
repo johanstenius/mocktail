@@ -6,15 +6,18 @@ import {
 } from "@/components/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WelcomeModal } from "@/components/welcome-modal";
 import {
 	getDashboardActivity,
 	getDashboardStats,
 	getProjects,
 } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { requireAuth } from "@/lib/route-guards";
 import type { ActivityItem, DashboardStats, Project } from "@/types";
+import {
+	useActiveOrganization,
+	useAuth,
+	useOrganization,
+} from "@johanstenius/auth-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
@@ -384,16 +387,12 @@ function QuickActions() {
 }
 
 function DashboardPage() {
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-		org,
-		hasCompletedOnboarding,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { activeOrganizationId } = useActiveOrganization();
+	const { organization: org } = useOrganization(activeOrganizationId);
 	const navigate = useNavigate();
 
-	const isVerified = Boolean(emailVerifiedAt);
+	const isVerified = Boolean(user?.emailVerified);
 
 	const { data: stats, isLoading: statsLoading } = useQuery({
 		queryKey: ["dashboard-stats"],
@@ -426,7 +425,7 @@ function DashboardPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}
@@ -477,7 +476,6 @@ function DashboardPage() {
 					</div>
 				</div>
 			</div>
-			<WelcomeModal open={!hasCompletedOnboarding} onOpenChange={() => {}} />
 		</main>
 	);
 }

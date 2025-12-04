@@ -109,14 +109,14 @@ export function remove(id: string) {
 export function findByApiKey(apiKey: string) {
 	return prisma.project.findUnique({
 		where: { apiKey },
-		include: { org: { select: { id: true, tier: true } } },
+		include: { org: { select: { id: true } } },
 	});
 }
 
 export function findByIdWithOrg(id: string) {
 	return prisma.project.findUnique({
 		where: { id },
-		include: { org: { select: { id: true, tier: true } } },
+		include: { org: { select: { id: true } } },
 	});
 }
 

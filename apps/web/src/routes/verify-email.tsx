@@ -1,7 +1,6 @@
 import { Logo } from "@/components/logo";
-import { verifyEmail } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+import { useAuth, useVerifyEmail } from "@johanstenius/auth-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -19,7 +18,8 @@ export const Route = createFileRoute("/verify-email")({
 function VerifyEmailPage() {
 	const { token } = Route.useSearch();
 	const navigate = useNavigate();
-	const { refreshUser } = useAuth();
+	const { refetch } = useAuth();
+	const { verify } = useVerifyEmail();
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [isSuccess, setIsSuccess] = useState(false);
@@ -31,19 +31,19 @@ function VerifyEmailPage() {
 			return;
 		}
 
-		verifyEmail(token)
+		verify(token)
 			.then(async () => {
-				await refreshUser();
+				await refetch();
 				setIsSuccess(true);
 				setTimeout(() => navigate({ to: "/dashboard" }), 1500);
 			})
-			.catch((err) => {
+			.catch((err: unknown) => {
 				setError(getErrorMessage(err));
 			})
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [token, refreshUser, navigate]);
+	}, [token, refetch, navigate, verify]);
 
 	return (
 		<div className="min-h-screen flex flex-col">

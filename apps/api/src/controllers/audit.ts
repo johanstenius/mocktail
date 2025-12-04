@@ -1,11 +1,9 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../middleware/auth";
-import { getAuth } from "../middleware/auth";
+import { type AuthVariables, getAuth } from "../lib/auth";
 import type { AuditLogResponse } from "../schemas/audit";
 import { exportAuditLogsRoute, listAuditLogsRoute } from "../schemas/audit";
 import * as auditService from "../services/audit.service";
 import type { AuditLogModel } from "../services/audit.service";
-import { forbidden } from "../utils/errors";
 
 export const auditRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
@@ -26,12 +24,8 @@ function mapAuditLogToResponse(log: AuditLogModel): AuditLogResponse {
 }
 
 auditRouter.openapi(listAuditLogsRoute, async (c) => {
-	const { orgId, role } = getAuth(c);
+	const { orgId } = getAuth(c);
 	const query = c.req.valid("query");
-
-	if (role !== "owner" && role !== "admin") {
-		throw forbidden("Only admins and owners can view audit logs");
-	}
 
 	const { logs, total } = await auditService.findByOrgId({
 		orgId,
@@ -54,12 +48,8 @@ auditRouter.openapi(listAuditLogsRoute, async (c) => {
 });
 
 auditRouter.openapi(exportAuditLogsRoute, async (c) => {
-	const { orgId, role } = getAuth(c);
+	const { orgId } = getAuth(c);
 	const query = c.req.valid("query");
-
-	if (role !== "owner" && role !== "admin") {
-		throw forbidden("Only admins and owners can export audit logs");
-	}
 
 	const { logs, total } = await auditService.findByOrgId({
 		orgId,

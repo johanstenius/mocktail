@@ -1,7 +1,6 @@
 import type { ProjectStatistics } from "@/types";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-const TOKEN_KEY = "mocktail_tokens";
 
 export type EventScope = "project" | "org" | "user";
 
@@ -21,17 +20,6 @@ export type SSEEventMap = {
 
 export type SSEEventType = keyof SSEEventMap;
 
-function getAccessToken(): string | null {
-	const stored = localStorage.getItem(TOKEN_KEY);
-	if (!stored) return null;
-	try {
-		const tokens = JSON.parse(stored) as { accessToken: string };
-		return tokens.accessToken;
-	} catch {
-		return null;
-	}
-}
-
 export type SSEConnection = {
 	on<T extends SSEEventType>(
 		event: T,
@@ -49,12 +37,8 @@ export function createSSEConnection(
 	scope: EventScope,
 	scopeId: string,
 ): SSEConnection {
-	const token = getAccessToken();
-	if (!token) {
-		throw new Error("No access token available for SSE connection");
-	}
-
-	const url = `${API_BASE}/api/events/${scope}/${scopeId}?token=${encodeURIComponent(token)}`;
+	// SSE uses cookies for auth (withCredentials is automatic for same-origin)
+	const url = `${API_BASE}/api/events/${scope}/${scopeId}`;
 	let eventSource: EventSource | null = null;
 	let reconnectAttempts = 0;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;

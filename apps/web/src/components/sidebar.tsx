@@ -1,5 +1,10 @@
-import { useAuth } from "@/lib/auth";
 import { BILLING_ENABLED } from "@/lib/config";
+import {
+	useActiveOrganization,
+	useAuth,
+	useLogout,
+	useOrganization,
+} from "@johanstenius/auth-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { Logo } from "./logo";
 import {
@@ -53,7 +58,10 @@ function getInitials(email: string): string {
 }
 
 function UserMenu() {
-	const { user, org, logout } = useAuth();
+	const { user } = useAuth();
+	const { activeOrganizationId } = useActiveOrganization();
+	const { organization: org } = useOrganization(activeOrganizationId);
+	const { logout } = useLogout();
 
 	if (!user) return null;
 

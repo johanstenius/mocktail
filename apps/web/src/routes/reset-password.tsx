@@ -2,8 +2,8 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { resetPassword } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import { useResetPassword } from "@johanstenius/auth-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -21,10 +21,10 @@ export const Route = createFileRoute("/reset-password")({
 function ResetPasswordPage() {
 	const { token } = Route.useSearch();
 	const navigate = useNavigate();
+	const { resetPassword, isLoading, error: resetError } = useResetPassword();
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const [isSuccess, setIsSuccess] = useState(false);
 
 	async function handleSubmit(e: FormEvent) {
@@ -46,15 +46,11 @@ function ResetPasswordPage() {
 			return;
 		}
 
-		setIsLoading(true);
-
 		try {
 			await resetPassword(token, password);
 			setIsSuccess(true);
 		} catch (err) {
 			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
 		}
 	}
 
@@ -127,9 +123,9 @@ function ResetPasswordPage() {
 								</div>
 
 								<form onSubmit={handleSubmit} className="space-y-6">
-									{error && (
+									{(error || resetError) && (
 										<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-											{error}
+											{error || resetError?.message}
 										</div>
 									)}
 

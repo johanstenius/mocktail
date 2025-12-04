@@ -2,11 +2,10 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { streamSSE } from "hono/streaming";
 import { eventBus } from "../events/event-bus";
 import type { SSEEvent } from "../events/types";
-import * as orgRepo from "../repositories/organization.repository";
+import { prisma } from "../repositories/db/prisma";
 import * as projectRepo from "../repositories/project.repository";
 import { subscribeEventsRoute } from "../schemas/events";
 import * as statisticsService from "../services/statistics.service";
-import * as tokenService from "../services/token.service";
 import { forbidden, unauthorized } from "../utils/errors";
 import { logger } from "../utils/logger";
 
@@ -14,19 +13,48 @@ export const eventsRouter = new OpenAPIHono();
 
 const KEEPALIVE_INTERVAL_MS = 30_000;
 
+/**
+ * Verify session token and return user/org info.
+ * SSE endpoints use query param token since EventSource can't send cookies.
+ */
+async function verifySessionToken(token: string) {
+	const session = await prisma.session.findUnique({
+		where: { token },
+		include: { user: { select: { id: true, email: true } } },
+	});
+
+	if (!session || session.expiresAt < new Date()) {
+		return null;
+	}
+
+	return {
+		userId: session.userId,
+		orgId: session.activeOrganizationId,
+	};
+}
+
 eventsRouter.openapi(subscribeEventsRoute, async (c) => {
 	const { scope, scopeId } = c.req.valid("param");
 	const { token } = c.req.valid("query");
 
-	const payload = await tokenService.verifyAccessToken(token);
+	const payload = await verifySessionToken(token);
 	if (!payload) {
 		throw unauthorized("Invalid or expired token");
 	}
 
-	const membership = await orgRepo.findMembershipByUserAndOrg(
-		payload.userId,
-		payload.orgId,
-	);
+	if (!payload.orgId) {
+		throw forbidden("No active organization");
+	}
+
+	// Check membership
+	const membership = await prisma.organizationMember.findUnique({
+		where: {
+			organizationId_userId: {
+				organizationId: payload.orgId,
+				userId: payload.userId,
+			},
+		},
+	});
 	if (!membership) {
 		throw forbidden("Not a member of this organization");
 	}

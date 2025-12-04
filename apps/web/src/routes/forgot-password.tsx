@@ -2,8 +2,8 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { forgotPassword } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import { useForgotPassword } from "@johanstenius/auth-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -13,23 +13,20 @@ export const Route = createFileRoute("/forgot-password")({
 });
 
 function ForgotPasswordPage() {
+	const { sendResetEmail, isLoading, error: forgotError } = useForgotPassword();
 	const [email, setEmail] = useState("");
 	const [error, setError] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitted, setIsSubmitted] = useState(false);
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setError("");
-		setIsLoading(true);
 
 		try {
-			await forgotPassword(email);
+			await sendResetEmail(email);
 			setIsSubmitted(true);
 		} catch (err) {
 			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
 		}
 	}
 
@@ -76,9 +73,9 @@ function ForgotPasswordPage() {
 								</div>
 
 								<form onSubmit={handleSubmit} className="space-y-6">
-									{error && (
+									{(error || forgotError) && (
 										<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-											{error}
+											{error || forgotError?.message}
 										</div>
 									)}
 

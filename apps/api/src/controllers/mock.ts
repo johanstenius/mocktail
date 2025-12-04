@@ -1,4 +1,3 @@
-import type { Context } from "hono";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { StatusCode } from "hono/utils/http-status";
@@ -7,16 +6,12 @@ import {
 	getMockProjectId,
 	mockAuthMiddleware,
 } from "../middleware/mock-auth";
-import { createMockRateLimiter } from "../middleware/rate-limit";
 import * as limitsService from "../services/limits.service";
 import * as mockService from "../services/mock.service";
 
 export const mockRouter = new Hono();
 
-const rateLimiter = createMockRateLimiter();
-
 mockRouter.use("*", mockAuthMiddleware);
-mockRouter.use("*", rateLimiter);
 
 function extractQueryParams(url: URL): Record<string, string> {
 	const query: Record<string, string> = {};

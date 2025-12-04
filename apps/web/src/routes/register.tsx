@@ -10,8 +10,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+import {
+	useAuth,
+	useCreateOrganization,
+	useRegister,
+} from "@johanstenius/auth-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -21,19 +25,21 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 	const {
 		register,
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-	} = useAuth();
+		isLoading: registerLoading,
+		error: registerError,
+	} = useRegister();
+	const { createOrganization, isLoading: orgLoading } = useCreateOrganization();
 	const navigate = useNavigate();
 	const [organization, setOrganization] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
+
+	const isLoading = registerLoading || orgLoading;
 
 	if (authLoading) {
 		return (
@@ -44,7 +50,7 @@ function RegisterPage() {
 	}
 
 	if (isAuthenticated) {
-		if (!emailVerifiedAt) {
+		if (user && !user.emailVerified) {
 			navigate({ to: "/check-email" });
 		} else {
 			navigate({ to: "/dashboard" });
@@ -66,15 +72,20 @@ function RegisterPage() {
 			return;
 		}
 
-		setIsLoading(true);
-
 		try {
-			await register(email, password, organization);
-			navigate({ to: "/check-email" });
+			// Register user
+			const result = await register({ email, password });
+
+			// If verification is required, redirect to check-email
+			if (result.verificationRequired) {
+				navigate({ to: "/check-email" });
+				return;
+			}
+
+			await createOrganization({ name: organization });
+			navigate({ to: "/dashboard" });
 		} catch (err) {
 			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
 		}
 	}
 
@@ -103,9 +114,9 @@ function RegisterPage() {
 							<OAuthButtons />
 
 							<form onSubmit={handleSubmit} className="space-y-4 mt-6">
-								{error && (
+								{(error || registerError) && (
 									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-										{error}
+										{error || registerError?.message}
 									</div>
 								)}
 

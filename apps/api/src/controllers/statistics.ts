@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../middleware/auth";
+import type { AuthVariables } from "../lib/auth";
 import { getStatisticsRoute } from "../schemas/statistics";
 import * as statisticsService from "../services/statistics.service";
 import { notFound } from "../utils/errors";

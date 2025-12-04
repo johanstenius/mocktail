@@ -1,122 +1,66 @@
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import * as api from "@/lib/api";
-import { useAuth } from "@/lib/auth";
-import { getErrorMessage } from "@/lib/errors";
-import type { TokenResponse } from "@/types";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
-import { z } from "zod";
-
-const onboardingSearchSchema = z.object({
-	oauth_token: z.string().optional(),
-	suggested_org_name: z.string().optional(),
-});
+import {
+	useAuth,
+	useCreateOrganization,
+	useOrganizations,
+} from "@johanstenius/auth-react";
+import {
+	Link,
+	Navigate,
+	createFileRoute,
+	useNavigate,
+} from "@tanstack/react-router";
+import { Building2, Loader2 } from "lucide-react";
+import { type FormEvent, useState } from "react";
 
 export const Route = createFileRoute("/onboarding")({
-	validateSearch: onboardingSearchSchema,
 	component: OnboardingPage,
 });
 
 function OnboardingPage() {
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { organizations, isLoading: orgsLoading } = useOrganizations();
+	const { createOrganization, isLoading: creating } = useCreateOrganization();
 	const navigate = useNavigate();
-	const { oauth_token, suggested_org_name } = Route.useSearch();
-	const { setTokens, setOnboardingComplete } = useAuth();
-	const [organization, setOrganization] = useState(suggested_org_name ?? "");
-	const [error, setError] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 
-	useEffect(() => {
-		if (!oauth_token) {
-			const tokens = localStorage.getItem("mocktail_tokens");
-			if (!tokens || !JSON.parse(tokens).accessToken) {
-				navigate({ to: "/login" });
-			}
-		}
-	}, [oauth_token, navigate]);
+	const [name, setName] = useState("");
+	const [error, setError] = useState("");
+
+	if (authLoading || orgsLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+			</div>
+		);
+	}
+
+	if (!isAuthenticated) {
+		return <Navigate to="/login" />;
+	}
+
+	// Already has org, go to dashboard
+	if (organizations.length > 0) {
+		return <Navigate to="/dashboard" />;
+	}
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setError("");
-		setIsLoading(true);
+
+		if (!name.trim()) {
+			setError("Organization name is required");
+			return;
+		}
 
 		try {
-			if (oauth_token) {
-				const result = await api.completeOAuthOnboarding(
-					oauth_token,
-					organization,
-				);
-				const tokens: TokenResponse = {
-					accessToken: result.accessToken,
-					refreshToken: result.refreshToken,
-					expiresIn: result.expiresIn,
-				};
-				const me = await api.getMe(tokens.accessToken);
-				setTokens(
-					tokens,
-					{
-						id: me.id,
-						email: me.email,
-						emailVerifiedAt: me.emailVerifiedAt,
-					},
-					result.org,
-					me.role,
-				);
-				setOnboardingComplete();
-				navigate({ to: "/dashboard" });
-			} else {
-				const tokens = JSON.parse(
-					localStorage.getItem("mocktail_tokens") || "{}",
-				) as TokenResponse;
-				if (!tokens.accessToken) {
-					throw new Error("No authentication tokens found");
-				}
-
-				const { org } = await api.createOrganization(organization);
-				await api.completeOnboarding();
-				const me = await api.getMe(tokens.accessToken);
-
-				setTokens(
-					tokens,
-					{
-						id: me.id,
-						email: me.email,
-						emailVerifiedAt: me.emailVerifiedAt,
-					},
-					{
-						id: org.id,
-						name: org.name,
-						slug: org.slug,
-					},
-					me.role,
-				);
-				setOnboardingComplete();
-				navigate({ to: "/dashboard" });
-			}
+			await createOrganization({ name: name.trim() });
+			navigate({ to: "/dashboard" });
 		} catch (err) {
-			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
-		}
-	}
-
-	if (!oauth_token) {
-		const tokens = localStorage.getItem("mocktail_tokens");
-		if (!tokens || !JSON.parse(tokens).accessToken) {
-			return (
-				<div className="min-h-screen flex items-center justify-center">
-					<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
-				</div>
+			setError(
+				err instanceof Error ? err.message : "Failed to create organization",
 			);
 		}
 	}
@@ -131,46 +75,51 @@ function OnboardingPage() {
 
 			<main className="flex-1 flex items-center justify-center px-4 relative z-10">
 				<div className="w-full max-w-md">
-					<Card className="backdrop-blur-xl border-[var(--border-subtle)]">
-						<CardHeader className="text-center pb-2">
-							<CardTitle className="text-3xl mb-2">Welcome! 👋</CardTitle>
-							<CardDescription>Let's set up your organization</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<form onSubmit={handleSubmit} className="space-y-6">
-								{error && (
-									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-										{error}
-									</div>
-								)}
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-xl rounded-2xl p-8">
+						<div className="text-center mb-8">
+							<div className="w-16 h-16 rounded-full bg-[var(--glow-violet)]/10 flex items-center justify-center mx-auto mb-6">
+								<Building2 className="w-8 h-8 text-[var(--glow-violet)]" />
+							</div>
+							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+								Create your organization
+							</h1>
+							<p className="text-[var(--text-secondary)]">
+								Welcome, {user?.email}! Set up your workspace to get started.
+							</p>
+						</div>
 
-								<div className="space-y-2">
-									<Label htmlFor="organization">Organization</Label>
-									<Input
-										id="organization"
-										type="text"
-										value={organization}
-										onChange={(e) => setOrganization(e.target.value)}
-										placeholder="Acme Inc"
-										required
-										autoComplete="organization"
-										autoFocus
-									/>
+						<form onSubmit={handleSubmit} className="space-y-6">
+							{error && (
+								<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+									{error}
 								</div>
+							)}
 
-								<Button type="submit" disabled={isLoading} className="w-full">
-									{isLoading ? (
-										<>
-											<Loader2 className="h-4 w-4 mr-2 animate-spin" />
-											Creating organization...
-										</>
-									) : (
-										"Continue"
-									)}
-								</Button>
-							</form>
-						</CardContent>
-					</Card>
+							<div className="space-y-2">
+								<Label htmlFor="name">Organization name</Label>
+								<Input
+									id="name"
+									type="text"
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									placeholder="Acme Inc"
+									required
+									autoFocus
+								/>
+							</div>
+
+							<Button type="submit" disabled={creating} className="w-full">
+								{creating ? (
+									<>
+										<Loader2 className="h-4 w-4 mr-2 animate-spin" />
+										Creating...
+									</>
+								) : (
+									"Create Organization"
+								)}
+							</Button>
+						</form>
+					</div>
 				</div>
 			</main>
 		</div>

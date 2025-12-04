@@ -1,8 +1,7 @@
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { sendVerificationEmail } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+import { useAuth, useVerifyEmail } from "@johanstenius/auth-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Loader2, Mail, RefreshCw } from "lucide-react";
 import { useState } from "react";
@@ -20,6 +19,7 @@ export const Route = createFileRoute("/check-email")({
 function CheckEmailPage() {
 	const { email: queryEmail } = Route.useSearch();
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+	const { resend } = useVerifyEmail();
 	const [isResending, setIsResending] = useState(false);
 	const [resendSuccess, setResendSuccess] = useState(false);
 	const [error, setError] = useState("");
@@ -62,12 +62,13 @@ function CheckEmailPage() {
 	}
 
 	async function handleResend() {
+		if (!displayEmail) return;
 		setIsResending(true);
 		setError("");
 		setResendSuccess(false);
 
 		try {
-			await sendVerificationEmail();
+			await resend(displayEmail);
 			setResendSuccess(true);
 		} catch (err) {
 			setError(getErrorMessage(err));

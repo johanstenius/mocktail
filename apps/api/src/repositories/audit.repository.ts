@@ -64,7 +64,7 @@ export function findByOrgId(options: FindAuditLogsOptions) {
 			}),
 		},
 		include: {
-			actor: { select: { id: true, email: true, name: true } },
+			actor: { select: { id: true, email: true } },
 		},
 		orderBy: { createdAt: "desc" },
 		take: limit,

@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../middleware/auth";
+import type { AuthVariables } from "../lib/auth";
 import { importRoute } from "../schemas/import";
 import * as importService from "../services/import.service";
 import type { ImportedEndpoint } from "../services/import.service";

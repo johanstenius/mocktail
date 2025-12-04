@@ -1,11 +1,7 @@
 import type {
-	AcceptInviteResponse,
 	ActivityItem,
 	AuditLog,
-	AuthResponse,
-	CompleteOAuthOnboardingResponse,
 	CreateEndpointInput,
-	CreateInviteInput,
 	CreateProjectInput,
 	CreateVariantInput,
 	DashboardStats,
@@ -13,19 +9,11 @@ import type {
 	GetAuditLogsParams,
 	ImportResult,
 	ImportSpecInput,
-	Invite,
-	InviteInfo,
-	LoginInput,
-	MeResponse,
-	Member,
-	OrgRole,
 	Project,
 	ProjectStatistics,
-	RegisterInput,
 	RequestLog,
 	RequestSource,
 	SampleProjectResult,
-	TokenResponse,
 	UpdateEndpointInput,
 	UpdateProjectInput,
 	UpdateVariantInput,
@@ -35,32 +23,17 @@ import type {
 import { ApiError } from "./errors";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-const TOKEN_KEY = "mocktail_tokens";
-
-function getAccessToken(): string | null {
-	const stored = localStorage.getItem(TOKEN_KEY);
-	if (!stored) return null;
-	try {
-		const tokens = JSON.parse(stored) as TokenResponse;
-		return tokens.accessToken;
-	} catch {
-		return null;
-	}
-}
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-	const token = getAccessToken();
 	const headers: Record<string, string> = {
 		"Content-Type": "application/json",
 		...(options?.headers as Record<string, string>),
 	};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
 
 	const res = await fetch(url, {
 		...options,
 		headers,
+		credentials: "include",
 	});
 	if (!res.ok) {
 		const data = await res.json().catch(() => ({}));
@@ -74,17 +47,14 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 async function fetchVoid(url: string, options?: RequestInit): Promise<void> {
-	const token = getAccessToken();
 	const headers: Record<string, string> = {
 		...(options?.headers as Record<string, string>),
 	};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
-	}
 
 	const res = await fetch(url, {
 		...options,
 		headers,
+		credentials: "include",
 	});
 	if (!res.ok) {
 		const data = await res.json().catch(() => ({}));
@@ -252,142 +222,6 @@ export async function getGlobalStatistics(): Promise<GlobalStatistics> {
 	return fetchJson<GlobalStatistics>(`${API_BASE}/api/statistics`);
 }
 
-// Auth
-export async function register(input: RegisterInput): Promise<AuthResponse> {
-	return fetchJson<AuthResponse>(`${API_BASE}/api/auth/register`, {
-		method: "POST",
-		body: JSON.stringify(input),
-	});
-}
-
-export async function login(input: LoginInput): Promise<AuthResponse> {
-	return fetchJson<AuthResponse>(`${API_BASE}/api/auth/login`, {
-		method: "POST",
-		body: JSON.stringify(input),
-	});
-}
-
-export async function logout(refreshToken: string): Promise<void> {
-	await fetch(`${API_BASE}/api/auth/logout`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ refreshToken }),
-	});
-}
-
-export async function refreshTokens(
-	refreshToken: string,
-): Promise<TokenResponse> {
-	return fetchJson<TokenResponse>(`${API_BASE}/api/auth/refresh`, {
-		method: "POST",
-		body: JSON.stringify({ refreshToken }),
-	});
-}
-
-export async function getMe(accessToken: string): Promise<MeResponse> {
-	return fetchJson<MeResponse>(`${API_BASE}/api/auth/me`, {
-		headers: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	});
-}
-
-export async function forgotPassword(email: string): Promise<void> {
-	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/forgot-password`, {
-		method: "POST",
-		body: JSON.stringify({ email }),
-	});
-}
-
-export async function resetPassword(
-	token: string,
-	password: string,
-): Promise<void> {
-	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/reset-password`, {
-		method: "POST",
-		body: JSON.stringify({ token, password }),
-	});
-}
-
-export async function sendVerificationEmail(): Promise<void> {
-	await fetchJson<{ message: string }>(
-		`${API_BASE}/api/auth/send-verification`,
-		{
-			method: "POST",
-		},
-	);
-}
-
-export async function verifyEmail(token: string): Promise<void> {
-	await fetchJson<{ message: string }>(`${API_BASE}/api/auth/verify-email`, {
-		method: "POST",
-		body: JSON.stringify({ token }),
-	});
-}
-
-// Members
-export async function getMembers(): Promise<Member[]> {
-	const data = await fetchJson<{ members: Member[] }>(
-		`${API_BASE}/api/members`,
-	);
-	return data.members;
-}
-
-export async function updateMemberRole(
-	memberId: string,
-	role: OrgRole,
-): Promise<Member> {
-	const data = await fetchJson<{ member: Member }>(
-		`${API_BASE}/api/members/${memberId}`,
-		{
-			method: "PATCH",
-			body: JSON.stringify({ role }),
-		},
-	);
-	return data.member;
-}
-
-export async function removeMember(memberId: string): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/members/${memberId}`, { method: "DELETE" });
-}
-
-// Invites
-export async function getInvites(): Promise<Invite[]> {
-	const data = await fetchJson<{ invites: Invite[] }>(
-		`${API_BASE}/api/invites`,
-	);
-	return data.invites;
-}
-
-export async function createInvite(input: CreateInviteInput): Promise<Invite> {
-	const data = await fetchJson<{ invite: Invite }>(`${API_BASE}/api/invites`, {
-		method: "POST",
-		body: JSON.stringify(input),
-	});
-	return data.invite;
-}
-
-export async function revokeInvite(inviteId: string): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/invites/${inviteId}`, { method: "DELETE" });
-}
-
-export async function getInviteByToken(token: string): Promise<InviteInfo> {
-	const data = await fetchJson<{ invite: InviteInfo }>(
-		`${API_BASE}/api/invites/token?token=${encodeURIComponent(token)}`,
-	);
-	return data.invite;
-}
-
-export async function acceptInvite(
-	token: string,
-	password?: string,
-): Promise<AcceptInviteResponse> {
-	return fetchJson<AcceptInviteResponse>(`${API_BASE}/api/invites/accept`, {
-		method: "POST",
-		body: JSON.stringify({ token, password }),
-	});
-}
-
 // Billing
 export async function getUsage(): Promise<Usage> {
 	return fetchJson<Usage>(`${API_BASE}/api/billing/usage`);
@@ -441,12 +275,9 @@ export async function exportAuditLogs(
 	if (params?.from) searchParams.set("from", params.from);
 	if (params?.to) searchParams.set("to", params.to);
 
-	const token = getAccessToken();
 	const res = await fetch(
 		`${API_BASE}/api/audit-logs/export?${searchParams.toString()}`,
-		{
-			headers: token ? { Authorization: `Bearer ${token}` } : {},
-		},
+		{ credentials: "include" },
 	);
 	if (!res.ok) {
 		const data = await res.json().catch(() => ({}));
@@ -472,40 +303,11 @@ export async function getDashboardActivity(
 	return data.activity;
 }
 
-// Onboarding
-export async function createOrganization(name: string): Promise<{
-	org: { id: string; name: string; slug: string };
-}> {
-	return fetchJson<{ org: { id: string; name: string; slug: string } }>(
-		`${API_BASE}/api/onboarding/create-organization`,
-		{
-			method: "POST",
-			body: JSON.stringify({ name }),
-		},
-	);
-}
-
-export async function completeOnboarding(): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/onboarding/complete`, { method: "POST" });
-}
-
+// Sample project
 export async function createSampleProject(): Promise<SampleProjectResult> {
 	return fetchJson<SampleProjectResult>(
 		`${API_BASE}/api/onboarding/sample-project`,
 		{ method: "POST" },
-	);
-}
-
-export async function completeOAuthOnboarding(
-	oauthToken: string,
-	organizationName: string,
-): Promise<CompleteOAuthOnboardingResponse> {
-	return fetchJson<CompleteOAuthOnboardingResponse>(
-		`${API_BASE}/api/onboarding/complete-oauth`,
-		{
-			method: "POST",
-			body: JSON.stringify({ oauthToken, organizationName }),
-		},
 	);
 }
 
@@ -593,4 +395,22 @@ export async function reorderVariants(
 		},
 	);
 	return data.variants;
+}
+
+// Clear request logs
+export async function clearRequestLogs(
+	projectId: string,
+): Promise<{ deleted: number }> {
+	return fetchJson<{ deleted: number }>(
+		`${API_BASE}/api/projects/${projectId}/logs`,
+		{ method: "DELETE" },
+	);
+}
+
+// Get session token for SSE (need raw session token from auth package)
+export function getSessionToken(): string | null {
+	// The session token is in cookies, but we can't access httpOnly cookies from JS
+	// SSE will need to use a different approach - pass the session ID or use cookies
+	// For now, we'll get it from the auth context
+	return null;
 }

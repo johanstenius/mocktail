@@ -1,6 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../middleware/auth";
-import { getAuth } from "../middleware/auth";
+import { type AuthVariables, getAuth } from "../lib/auth";
 import { invalidateProjectKeyCache } from "../middleware/mock-auth";
 import {
 	createProjectRoute,

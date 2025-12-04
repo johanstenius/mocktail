@@ -1,6 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../middleware/auth";
-import { getAuth } from "../middleware/auth";
+import { type AuthVariables, getAuth } from "../lib/auth";
 import { getActivityRoute, getDashboardStatsRoute } from "../schemas/dashboard";
 import * as dashboardService from "../services/dashboard.service";
 

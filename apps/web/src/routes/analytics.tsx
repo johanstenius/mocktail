@@ -7,9 +7,9 @@ import {
 	TableRowSkeleton,
 } from "@/components/skeleton";
 import { getProjects, getRequestLogs } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { requireAuth } from "@/lib/route-guards";
 import type { HttpMethod, RequestLog } from "@/types";
+import { useAuth } from "@johanstenius/auth-react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, TrendingUp } from "lucide-react";
@@ -106,14 +106,10 @@ function ProjectStatBar({
 }
 
 function AnalyticsPage() {
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
 
-	const isVerified = Boolean(emailVerifiedAt);
+	const isVerified = Boolean(user?.emailVerified);
 
 	const { data: projects = [], isLoading: projectsLoading } = useQuery({
 		queryKey: ["projects"],
@@ -202,7 +198,7 @@ function AnalyticsPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}

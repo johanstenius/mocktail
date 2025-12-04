@@ -18,7 +18,6 @@ import {
 	rotateProjectApiKey,
 	updateProject,
 } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { requireAuth } from "@/lib/route-guards";
 import { createSSEConnection } from "@/lib/sse";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
@@ -29,6 +28,7 @@ import type {
 	ProjectStatistics,
 	UpdateProjectInput,
 } from "@/types";
+import { useAuth } from "@johanstenius/auth-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -636,12 +636,9 @@ function ProjectSettings({
 
 function ProjectDetailPage() {
 	const { id: projectId } = Route.useParams();
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
+	const isVerified = Boolean(user?.emailVerified);
 
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");
 	const [importModalOpen, setImportModalOpen] = useState(false);
@@ -721,7 +718,7 @@ function ProjectDetailPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}

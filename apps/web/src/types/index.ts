@@ -166,104 +166,6 @@ export type ProjectStatistics = {
 	avgLatency: number | null;
 };
 
-// Auth types
-export type TokenResponse = {
-	accessToken: string;
-	refreshToken: string;
-	expiresIn: number;
-};
-
-export type AuthUser = {
-	id: string;
-	email: string;
-	emailVerifiedAt: string | null;
-};
-
-export type AuthOrg = {
-	id: string;
-	name: string;
-	slug: string;
-};
-
-export type AuthResponse = {
-	user: AuthUser;
-	org: AuthOrg;
-	tokens: TokenResponse;
-};
-
-export type AcceptInviteResponse = {
-	accessToken: string;
-	refreshToken: string;
-	expiresIn: number;
-	user: {
-		id: string;
-		email: string;
-		orgId: string;
-		orgName: string;
-		orgSlug: string;
-		role: string;
-		emailVerifiedAt: string | null;
-	};
-	isExistingUser: boolean;
-};
-
-export type MeResponse = {
-	id: string;
-	email: string;
-	emailVerifiedAt: string | null;
-	hasCompletedOnboarding: boolean;
-	org: {
-		id: string;
-		name: string;
-		slug: string;
-		tier: string;
-	};
-	role: string;
-};
-
-export type RegisterInput = {
-	email: string;
-	password: string;
-	organization: string;
-};
-
-export type LoginInput = {
-	email: string;
-	password: string;
-};
-
-// Member types
-export type OrgRole = "owner" | "admin" | "member";
-
-export type Member = {
-	id: string;
-	userId: string;
-	email: string;
-	role: OrgRole;
-	createdAt: string;
-};
-
-export type Invite = {
-	id: string;
-	email: string;
-	role: OrgRole;
-	expiresAt: string;
-	invitedBy: string;
-	createdAt: string;
-};
-
-export type InviteInfo = {
-	email: string;
-	orgName: string;
-	role: OrgRole;
-	expiresAt: string;
-};
-
-export type CreateInviteInput = {
-	email: string;
-	role?: OrgRole;
-};
-
 // Billing types
 export type Tier = "free" | "pro" | "enterprise";
 
@@ -309,14 +211,6 @@ export type SampleProjectResult = {
 	endpointsCreated: number;
 };
 
-export type CompleteOAuthOnboardingResponse = {
-	accessToken: string;
-	refreshToken: string;
-	expiresIn: number;
-	user: { id: string; email: string };
-	org: { id: string; name: string; slug: string };
-};
-
 // Audit Log types
 export type AuditAction =
 	| "org_created"
@@ -354,7 +248,6 @@ export type AuditLog = {
 	actor: {
 		id: string;
 		email: string;
-		name: string | null;
 	} | null;
 };
 

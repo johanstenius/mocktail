@@ -16,9 +16,9 @@ import {
 	reactivateSubscription,
 	retryPayment,
 } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 import { requireAuth, requireBilling } from "@/lib/route-guards";
 import type { Tier } from "@/types";
+import { useAuth } from "@johanstenius/auth-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -272,18 +272,14 @@ function PaymentProcessingModal({
 }
 
 function BillingPage() {
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
 	const navigate = useNavigate();
 	const { success, canceled } = useSearch({ from: "/billing" });
 	const queryClient = useQueryClient();
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 	const [modalState, setModalState] = useState<PaymentModalState>(null);
 
-	const isVerified = Boolean(emailVerifiedAt);
+	const isVerified = Boolean(user?.emailVerified);
 
 	const {
 		data: usage,
@@ -400,7 +396,7 @@ function BillingPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}

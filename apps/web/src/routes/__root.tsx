@@ -1,13 +1,13 @@
 import { NotFoundPage } from "@/components/not-found-page";
 import { Sidebar } from "@/components/sidebar";
-import { useAuth } from "@/lib/auth";
+import { useAuth, useOrganizations } from "@johanstenius/auth-react";
 import {
+	Navigate,
 	Outlet,
 	createRootRoute,
 	useLocation,
-	useNavigate,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export const Route = createRootRoute({
 	component: RootLayout,
@@ -35,19 +35,42 @@ function isPublicPath(pathname: string): boolean {
 
 function RootLayout() {
 	const location = useLocation();
-	const navigate = useNavigate();
-	const { isAuthenticated, emailVerifiedAt, isLoading } = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { organizations, isLoading: orgsLoading } = useOrganizations();
 
 	const isPublic = isPublicPath(location.pathname);
+	const isLoading = authLoading || (isAuthenticated && orgsLoading);
 
-	// Redirect to check-email if authenticated but email not verified
-	useEffect(() => {
-		if (!isLoading && isAuthenticated && !emailVerifiedAt && !isPublic) {
-			navigate({ to: "/check-email" });
-		}
-	}, [isLoading, isAuthenticated, emailVerifiedAt, isPublic, navigate]);
+	// Show loader while checking auth state
+	if (isLoading && !isPublic) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+			</div>
+		);
+	}
 
-	const showSidebar = !isPublic;
+	// Redirect to login if not authenticated on protected route
+	if (!isPublic && !isAuthenticated) {
+		return <Navigate to="/login" />;
+	}
+
+	// Redirect to check-email if email not verified
+	if (!isPublic && isAuthenticated && user && !user.emailVerified) {
+		return <Navigate to="/check-email" />;
+	}
+
+	// Redirect to onboarding if no organization
+	if (
+		!isPublic &&
+		isAuthenticated &&
+		user?.emailVerified &&
+		organizations.length === 0
+	) {
+		return <Navigate to="/onboarding" />;
+	}
+
+	const showSidebar = !isPublic && isAuthenticated && organizations.length > 0;
 
 	return (
 		<>

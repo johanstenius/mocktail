@@ -3,15 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { exportAuditLogs, getAuditLogs, getMembers } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { exportAuditLogs, getAuditLogs } from "@/lib/api";
 import { requireAuth } from "@/lib/route-guards";
-import type {
-	AuditAction,
-	AuditLog,
-	GetAuditLogsParams,
-	Member,
-} from "@/types";
+import type { AuditAction, AuditLog, GetAuditLogsParams } from "@/types";
+import {
+	useActiveOrganization,
+	useAuth,
+	useOrganizationMembers,
+} from "@johanstenius/auth-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -138,12 +137,8 @@ function AuditLogSkeleton() {
 }
 
 function AuditLogsPage() {
-	const {
-		isAuthenticated,
-		emailVerifiedAt,
-		isLoading: authLoading,
-		role,
-	} = useAuth();
+	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { activeOrganizationId: orgId } = useActiveOrganization();
 	const navigate = useNavigate();
 	const [page, setPage] = useState(0);
 	const [actionFilter, setActionFilter] = useState<AuditAction | "">("");
@@ -153,7 +148,10 @@ function AuditLogsPage() {
 	const [exporting, setExporting] = useState(false);
 
 	const limit = 20;
-	const isVerified = Boolean(emailVerifiedAt);
+	const isVerified = Boolean(user?.emailVerified);
+	const { members: membersData } = useOrganizationMembers(orgId);
+	const currentMember = membersData?.find((m) => m.userId === user?.id);
+	const role = currentMember?.role;
 	const canView = role === "owner" || role === "admin";
 
 	const params: GetAuditLogsParams = {
@@ -171,11 +169,7 @@ function AuditLogsPage() {
 		enabled: isAuthenticated && isVerified && canView,
 	});
 
-	const { data: members = [] } = useQuery({
-		queryKey: ["members"],
-		queryFn: getMembers,
-		enabled: isAuthenticated && isVerified && canView,
-	});
+	const members = membersData ?? [];
 
 	const logs = data?.logs ?? [];
 	const total = data?.total ?? 0;
@@ -217,7 +211,7 @@ function AuditLogsPage() {
 		return null;
 	}
 
-	if (!emailVerifiedAt) {
+	if (!isVerified) {
 		navigate({ to: "/check-email" });
 		return null;
 	}
@@ -302,9 +296,9 @@ function AuditLogsPage() {
 							className="w-48"
 						>
 							<option value="">All Users</option>
-							{members.map((m: Member) => (
+							{members.map((m) => (
 								<option key={m.userId} value={m.userId}>
-									{m.email}
+									{m.user.email}
 								</option>
 							))}
 						</Select>

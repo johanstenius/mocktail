@@ -2,6 +2,7 @@ import { getLimits } from "../config/limits";
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
+import * as subRepo from "../repositories/subscription.repository";
 import { quotaExceeded } from "../utils/errors";
 
 export type Tier = "free" | "pro";
@@ -29,7 +30,10 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 
 	if (!org) return null;
 
-	const limits = getLimits(org.tier);
+	const sub = org.subscription;
+	if (!sub) return null;
+
+	const limits = getLimits(sub.tier);
 	const totalEndpoints = org.projects.reduce(
 		(sum, p) => sum + p._count.endpoints,
 		0,
@@ -37,7 +41,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 	const pendingInvites = await orgRepo.countPendingInvitesByOrgId(orgId);
 
 	return {
-		tier: org.tier as Tier,
+		tier: sub.tier as Tier,
 		projects: { used: org._count.projects, limit: limits.projects },
 		endpoints: {
 			used: totalEndpoints,
@@ -47,22 +51,27 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 			used: org._count.members + pendingInvites,
 			limit: limits.teamMembers,
 		},
-		requests: { used: org.monthlyRequests, limit: limits.monthlyRequests },
-		cancelAtPeriodEnd: org.stripeCancelAtPeriodEnd,
-		currentPeriodEnd: org.stripeCurrentPeriodEnd,
-		paymentFailedAt: org.paymentFailedAt,
+		requests: { used: sub.monthlyRequests, limit: limits.monthlyRequests },
+		cancelAtPeriodEnd: sub.stripeCancelAtPeriodEnd,
+		currentPeriodEnd: sub.stripeCurrentPeriodEnd,
+		paymentFailedAt: sub.paymentFailedAt,
 	};
 }
 
 export async function checkProjectLimit(
 	orgId: string,
 ): Promise<LimitCheckResult> {
-	const org = await orgRepo.findById(orgId);
-	if (!org) {
-		return { allowed: false, reason: "Org not found", current: 0, limit: 0 };
+	const sub = await subRepo.findByOrgId(orgId);
+	if (!sub) {
+		return {
+			allowed: false,
+			reason: "Subscription not found",
+			current: 0,
+			limit: 0,
+		};
 	}
 
-	const limits = getLimits(org.tier);
+	const limits = getLimits(sub.tier);
 	const count = await orgRepo.countProjectsByOrgId(orgId);
 
 	if (count >= limits.projects) {
@@ -80,12 +89,17 @@ export async function checkProjectLimit(
 export async function checkMemberLimit(
 	orgId: string,
 ): Promise<LimitCheckResult> {
-	const org = await orgRepo.findById(orgId);
-	if (!org) {
-		return { allowed: false, reason: "Org not found", current: 0, limit: 0 };
+	const sub = await subRepo.findByOrgId(orgId);
+	if (!sub) {
+		return {
+			allowed: false,
+			reason: "Subscription not found",
+			current: 0,
+			limit: 0,
+		};
 	}
 
-	const limits = getLimits(org.tier);
+	const limits = getLimits(sub.tier);
 	const memberCount = await orgRepo.countMembersByOrgId(orgId);
 	const inviteCount = await orgRepo.countPendingInvitesByOrgId(orgId);
 	const total = memberCount + inviteCount;
@@ -115,7 +129,17 @@ export async function checkEndpointLimit(
 		};
 	}
 
-	const limits = getLimits(project.org.tier);
+	const sub = await subRepo.findByOrgId(project.orgId);
+	if (!sub) {
+		return {
+			allowed: false,
+			reason: "Subscription not found",
+			current: 0,
+			limit: 0,
+		};
+	}
+
+	const limits = getLimits(sub.tier);
 	const count = await endpointRepo.countByProjectId(projectId);
 
 	if (count >= limits.endpointsPerProject) {
@@ -133,37 +157,37 @@ export async function checkEndpointLimit(
 export async function trackRequest(
 	orgId: string,
 ): Promise<{ allowed: boolean; remaining: number }> {
-	const org = await orgRepo.findById(orgId);
-	if (!org) {
+	const sub = await subRepo.findByOrgId(orgId);
+	if (!sub) {
 		return { allowed: false, remaining: 0 };
 	}
 
-	const limits = getLimits(org.tier);
+	const limits = getLimits(sub.tier);
 
 	const now = new Date();
-	const resetAt = org.requestResetAt;
+	const resetAt = sub.requestResetAt;
 	if (
 		!resetAt ||
 		resetAt.getMonth() !== now.getMonth() ||
 		resetAt.getFullYear() !== now.getFullYear()
 	) {
-		await orgRepo.resetMonthlyRequests(orgId);
+		await subRepo.resetMonthlyRequests(orgId);
 		return { allowed: true, remaining: limits.monthlyRequests - 1 };
 	}
 
-	if (org.monthlyRequests >= limits.monthlyRequests) {
+	if (sub.monthlyRequests >= limits.monthlyRequests) {
 		return { allowed: false, remaining: 0 };
 	}
 
-	await orgRepo.incrementMonthlyRequests(orgId);
+	await subRepo.incrementMonthlyRequests(orgId);
 	return {
 		allowed: true,
-		remaining: limits.monthlyRequests - org.monthlyRequests - 1,
+		remaining: limits.monthlyRequests - sub.monthlyRequests - 1,
 	};
 }
 
 export async function trackProjectRequest(projectId: string): Promise<void> {
-	const project = await projectRepo.findByIdWithOrg(projectId);
+	const project = await projectRepo.findById(projectId);
 	if (!project) return;
 
 	const now = new Date();
