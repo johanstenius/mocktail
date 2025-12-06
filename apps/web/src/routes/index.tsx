@@ -358,21 +358,21 @@ function LandingPage() {
 								</p>
 								<ul className="space-y-3 mb-8 flex-grow">
 									{[
-										{ label: "More projects", icon: "📁" },
-										{ label: "More endpoints", icon: "🔗" },
-										{ label: "Higher request limits", icon: "⚡" },
-										{ label: "Team collaboration", icon: "👥" },
-										{ label: "Extended log retention", icon: "📊" },
+										"More projects",
+										"More endpoints",
+										"Higher request limits",
+										"Team collaboration",
+										"Extended log retention",
 									].map((feature, i) => (
 										<li
-											key={feature.label}
-											className="flex items-center gap-3 text-sm"
+											key={feature}
+											className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
 											style={{ animationDelay: `${i * 100}ms` }}
 										>
-											<span className="text-base">{feature.icon}</span>
-											<span className="text-[var(--text-secondary)]">
-												{feature.label}
+											<span className="text-[var(--accent-primary)] text-lg">
+												✓
 											</span>
+											{feature}
 										</li>
 									))}
 								</ul>
