@@ -268,11 +268,11 @@ function LandingPage() {
 								</p>
 								<ul className="space-y-3 mb-8 flex-grow">
 									{[
-										"3 Projects",
-										"10 Endpoints per Project",
-										"5,000 Requests/mo",
-										"3 Team Members",
-										"3 Day Log Retention",
+										"2 Projects",
+										"5 Endpoints per Project",
+										"1,000 Requests/mo",
+										"Solo Use Only",
+										"1 Day Log Retention",
 									].map((feature) => (
 										<li
 											key={feature}

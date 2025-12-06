@@ -17,8 +17,8 @@ import {
 	retryPayment,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
-import { requireAuth, requireBilling } from "@/lib/route-guards";
-import type { Tier } from "@/types";
+import { BILLING_ENABLED } from "@/lib/config";
+import { requireAuth } from "@/lib/route-guards";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -28,18 +28,21 @@ import {
 import {
 	AlertCircle,
 	AlertTriangle,
+	ArrowRight,
 	Check,
 	CreditCard,
 	Loader2,
 	RefreshCw,
+	Rocket,
 	Sparkles,
+	Users,
+	Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/billing")({
 	beforeLoad: () => {
-		requireBilling();
 		requireAuth();
 	},
 	component: BillingPage,
@@ -51,153 +54,302 @@ export const Route = createFileRoute("/billing")({
 	},
 });
 
-const TIER_INFO: Record<
-	Tier,
-	{ name: string; description: string; price: string }
-> = {
-	free: {
-		name: "Free",
-		description: "Try it out, no credit card required",
-		price: "$0",
-	},
-	pro: {
-		name: "Pro",
-		description: "For teams shipping to production",
-		price: "$29",
-	},
-};
+const FREE_FEATURES = [
+	{ text: "2 projects", highlight: false },
+	{ text: "5 endpoints per project", highlight: false },
+	{ text: "1,000 requests/month", highlight: false },
+	{ text: "Solo use only", highlight: false },
+	{ text: "1 day log retention", highlight: false },
+];
 
-const TIER_FEATURES: Record<Tier, string[]> = {
-	free: [
-		"2 projects",
-		"5 endpoints per project",
-		"1,000 requests/month",
-		"Solo use only",
-		"1 day log retention",
-	],
-	pro: [
-		"10 projects",
-		"50 endpoints per project",
-		"100,000 requests/month",
-		"10 team members",
-		"30 day log retention",
-	],
-};
+const PRO_FEATURES = [
+	{ text: "10 projects", highlight: true },
+	{ text: "50 endpoints per project", highlight: true },
+	{ text: "100,000 requests/month", highlight: true },
+	{ text: "10 team members", highlight: true },
+	{ text: "30 day log retention", highlight: false },
+	{ text: "Priority support", highlight: false },
+];
 
-function UsageBar({
+function UsageRing({
 	current,
 	limit,
 	label,
+	icon: Icon,
 }: {
 	current: number;
 	limit: number | null;
 	label: string;
+	icon: React.ElementType;
 }) {
 	const percentage =
 		limit !== null ? Math.min((current / limit) * 100, 100) : 0;
-	const isNearLimit = limit !== null ? percentage >= 80 : false;
+	const isNearLimit = limit !== null && percentage >= 80;
+	const circumference = 2 * Math.PI * 40;
+	const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
 	return (
-		<div className="space-y-2">
-			<div className="flex justify-between text-sm">
-				<span className="text-[var(--text-secondary)] font-['Inter']">
-					{label}
-				</span>
-				<span className="text-[var(--text-primary)] font-['JetBrains_Mono']">
-					{current.toLocaleString()}
-					{limit !== null ? ` / ${limit.toLocaleString()}` : " / Unlimited"}
-				</span>
+		<div className="flex items-center gap-4 p-4 rounded-xl bg-[rgba(255,255,255,0.02)] border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] transition-all group">
+			<div className="relative w-20 h-20 flex-shrink-0">
+				<svg
+					className="w-20 h-20 -rotate-90"
+					viewBox="0 0 100 100"
+					aria-hidden="true"
+				>
+					<circle
+						cx="50"
+						cy="50"
+						r="40"
+						fill="none"
+						stroke="rgba(255,255,255,0.05)"
+						strokeWidth="8"
+					/>
+					<circle
+						cx="50"
+						cy="50"
+						r="40"
+						fill="none"
+						stroke={
+							isNearLimit ? "var(--status-warning)" : "var(--glow-violet)"
+						}
+						strokeWidth="8"
+						strokeLinecap="round"
+						strokeDasharray={circumference}
+						strokeDashoffset={strokeDashoffset}
+						className="transition-all duration-700 ease-out"
+						style={{
+							filter: isNearLimit
+								? "drop-shadow(0 0 8px var(--status-warning))"
+								: "drop-shadow(0 0 8px var(--glow-violet))",
+						}}
+					/>
+				</svg>
+				<div className="absolute inset-0 flex items-center justify-center">
+					<Icon
+						className={`w-6 h-6 ${isNearLimit ? "text-[var(--status-warning)]" : "text-[var(--glow-violet)]"} transition-colors`}
+					/>
+				</div>
 			</div>
-			<div className="h-2 bg-[var(--bg-surface-active)] rounded-full overflow-hidden">
-				<div
-					className={`h-full rounded-full transition-all ${
-						isNearLimit
-							? "bg-[var(--status-warning)]"
-							: "bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)]"
-					}`}
-					style={{ width: limit !== null ? `${percentage}%` : "5%" }}
-				/>
+			<div className="flex-1 min-w-0">
+				<div className="text-sm text-[var(--text-muted)] font-['Inter'] mb-1">
+					{label}
+				</div>
+				<div className="flex items-baseline gap-1">
+					<span className="text-2xl font-bold text-[var(--text-primary)] font-['Outfit'] tabular-nums">
+						{current.toLocaleString()}
+					</span>
+					<span className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
+						/ {limit !== null ? limit.toLocaleString() : "∞"}
+					</span>
+				</div>
+				{isNearLimit && (
+					<div className="text-xs text-[var(--status-warning)] mt-1 font-['Inter']">
+						{Math.round(percentage)}% used
+					</div>
+				)}
 			</div>
 		</div>
 	);
 }
 
-function TierCard({
-	tier,
-	isCurrentTier,
-	onUpgrade,
-	isPending,
-}: {
-	tier: Tier;
-	isCurrentTier: boolean;
-	onUpgrade?: () => void;
-	isPending?: boolean;
-}) {
-	const info = TIER_INFO[tier];
-	const features = TIER_FEATURES[tier];
-
+function ComingSoonPage() {
 	return (
-		<div
-			className={`p-6 rounded-2xl border transition-all ${
-				isCurrentTier
-					? "border-[var(--glow-violet)] bg-[rgba(139,92,246,0.05)]"
-					: "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--border-highlight)]"
-			}`}
-		>
-			<div className="flex items-start justify-between mb-4">
-				<div>
-					<div className="flex items-center gap-2">
-						<h3 className="text-lg font-semibold text-[var(--text-primary)] font-['Outfit']">
-							{info.name}
-						</h3>
-						{isCurrentTier && <Badge variant="violet">Current</Badge>}
+		<main className="flex-1 flex flex-col overflow-hidden">
+			<PageHeader
+				title="Billing"
+				icon={<CreditCard className="h-4 w-4 text-[var(--glow-violet)]" />}
+			/>
+
+			<div className="flex-1 overflow-y-auto p-8">
+				<div className="max-w-4xl mx-auto">
+					{/* Hero Section */}
+					<div className="relative mb-12">
+						<div className="absolute inset-0 bg-gradient-to-r from-[var(--glow-violet)]/10 via-[var(--glow-blue)]/5 to-transparent rounded-3xl blur-xl" />
+						<div className="relative p-8 md:p-12 rounded-3xl border border-[var(--border-subtle)] bg-[rgba(255,255,255,0.02)] overflow-hidden">
+							{/* Decorative elements */}
+							<div className="absolute top-0 right-0 w-64 h-64 bg-[var(--glow-violet)]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+							<div className="absolute bottom-0 left-0 w-48 h-48 bg-[var(--glow-blue)]/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+							<div className="relative z-10">
+								<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--glow-violet)]/10 border border-[var(--glow-violet)]/20 mb-6">
+									<Rocket className="w-4 h-4 text-[var(--glow-violet)]" />
+									<span className="text-sm font-medium text-[var(--glow-violet)] font-['Inter']">
+										Coming Soon
+									</span>
+								</div>
+
+								<h1 className="text-4xl md:text-5xl font-bold mb-4 font-['Outfit'] leading-tight">
+									<span className="bg-gradient-to-r from-white via-white to-[var(--text-secondary)] bg-clip-text text-transparent">
+										Pro tier is on
+									</span>
+									<br />
+									<span className="bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] bg-clip-text text-transparent">
+										the way
+									</span>
+								</h1>
+
+								<p className="text-lg text-[var(--text-secondary)] font-['Inter'] max-w-xl mb-8">
+									We're putting the finishing touches on our Pro plan. Get ready
+									for more projects, more endpoints, and team collaboration.
+								</p>
+
+								<div className="flex flex-wrap gap-4">
+									<div className="flex items-center gap-2 text-[var(--text-muted)]">
+										<div className="w-8 h-8 rounded-lg bg-[var(--glow-violet)]/10 flex items-center justify-center">
+											<Zap className="w-4 h-4 text-[var(--glow-violet)]" />
+										</div>
+										<span className="text-sm font-['Inter']">
+											100k requests/mo
+										</span>
+									</div>
+									<div className="flex items-center gap-2 text-[var(--text-muted)]">
+										<div className="w-8 h-8 rounded-lg bg-[var(--glow-blue)]/10 flex items-center justify-center">
+											<Users className="w-4 h-4 text-[var(--glow-blue)]" />
+										</div>
+										<span className="text-sm font-['Inter']">
+											Team collaboration
+										</span>
+									</div>
+									<div className="flex items-center gap-2 text-[var(--text-muted)]">
+										<div className="w-8 h-8 rounded-lg bg-[var(--glow-pink)]/10 flex items-center justify-center">
+											<Sparkles className="w-4 h-4 text-[var(--glow-pink)]" />
+										</div>
+										<span className="text-sm font-['Inter']">
+											Priority support
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
-					<p className="text-sm text-[var(--text-muted)] font-['Inter']">
-						{info.description}
-					</p>
+
+					{/* Comparison Grid */}
+					<div className="grid md:grid-cols-2 gap-6">
+						{/* Free Tier */}
+						<div className="p-6 rounded-2xl border border-[var(--border-subtle)] bg-[rgba(255,255,255,0.02)]">
+							<div className="flex items-center justify-between mb-6">
+								<div>
+									<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit']">
+										Free
+									</h3>
+									<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+										What you have now
+									</p>
+								</div>
+								<Badge variant="default">Current</Badge>
+							</div>
+
+							<div className="mb-6">
+								<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+									$0
+								</span>
+								<span className="text-[var(--text-muted)] font-['Inter']">
+									{" "}
+									forever
+								</span>
+							</div>
+
+							<ul className="space-y-3">
+								{FREE_FEATURES.map((feature) => (
+									<li
+										key={feature.text}
+										className="flex items-center gap-3 text-sm"
+									>
+										<div className="w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center flex-shrink-0">
+											<Check className="w-3 h-3 text-[var(--text-muted)]" />
+										</div>
+										<span className="text-[var(--text-secondary)] font-['Inter']">
+											{feature.text}
+										</span>
+									</li>
+								))}
+							</ul>
+						</div>
+
+						{/* Pro Tier - Coming Soon */}
+						<div className="relative p-6 rounded-2xl border border-[var(--glow-violet)]/30 bg-gradient-to-b from-[var(--glow-violet)]/5 to-transparent overflow-hidden">
+							{/* Glow effect */}
+							<div className="absolute inset-0 bg-gradient-to-br from-[var(--glow-violet)]/10 via-transparent to-[var(--glow-blue)]/5" />
+
+							<div className="relative z-10">
+								<div className="flex items-center justify-between mb-6">
+									<div>
+										<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit'] flex items-center gap-2">
+											Pro
+											<Sparkles className="w-5 h-5 text-[var(--glow-violet)]" />
+										</h3>
+										<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+											For teams & production
+										</p>
+									</div>
+									<Badge
+										variant="violet"
+										className="bg-[var(--glow-violet)]/20 border-[var(--glow-violet)]/30"
+									>
+										Soon
+									</Badge>
+								</div>
+
+								<div className="mb-6">
+									<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+										$29
+									</span>
+									<span className="text-[var(--text-muted)] font-['Inter']">
+										{" "}
+										/month
+									</span>
+								</div>
+
+								<ul className="space-y-3 mb-6">
+									{PRO_FEATURES.map((feature) => (
+										<li
+											key={feature.text}
+											className="flex items-center gap-3 text-sm"
+										>
+											<div
+												className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+													feature.highlight
+														? "bg-[var(--glow-violet)]/20"
+														: "bg-[rgba(255,255,255,0.05)]"
+												}`}
+											>
+												<Check
+													className={`w-3 h-3 ${
+														feature.highlight
+															? "text-[var(--glow-violet)]"
+															: "text-[var(--text-muted)]"
+													}`}
+												/>
+											</div>
+											<span
+												className={`font-['Inter'] ${
+													feature.highlight
+														? "text-[var(--text-primary)]"
+														: "text-[var(--text-secondary)]"
+												}`}
+											>
+												{feature.text}
+											</span>
+											{feature.highlight && (
+												<ArrowRight className="w-3 h-3 text-[var(--glow-violet)] ml-auto" />
+											)}
+										</li>
+									))}
+								</ul>
+
+								<Button
+									disabled
+									className="w-full bg-[var(--glow-violet)]/20 border border-[var(--glow-violet)]/30 text-[var(--glow-violet)] cursor-not-allowed"
+								>
+									<Rocket className="w-4 h-4 mr-2" />
+									Coming Soon
+								</Button>
+							</div>
+						</div>
+					</div>
 				</div>
-				{tier === "pro" && (
-					<Sparkles className="h-5 w-5 text-[var(--glow-violet)]" />
-				)}
 			</div>
-
-			<div className="mb-6">
-				<span className="text-3xl font-bold text-[var(--text-primary)] font-['Outfit']">
-					{info.price}
-				</span>
-				{tier !== "free" && (
-					<span className="text-[var(--text-muted)] font-['Inter']">
-						/month
-					</span>
-				)}
-			</div>
-
-			<ul className="space-y-2 mb-6">
-				{features.map((feature) => (
-					<li key={feature} className="flex items-center gap-2 text-sm">
-						<Check className="h-4 w-4 text-[var(--status-success)]" />
-						<span className="text-[var(--text-secondary)] font-['Inter']">
-							{feature}
-						</span>
-					</li>
-				))}
-			</ul>
-
-			{!isCurrentTier && tier === "pro" && onUpgrade && (
-				<Button
-					onClick={onUpgrade}
-					disabled={isPending}
-					className="w-full bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-				>
-					{isPending ? (
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-					) : (
-						<CreditCard className="mr-2 h-4 w-4" />
-					)}
-					Upgrade to Pro
-				</Button>
-			)}
-		</div>
+		</main>
 	);
 }
 
@@ -248,17 +400,12 @@ function PaymentProcessingModal({
 	);
 }
 
-function BillingPage() {
-	const { data: session, isPending: authLoading } = useSession();
+function ActiveBillingPage() {
 	const navigate = useNavigate();
 	const { success, canceled } = useSearch({ from: "/billing" });
 	const queryClient = useQueryClient();
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 	const [modalState, setModalState] = useState<PaymentModalState>(null);
-
-	const isAuthenticated = !!session;
-	const user = session?.user;
-	const isVerified = Boolean(user?.emailVerified);
 
 	const {
 		data: usage,
@@ -267,14 +414,11 @@ function BillingPage() {
 	} = useQuery({
 		queryKey: ["billing", "usage"],
 		queryFn: getUsage,
-		enabled: isAuthenticated && isVerified,
 	});
 
-	// Poll for tier upgrade when returning from successful payment
 	useEffect(() => {
 		if (!success || !usage) return;
 
-		// Already upgraded - show success briefly
 		if (usage.tier === "pro") {
 			setModalState("success");
 			const timer = setTimeout(() => {
@@ -284,7 +428,6 @@ function BillingPage() {
 			return () => clearTimeout(timer);
 		}
 
-		// Poll for upgrade
 		setModalState("processing");
 		const startTime = Date.now();
 		const maxWaitTime = 15000;
@@ -311,7 +454,6 @@ function BillingPage() {
 	const upgradeMutation = useMutation({
 		mutationFn: createCheckoutSession,
 		onSuccess: (data) => {
-			// Validate redirect URL is from trusted Stripe domain
 			try {
 				const url = new URL(data.url);
 				if (url.hostname.endsWith("stripe.com")) {
@@ -362,25 +504,6 @@ function BillingPage() {
 		},
 	});
 
-	if (authLoading) {
-		return (
-			<div className="flex-1 flex items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
-			</div>
-		);
-	}
-
-	if (!isAuthenticated) {
-		navigate({ to: "/login" });
-		return null;
-	}
-
-	if (!isVerified) {
-		navigate({ to: "/check-email" });
-		return null;
-	}
-
-	const isLoading = usageLoading;
 	const currentTier = usage?.tier ?? "free";
 
 	return (
@@ -409,9 +532,8 @@ function BillingPage() {
 						</p>
 					</div>
 
-					{isLoading ? (
+					{usageLoading ? (
 						<div className="space-y-8">
-							{/* Usage Section Skeleton */}
 							<div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
 								<div className="h-5 w-28 bg-[var(--bg-surface-active)] rounded animate-pulse mb-6" />
 								<div className="grid gap-6">
@@ -421,8 +543,6 @@ function BillingPage() {
 									<UsageBarSkeleton />
 								</div>
 							</div>
-
-							{/* Plans Section Skeleton */}
 							<div className="h-5 w-12 bg-[var(--bg-surface-active)] rounded animate-pulse mb-4" />
 							<div className="grid md:grid-cols-2 gap-6 max-w-2xl">
 								<TierCardSkeleton />
@@ -431,6 +551,7 @@ function BillingPage() {
 						</div>
 					) : (
 						<>
+							{/* Alerts */}
 							{usage?.cancelAtPeriodEnd && (
 								<div className="mb-6 p-4 rounded-xl bg-[rgba(239,68,68,0.1)] border border-[var(--status-error)]/20 flex items-start gap-3">
 									<AlertCircle className="h-5 w-5 text-[var(--status-error)] mt-0.5" />
@@ -484,8 +605,8 @@ function BillingPage() {
 												);
 												const daysRemaining = Math.max(0, 7 - daysPassed);
 												return daysRemaining > 0
-													? `You have ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} to update your payment method before your account is downgraded to Free.`
-													: "Your account will be downgraded soon. Please update your payment method.";
+													? `You have ${daysRemaining} day${daysRemaining === 1 ? "" : "s"} to update your payment method.`
+													: "Your account will be downgraded soon.";
 											})()}
 										</p>
 										<Button
@@ -506,51 +627,155 @@ function BillingPage() {
 								</div>
 							)}
 
-							<div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] mb-8">
-								<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-6 font-['Outfit']">
+							{/* Usage Section with Ring Charts */}
+							<div className="mb-8">
+								<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
 									Current Usage
 								</h2>
-								<div className="grid gap-6">
+								<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
 									{usage && (
 										<>
-											<UsageBar
+											<UsageRing
 												current={usage.projects.current}
 												limit={usage.projects.limit}
 												label="Projects"
+												icon={CreditCard}
 											/>
-											<UsageBar
+											<UsageRing
 												current={usage.endpoints.current}
 												limit={usage.endpoints.limit}
 												label="Endpoints"
+												icon={Zap}
 											/>
-											<UsageBar
+											<UsageRing
 												current={usage.requests.current}
 												limit={usage.requests.limit}
-												label="Requests this month"
+												label="Requests"
+												icon={Sparkles}
 											/>
-											<UsageBar
+											<UsageRing
 												current={usage.members.current}
 												limit={usage.members.limit}
-												label="Team members"
+												label="Members"
+												icon={Users}
 											/>
 										</>
 									)}
 								</div>
 							</div>
 
+							{/* Plans Comparison */}
 							<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
 								Plans
 							</h2>
-							<div className="grid md:grid-cols-2 gap-6 mb-8 max-w-2xl">
-								<TierCard tier="free" isCurrentTier={currentTier === "free"} />
-								<TierCard
-									tier="pro"
-									isCurrentTier={currentTier === "pro"}
-									onUpgrade={() => upgradeMutation.mutate()}
-									isPending={upgradeMutation.isPending}
-								/>
+							<div className="grid md:grid-cols-2 gap-6 mb-8 max-w-3xl">
+								{/* Free Tier */}
+								<div
+									className={`p-6 rounded-2xl border transition-all ${
+										currentTier === "free"
+											? "border-[var(--glow-violet)]/50 bg-[rgba(139,92,246,0.05)]"
+											: "border-[var(--border-subtle)] bg-[rgba(255,255,255,0.02)]"
+									}`}
+								>
+									<div className="flex items-center justify-between mb-4">
+										<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit']">
+											Free
+										</h3>
+										{currentTier === "free" && (
+											<Badge variant="violet">Current</Badge>
+										)}
+									</div>
+
+									<div className="mb-6">
+										<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+											$0
+										</span>
+									</div>
+
+									<ul className="space-y-2">
+										{FREE_FEATURES.map((feature) => (
+											<li
+												key={feature.text}
+												className="flex items-center gap-2 text-sm"
+											>
+												<Check className="h-4 w-4 text-[var(--status-success)]" />
+												<span className="text-[var(--text-secondary)] font-['Inter']">
+													{feature.text}
+												</span>
+											</li>
+										))}
+									</ul>
+								</div>
+
+								{/* Pro Tier */}
+								<div
+									className={`relative p-6 rounded-2xl border transition-all overflow-hidden ${
+										currentTier === "pro"
+											? "border-[var(--glow-violet)]/50 bg-[rgba(139,92,246,0.05)]"
+											: "border-[var(--glow-violet)]/30 bg-gradient-to-b from-[var(--glow-violet)]/5 to-transparent"
+									}`}
+								>
+									{currentTier !== "pro" && (
+										<div className="absolute top-0 right-0 w-32 h-32 bg-[var(--glow-violet)]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+									)}
+
+									<div className="relative z-10">
+										<div className="flex items-center justify-between mb-4">
+											<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit'] flex items-center gap-2">
+												Pro
+												<Sparkles className="w-5 h-5 text-[var(--glow-violet)]" />
+											</h3>
+											{currentTier === "pro" && (
+												<Badge variant="violet">Current</Badge>
+											)}
+										</div>
+
+										<div className="mb-6">
+											<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+												$29
+											</span>
+											<span className="text-[var(--text-muted)] font-['Inter']">
+												/mo
+											</span>
+										</div>
+
+										<ul className="space-y-2 mb-6">
+											{PRO_FEATURES.map((feature) => (
+												<li
+													key={feature.text}
+													className="flex items-center gap-2 text-sm"
+												>
+													<Check
+														className={`h-4 w-4 ${feature.highlight ? "text-[var(--glow-violet)]" : "text-[var(--status-success)]"}`}
+													/>
+													<span
+														className={`font-['Inter'] ${feature.highlight ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+													>
+														{feature.text}
+													</span>
+												</li>
+											))}
+										</ul>
+
+										{currentTier !== "pro" && (
+											<Button
+												onClick={() => upgradeMutation.mutate()}
+												disabled={upgradeMutation.isPending}
+												className="w-full bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_20px_rgba(139,92,246,0.4)] border border-white/10"
+											>
+												{upgradeMutation.isPending ? (
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												) : (
+													<CreditCard className="mr-2 h-4 w-4" />
+												)}
+												Upgrade to Pro
+											</Button>
+										)}
+									</div>
+								</div>
 							</div>
 
+							{/* Manage Subscription */}
 							{currentTier === "pro" && !usage?.cancelAtPeriodEnd && (
 								<div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
 									<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2 font-['Outfit']">
@@ -558,7 +783,7 @@ function BillingPage() {
 									</h2>
 									<p className="text-sm text-[var(--text-muted)] mb-4 font-['Inter']">
 										{usage?.currentPeriodEnd &&
-											`Your next billing date is ${new Date(usage.currentPeriodEnd).toLocaleDateString()}.`}
+											`Next billing date: ${new Date(usage.currentPeriodEnd).toLocaleDateString()}`}
 									</p>
 									{showCancelConfirm ? (
 										<div className="flex items-center gap-3">
@@ -600,4 +825,38 @@ function BillingPage() {
 			</div>
 		</main>
 	);
+}
+
+function BillingPage() {
+	const { data: session, isPending: authLoading } = useSession();
+	const navigate = useNavigate();
+
+	const isAuthenticated = !!session;
+	const user = session?.user;
+	const isVerified = Boolean(user?.emailVerified);
+
+	if (authLoading) {
+		return (
+			<div className="flex-1 flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+			</div>
+		);
+	}
+
+	if (!isAuthenticated) {
+		navigate({ to: "/login" });
+		return null;
+	}
+
+	if (!isVerified) {
+		navigate({ to: "/check-email" });
+		return null;
+	}
+
+	// Show coming soon page when billing is disabled
+	if (!BILLING_ENABLED) {
+		return <ComingSoonPage />;
+	}
+
+	return <ActiveBillingPage />;
 }
