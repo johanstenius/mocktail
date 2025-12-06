@@ -68,20 +68,18 @@ async function fetchVoid(url: string, options?: RequestInit): Promise<void> {
 
 // Projects
 export async function getProjects(): Promise<Project[]> {
-	const data = await fetchJson<{ projects: Project[] }>(
-		`${API_BASE}/api/projects`,
-	);
+	const data = await fetchJson<{ projects: Project[] }>(`${API_BASE}/projects`);
 	return data.projects;
 }
 
 export async function getProject(id: string): Promise<Project> {
-	return fetchJson<Project>(`${API_BASE}/api/projects/${id}`);
+	return fetchJson<Project>(`${API_BASE}/projects/${id}`);
 }
 
 export async function createProject(
 	input: CreateProjectInput,
 ): Promise<Project> {
-	return fetchJson<Project>(`${API_BASE}/api/projects`, {
+	return fetchJson<Project>(`${API_BASE}/projects`, {
 		method: "POST",
 		body: JSON.stringify(input),
 	});
@@ -91,20 +89,20 @@ export async function updateProject(
 	id: string,
 	input: UpdateProjectInput,
 ): Promise<Project> {
-	return fetchJson<Project>(`${API_BASE}/api/projects/${id}`, {
+	return fetchJson<Project>(`${API_BASE}/projects/${id}`, {
 		method: "PATCH",
 		body: JSON.stringify(input),
 	});
 }
 
 export async function deleteProject(id: string): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/projects/${id}`, { method: "DELETE" });
+	await fetchVoid(`${API_BASE}/projects/${id}`, { method: "DELETE" });
 }
 
 // Endpoints
 export async function getEndpoints(projectId: string): Promise<Endpoint[]> {
 	const data = await fetchJson<{ endpoints: Endpoint[] }>(
-		`${API_BASE}/api/projects/${projectId}/endpoints`,
+		`${API_BASE}/projects/${projectId}/endpoints`,
 	);
 	return data.endpoints;
 }
@@ -114,7 +112,7 @@ export async function getEndpoint(
 	endpointId: string,
 ): Promise<Endpoint> {
 	return fetchJson<Endpoint>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}`,
 	);
 }
 
@@ -122,13 +120,10 @@ export async function createEndpoint(
 	projectId: string,
 	input: CreateEndpointInput,
 ): Promise<Endpoint> {
-	return fetchJson<Endpoint>(
-		`${API_BASE}/api/projects/${projectId}/endpoints`,
-		{
-			method: "POST",
-			body: JSON.stringify(input),
-		},
-	);
+	return fetchJson<Endpoint>(`${API_BASE}/projects/${projectId}/endpoints`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
 }
 
 export async function updateEndpoint(
@@ -137,7 +132,7 @@ export async function updateEndpoint(
 	input: UpdateEndpointInput,
 ): Promise<Endpoint> {
 	return fetchJson<Endpoint>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}`,
 		{
 			method: "PATCH",
 			body: JSON.stringify(input),
@@ -149,10 +144,9 @@ export async function deleteEndpoint(
 	projectId: string,
 	endpointId: string,
 ): Promise<void> {
-	await fetchVoid(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}`,
-		{ method: "DELETE" },
-	);
+	await fetchVoid(`${API_BASE}/projects/${projectId}/endpoints/${endpointId}`, {
+		method: "DELETE",
+	});
 }
 
 // Request Logs
@@ -178,7 +172,7 @@ export async function getRequestLogs(
 	if (params?.source) searchParams.set("source", params.source);
 
 	const query = searchParams.toString();
-	const url = `${API_BASE}/api/projects/${projectId}/logs${query ? `?${query}` : ""}`;
+	const url = `${API_BASE}/projects/${projectId}/logs${query ? `?${query}` : ""}`;
 	return fetchJson<{ logs: RequestLog[]; total: number }>(url);
 }
 
@@ -187,13 +181,10 @@ export async function importOpenApiSpec(
 	projectId: string,
 	input: ImportSpecInput,
 ): Promise<ImportResult> {
-	return fetchJson<ImportResult>(
-		`${API_BASE}/api/projects/${projectId}/import`,
-		{
-			method: "POST",
-			body: JSON.stringify(input),
-		},
-	);
+	return fetchJson<ImportResult>(`${API_BASE}/projects/${projectId}/import`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
 }
 
 // Statistics
@@ -201,7 +192,7 @@ export async function getProjectStatistics(
 	projectId: string,
 ): Promise<ProjectStatistics> {
 	return fetchJson<ProjectStatistics>(
-		`${API_BASE}/api/projects/${projectId}/statistics`,
+		`${API_BASE}/projects/${projectId}/statistics`,
 	);
 }
 
@@ -219,30 +210,30 @@ export type GlobalStatistics = {
 };
 
 export async function getGlobalStatistics(): Promise<GlobalStatistics> {
-	return fetchJson<GlobalStatistics>(`${API_BASE}/api/statistics`);
+	return fetchJson<GlobalStatistics>(`${API_BASE}/statistics`);
 }
 
 // Billing
 export async function getUsage(): Promise<Usage> {
-	return fetchJson<Usage>(`${API_BASE}/api/billing/usage`);
+	return fetchJson<Usage>(`${API_BASE}/billing/usage`);
 }
 
 export async function createCheckoutSession(): Promise<{ url: string }> {
-	return fetchJson<{ url: string }>(`${API_BASE}/api/billing/checkout`, {
+	return fetchJson<{ url: string }>(`${API_BASE}/billing/checkout`, {
 		method: "POST",
 	});
 }
 
 export async function cancelSubscription(): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/billing/cancel`, { method: "POST" });
+	await fetchVoid(`${API_BASE}/billing/cancel`, { method: "POST" });
 }
 
 export async function reactivateSubscription(): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/billing/reactivate`, { method: "POST" });
+	await fetchVoid(`${API_BASE}/billing/reactivate`, { method: "POST" });
 }
 
 export async function retryPayment(): Promise<void> {
-	await fetchVoid(`${API_BASE}/api/billing/retry-payment`, { method: "POST" });
+	await fetchVoid(`${API_BASE}/billing/retry-payment`, { method: "POST" });
 }
 
 // Audit Logs
@@ -259,7 +250,7 @@ export async function getAuditLogs(
 	if (params?.to) searchParams.set("to", params.to);
 
 	const query = searchParams.toString();
-	const url = `${API_BASE}/api/audit-logs${query ? `?${query}` : ""}`;
+	const url = `${API_BASE}/audit-logs${query ? `?${query}` : ""}`;
 	return fetchJson<{ logs: AuditLog[]; total: number }>(url);
 }
 
@@ -276,7 +267,7 @@ export async function exportAuditLogs(
 	if (params?.to) searchParams.set("to", params.to);
 
 	const res = await fetch(
-		`${API_BASE}/api/audit-logs/export?${searchParams.toString()}`,
+		`${API_BASE}/audit-logs/export?${searchParams.toString()}`,
 		{ credentials: "include" },
 	);
 	if (!res.ok) {
@@ -291,14 +282,14 @@ export async function exportAuditLogs(
 
 // Dashboard
 export async function getDashboardStats(): Promise<DashboardStats> {
-	return fetchJson<DashboardStats>(`${API_BASE}/api/dashboard/stats`);
+	return fetchJson<DashboardStats>(`${API_BASE}/dashboard/stats`);
 }
 
 export async function getDashboardActivity(
 	limit = 10,
 ): Promise<ActivityItem[]> {
 	const data = await fetchJson<{ activity: ActivityItem[] }>(
-		`${API_BASE}/api/dashboard/activity?limit=${limit}`,
+		`${API_BASE}/dashboard/activity?limit=${limit}`,
 	);
 	return data.activity;
 }
@@ -306,19 +297,16 @@ export async function getDashboardActivity(
 // Sample project
 export async function createSampleProject(): Promise<SampleProjectResult> {
 	return fetchJson<SampleProjectResult>(
-		`${API_BASE}/api/onboarding/sample-project`,
+		`${API_BASE}/onboarding/sample-project`,
 		{ method: "POST" },
 	);
 }
 
 // Project API Key
 export async function rotateProjectApiKey(projectId: string): Promise<Project> {
-	return fetchJson<Project>(
-		`${API_BASE}/api/projects/${projectId}/rotate-key`,
-		{
-			method: "POST",
-		},
-	);
+	return fetchJson<Project>(`${API_BASE}/projects/${projectId}/rotate-key`, {
+		method: "POST",
+	});
 }
 
 // Variants
@@ -327,7 +315,7 @@ export async function getVariants(
 	endpointId: string,
 ): Promise<Variant[]> {
 	const data = await fetchJson<{ variants: Variant[] }>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants`,
 	);
 	return data.variants;
 }
@@ -338,7 +326,7 @@ export async function getVariant(
 	variantId: string,
 ): Promise<Variant> {
 	return fetchJson<Variant>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
 	);
 }
 
@@ -348,7 +336,7 @@ export async function createVariant(
 	input: CreateVariantInput,
 ): Promise<Variant> {
 	return fetchJson<Variant>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants`,
 		{
 			method: "POST",
 			body: JSON.stringify(input),
@@ -363,7 +351,7 @@ export async function updateVariant(
 	input: UpdateVariantInput,
 ): Promise<Variant> {
 	return fetchJson<Variant>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
 		{
 			method: "PATCH",
 			body: JSON.stringify(input),
@@ -377,7 +365,7 @@ export async function deleteVariant(
 	variantId: string,
 ): Promise<void> {
 	await fetchVoid(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants/${variantId}`,
 		{ method: "DELETE" },
 	);
 }
@@ -388,7 +376,7 @@ export async function reorderVariants(
 	variantIds: string[],
 ): Promise<Variant[]> {
 	const data = await fetchJson<{ variants: Variant[] }>(
-		`${API_BASE}/api/projects/${projectId}/endpoints/${endpointId}/variants/reorder`,
+		`${API_BASE}/projects/${projectId}/endpoints/${endpointId}/variants/reorder`,
 		{
 			method: "POST",
 			body: JSON.stringify({ variantIds }),
@@ -402,7 +390,7 @@ export async function clearRequestLogs(
 	projectId: string,
 ): Promise<{ deleted: number }> {
 	return fetchJson<{ deleted: number }>(
-		`${API_BASE}/api/projects/${projectId}/logs`,
+		`${API_BASE}/projects/${projectId}/logs`,
 		{ method: "DELETE" },
 	);
 }

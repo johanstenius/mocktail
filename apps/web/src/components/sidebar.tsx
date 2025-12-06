@@ -1,11 +1,7 @@
+import { signOut, useActiveOrganization, useSession } from "@/lib/auth-client";
 import { BILLING_ENABLED } from "@/lib/config";
-import {
-	useActiveOrganization,
-	useAuth,
-	useLogout,
-	useOrganization,
-} from "@johanstenius/auth-react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 import {
 	DropdownMenu,
@@ -58,14 +54,19 @@ function getInitials(email: string): string {
 }
 
 function UserMenu() {
-	const { user } = useAuth();
-	const { activeOrganizationId } = useActiveOrganization();
-	const { organization: org } = useOrganization(activeOrganizationId);
-	const { logout } = useLogout();
+	const { data: session } = useSession();
+	const { data: activeOrg } = useActiveOrganization();
+	const [org, setOrg] = useState<{ name: string } | null>(null);
 
-	if (!user) return null;
+	useEffect(() => {
+		if (activeOrg) {
+			setOrg({ name: activeOrg.name });
+		}
+	}, [activeOrg]);
 
-	const initials = getInitials(user.email);
+	if (!session?.user) return null;
+
+	const initials = getInitials(session.user.email);
 
 	return (
 		<div className="mt-auto pt-6 border-t border-[var(--border-subtle)] px-2">
@@ -76,7 +77,7 @@ function UserMenu() {
 					</div>
 					<div className="flex-1 overflow-hidden">
 						<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter'] truncate">
-							{user.email}
+							{session.user.email}
 						</div>
 						{org && (
 							<div className="text-xs text-[var(--text-muted)] font-['Inter'] truncate">
@@ -98,7 +99,7 @@ function UserMenu() {
 				<DropdownMenuContent side="top" align="start" className="w-56">
 					<div className="px-2 py-1.5">
 						<p className="text-sm font-medium text-[var(--text-primary)]">
-							{user.email}
+							{session.user.email}
 						</p>
 						{org && (
 							<p className="text-xs text-[var(--text-muted)]">{org.name}</p>
@@ -106,7 +107,7 @@ function UserMenu() {
 					</div>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
-						onClick={logout}
+						onClick={() => signOut()}
 						className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
 					>
 						<svg

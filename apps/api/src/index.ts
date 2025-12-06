@@ -14,12 +14,12 @@ import { projectsRouter } from "./controllers/projects";
 import { requestLogsRouter } from "./controllers/request-logs";
 import { statisticsRouter } from "./controllers/statistics";
 import { variantsRouter } from "./controllers/variants";
-import { auth } from "./lib/auth";
+import { type AuthVariables, auth } from "./lib/auth";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
 import { logger } from "./utils/logger";
 
-const app = new OpenAPIHono();
+const app = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 // Global error handler
 app.onError(errorHandler);
@@ -34,40 +34,53 @@ app.use(
 	}),
 );
 
-// Routes excluded from auth middleware (auth package handles its own session)
+// Routes excluded from auth middleware
 const PUBLIC_ROUTES = [
 	"/health",
-	"/api/docs",
-	"/auth/*", // Auth package routes
+	"/docs",
+	"/auth/*", // Better-auth routes
 	"/mock/*", // Mock server (has own API key auth)
 	"/admin/*", // Admin routes (has own auth)
-	"/api/billing/webhook", // Stripe webhook
-	"/api/events/*", // SSE events (auth via cookie)
+	"/billing/webhook", // Stripe webhook
+	"/events/*", // SSE events (auth via token)
 ];
 
-// Auth middleware from package
-app.use("*", except(PUBLIC_ROUTES, auth.middleware));
+// Auth middleware - sets user/session on context
+app.use(
+	"*",
+	except(PUBLIC_ROUTES, async (c, next) => {
+		const session = await auth.api.getSession({ headers: c.req.raw.headers });
+		c.set("user", session?.user ?? null);
+		c.set("session", session?.session ?? null);
+
+		if (!session) {
+			return c.json({ error: "Unauthorized" }, 401);
+		}
+
+		return next();
+	}),
+);
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Auth routes (from package)
-app.route("/auth", auth.routes);
+// Better-auth routes
+app.on(["POST", "GET"], "/auth/*", (c) => auth.handler(c.req.raw));
 
 // API routes
-app.route("/api/projects", projectsRouter);
-app.route("/api/projects/:projectId/endpoints", endpointsRouter);
+app.route("/projects", projectsRouter);
+app.route("/projects/:projectId/endpoints", endpointsRouter);
 app.route(
-	"/api/projects/:projectId/endpoints/:endpointId/variants",
+	"/projects/:projectId/endpoints/:endpointId/variants",
 	variantsRouter,
 );
-app.route("/api/projects/:projectId/import", importRouter);
-app.route("/api/projects/:projectId/logs", requestLogsRouter);
-app.route("/api/projects/:projectId/statistics", statisticsRouter);
-app.route("/api/billing", billingRouter);
-app.route("/api", auditRouter);
-app.route("/api/dashboard", dashboardRouter);
-app.route("/api/events", eventsRouter);
+app.route("/projects/:projectId/import", importRouter);
+app.route("/projects/:projectId/logs", requestLogsRouter);
+app.route("/projects/:projectId/statistics", statisticsRouter);
+app.route("/billing", billingRouter);
+app.route("/", auditRouter);
+app.route("/dashboard", dashboardRouter);
+app.route("/events", eventsRouter);
 
 // Mock server routes
 app.route("/mock", mockRouter);
@@ -76,7 +89,7 @@ app.route("/mock", mockRouter);
 app.route("/admin", adminRouter);
 
 // OpenAPI docs
-app.doc("/api/docs", {
+app.doc("/docs", {
 	openapi: "3.0.0",
 	info: {
 		title: "Mocktail API",

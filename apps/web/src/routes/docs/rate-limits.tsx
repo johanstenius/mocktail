@@ -37,9 +37,6 @@ function DocsRateLimits() {
 								<th className="text-left py-3 px-4 text-[var(--text-muted)]">
 									Pro
 								</th>
-								<th className="text-left py-3 px-4 text-[var(--text-muted)]">
-									Enterprise
-								</th>
 							</tr>
 						</thead>
 						<tbody className="text-[var(--text-secondary)]">
@@ -47,37 +44,31 @@ function DocsRateLimits() {
 								<td className="py-3 px-4">Projects</td>
 								<td className="py-3 px-4">3</td>
 								<td className="py-3 px-4">10</td>
-								<td className="py-3 px-4">Unlimited</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-3 px-4">Endpoints/project</td>
 								<td className="py-3 px-4">10</td>
 								<td className="py-3 px-4">50</td>
-								<td className="py-3 px-4">Unlimited</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-3 px-4">Monthly requests</td>
 								<td className="py-3 px-4">5,000</td>
 								<td className="py-3 px-4">100,000</td>
-								<td className="py-3 px-4">Unlimited</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-3 px-4">Rate limit (req/sec)</td>
 								<td className="py-3 px-4">5</td>
 								<td className="py-3 px-4">50</td>
-								<td className="py-3 px-4">500</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-3 px-4">Team members</td>
 								<td className="py-3 px-4">3</td>
 								<td className="py-3 px-4">10</td>
-								<td className="py-3 px-4">Unlimited</td>
 							</tr>
 							<tr>
 								<td className="py-3 px-4">Log retention</td>
 								<td className="py-3 px-4">3 days</td>
 								<td className="py-3 px-4">30 days</td>
-								<td className="py-3 px-4">90 days</td>
 							</tr>
 						</tbody>
 					</table>

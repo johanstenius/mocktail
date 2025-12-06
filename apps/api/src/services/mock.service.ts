@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { config } from "../config";
 import { eventBus } from "../events/event-bus";
 import { createEvent } from "../events/types";
 import * as projectRepo from "../repositories/project.repository";
@@ -214,7 +215,7 @@ async function handleNoEndpointMatch(
 	request: MockRequest,
 	startTime: number,
 ): Promise<MockResult> {
-	if (project.proxyBaseUrl) {
+	if (config.proxyEnabled && project.proxyBaseUrl) {
 		return handleProxyRequest(
 			project as Parameters<typeof handleProxyRequest>[0],
 			null,
@@ -312,7 +313,7 @@ export async function handleMockRequest(
 
 	const { endpoint, params } = match;
 
-	if (endpoint.proxyEnabled && project.proxyBaseUrl) {
+	if (config.proxyEnabled && endpoint.proxyEnabled && project.proxyBaseUrl) {
 		return handleProxyRequest(
 			project,
 			endpoint.id,

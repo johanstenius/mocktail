@@ -1,7 +1,7 @@
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { sendVerificationEmail, useSession } from "@/lib/auth-client";
 import { getErrorMessage } from "@/lib/errors";
-import { useAuth, useVerifyEmail } from "@johanstenius/auth-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Loader2, Mail, RefreshCw } from "lucide-react";
 import { useState } from "react";
@@ -18,11 +18,13 @@ export const Route = createFileRoute("/check-email")({
 
 function CheckEmailPage() {
 	const { email: queryEmail } = Route.useSearch();
-	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-	const { resend } = useVerifyEmail();
+	const { data: session, isPending: authLoading } = useSession();
 	const [isResending, setIsResending] = useState(false);
 	const [resendSuccess, setResendSuccess] = useState(false);
 	const [error, setError] = useState("");
+
+	const isAuthenticated = !!session;
+	const user = session?.user;
 
 	if (authLoading) {
 		return (
@@ -68,7 +70,7 @@ function CheckEmailPage() {
 		setResendSuccess(false);
 
 		try {
-			await resend(displayEmail);
+			await sendVerificationEmail({ email: displayEmail });
 			setResendSuccess(true);
 		} catch (err) {
 			setError(getErrorMessage(err));

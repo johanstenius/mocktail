@@ -11,13 +11,9 @@ import {
 	getDashboardStats,
 	getProjects,
 } from "@/lib/api";
+import { useActiveOrganization, useSession } from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
 import type { ActivityItem, DashboardStats, Project } from "@/types";
-import {
-	useActiveOrganization,
-	useAuth,
-	useOrganization,
-} from "@johanstenius/auth-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
@@ -387,12 +383,15 @@ function QuickActions() {
 }
 
 function DashboardPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const { activeOrganizationId } = useActiveOrganization();
-	const { organization: org } = useOrganization(activeOrganizationId);
+	const { data: session, isPending: authLoading } = useSession();
+	const { data: activeOrg } = useActiveOrganization();
 	const navigate = useNavigate();
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isVerified = Boolean(user?.emailVerified);
+
+	const orgData = activeOrg;
 
 	const { data: stats, isLoading: statsLoading } = useQuery({
 		queryKey: ["dashboard-stats"],
@@ -446,7 +445,7 @@ function DashboardPage() {
 							Welcome back
 						</h1>
 						<p className="text-[var(--text-muted)] font-['Inter'] text-sm">
-							{org?.name}
+							{orgData?.name}
 						</p>
 					</div>
 

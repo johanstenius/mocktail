@@ -167,7 +167,7 @@ export type ProjectStatistics = {
 };
 
 // Billing types
-export type Tier = "free" | "pro" | "enterprise";
+export type Tier = "free" | "pro";
 
 export type UsageItem = {
 	current: number;

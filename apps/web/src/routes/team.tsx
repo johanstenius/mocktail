@@ -11,17 +11,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { requireAuth } from "@/lib/route-guards";
 import {
+	organization,
 	useActiveOrganization,
-	useAuth,
-	useCancelInvite,
-	useOrganizationInvites,
-	useOrganizationMembers,
-	useRemoveMember,
-	useSendInvite,
-	useUpdateMemberRole,
-} from "@johanstenius/auth-react";
+	useSession,
+} from "@/lib/auth-client";
+import { requireAuth } from "@/lib/route-guards";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, Mail, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
@@ -216,14 +212,17 @@ function InviteModal({
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState<OrgRole>("member");
 	const [error, setError] = useState("");
-	const { sendInvite, isLoading } = useSendInvite();
+	const [isLoading, setIsLoading] = useState(false);
+	const queryClient = useQueryClient();
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		if (!orgId) return;
 		setError("");
+		setIsLoading(true);
 		try {
-			await sendInvite({ orgId, email, role });
+			await organization.inviteMember({ organizationId: orgId, email, role });
+			queryClient.invalidateQueries({ queryKey: ["org-invites", orgId] });
 			onOpenChange(false);
 			setEmail("");
 			setRole("member");
@@ -233,6 +232,8 @@ function InviteModal({
 				err instanceof Error ? err.message : "Failed to send invite";
 			setError(message);
 			toast.error(message);
+		} finally {
+			setIsLoading(false);
 		}
 	}
 
@@ -288,40 +289,73 @@ function InviteModal({
 }
 
 function TeamPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const { activeOrganizationId: orgId } = useActiveOrganization();
+	const { data: session, isPending: authLoading } = useSession();
+	const { data: activeOrg } = useActiveOrganization();
 	const navigate = useNavigate();
 	const [inviteModalOpen, setInviteModalOpen] = useState(false);
+	const queryClient = useQueryClient();
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
+	const orgId = activeOrg?.id ?? null;
 	const isVerified = Boolean(user?.emailVerified);
 
-	const { members: membersData, isLoading: membersLoading } =
-		useOrganizationMembers(orgId);
-	const { invites: invitesData, isLoading: invitesLoading } =
-		useOrganizationInvites(orgId);
-	const { updateMemberRole } = useUpdateMemberRole();
-	const { removeMember } = useRemoveMember();
-	const { cancelInvite } = useCancelInvite();
+	const { data: membersResult, isLoading: membersLoading } = useQuery({
+		queryKey: ["org-members", orgId],
+		queryFn: async () => {
+			if (!orgId) return null;
+			const result = await organization.listMembers({
+				query: { organizationId: orgId },
+			});
+			return result.data;
+		},
+		enabled: !!orgId,
+	});
+
+	const { data: invitesResult, isLoading: invitesLoading } = useQuery({
+		queryKey: ["org-invites", orgId],
+		queryFn: async () => {
+			if (!orgId) return null;
+			const result = await organization.listInvitations({
+				query: { organizationId: orgId },
+			});
+			return result.data;
+		},
+		enabled: !!orgId,
+	});
+
+	const membersData = membersResult?.members;
 
 	const members: MemberData[] = (membersData ?? []).map((m) => ({
 		id: m.id,
 		userId: m.userId,
 		email: m.user?.email ?? "",
 		role: m.role,
-		createdAt: m.createdAt,
+		createdAt:
+			m.createdAt instanceof Date
+				? m.createdAt.toISOString()
+				: String(m.createdAt),
 	}));
 
-	const invites: InviteData[] = (invitesData ?? []).map((i) => ({
+	const invites: InviteData[] = (invitesResult ?? []).map((i) => ({
 		id: i.id,
 		email: i.email,
 		role: i.role,
-		expiresAt: i.expiresAt,
+		expiresAt:
+			i.expiresAt instanceof Date
+				? i.expiresAt.toISOString()
+				: String(i.expiresAt),
 	}));
 
 	async function handleUpdateRole(memberId: string, role: OrgRole) {
 		if (!orgId) return;
 		try {
-			await updateMemberRole({ orgId, memberId, role });
+			await organization.updateMemberRole({
+				organizationId: orgId,
+				memberId,
+				role,
+			});
+			queryClient.invalidateQueries({ queryKey: ["org-members", orgId] });
 			toast.success("Role updated");
 		} catch {
 			toast.error("Failed to update role");
@@ -331,7 +365,11 @@ function TeamPage() {
 	async function handleRemoveMember(memberId: string) {
 		if (!orgId) return;
 		try {
-			await removeMember({ orgId, memberId });
+			await organization.removeMember({
+				organizationId: orgId,
+				memberIdOrEmail: memberId,
+			});
+			queryClient.invalidateQueries({ queryKey: ["org-members", orgId] });
 			toast.success("Member removed");
 		} catch {
 			toast.error("Failed to remove member");
@@ -341,7 +379,8 @@ function TeamPage() {
 	async function handleRevokeInvite(inviteId: string) {
 		if (!orgId) return;
 		try {
-			await cancelInvite({ orgId, inviteId });
+			await organization.cancelInvitation({ invitationId: inviteId });
+			queryClient.invalidateQueries({ queryKey: ["org-invites", orgId] });
 			toast.success("Invite revoked");
 		} catch {
 			toast.error("Failed to revoke invite");

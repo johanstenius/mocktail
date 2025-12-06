@@ -248,7 +248,7 @@ function LandingPage() {
 					<h2 className="text-4xl font-bold text-center mb-16 font-['Outfit']">
 						Simple, transparent pricing.
 					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
 						{/* Free Tier */}
 						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
 							<CardHeader className="pb-0">
@@ -297,7 +297,7 @@ function LandingPage() {
 						{/* Pro Tier */}
 						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
 							<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
-								MOST POPULAR
+								RECOMMENDED
 							</div>
 							<CardHeader className="pb-0">
 								<CardTitle className="text-xl font-semibold mb-1">
@@ -339,49 +339,6 @@ function LandingPage() {
 								>
 									Get Started
 								</Link>
-							</CardContent>
-						</Card>
-
-						{/* Enterprise Tier */}
-						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
-							<CardHeader className="pb-0">
-								<CardTitle className="text-xl font-semibold mb-1">
-									Enterprise
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="flex flex-col flex-grow pt-4">
-								<div className="text-4xl font-bold mb-4 font-['Outfit']">
-									Custom
-								</div>
-								<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-									Security and control for large organizations.
-								</p>
-								<ul className="space-y-3 mb-8 flex-grow">
-									{[
-										"Unlimited Projects",
-										"Unlimited Endpoints",
-										"Unlimited Requests",
-										"Unlimited Team Members",
-										"90 Day Log Retention",
-										"SSO / SAML",
-									].map((feature) => (
-										<li
-											key={feature}
-											className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-										>
-											<span className="text-[var(--accent-primary)] text-lg">
-												✓
-											</span>{" "}
-											{feature}
-										</li>
-									))}
-								</ul>
-								<a
-									href="#contact"
-									className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
-								>
-									Contact Sales
-								</a>
 							</CardContent>
 						</Card>
 					</div>

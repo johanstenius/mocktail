@@ -8,7 +8,10 @@ import { paymentReminderEmailTemplate } from "../templates/emails/payment-remind
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
 import { logger } from "../utils/logger";
 
-const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+const resend =
+	config.emailEnabled && config.resendApiKey
+		? new Resend(config.resendApiKey)
+		: null;
 
 type SendInviteEmailParams = {
 	to: string;

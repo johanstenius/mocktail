@@ -3,8 +3,13 @@ export const config = {
 	isProduction: process.env.NODE_ENV === "production",
 	appUrl: process.env.APP_URL || "http://localhost:3000",
 	apiUrl: process.env.API_URL || "http://localhost:4000",
+	// Auth
+	authSecret:
+		process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
 	// Feature flags
-	billingEnabled: process.env.BILLING_ENABLED !== "false",
+	billingEnabled: process.env.BILLING_ENABLED === "true",
+	emailEnabled: process.env.EMAIL_ENABLED === "true",
+	proxyEnabled: process.env.PROXY_ENABLED === "true",
 	// Stripe
 	stripeSecretKey: process.env.STRIPE_SECRET_KEY || "",
 	stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",

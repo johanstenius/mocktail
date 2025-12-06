@@ -10,12 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { organization, signUp, useSession } from "@/lib/auth-client";
 import { getErrorMessage } from "@/lib/errors";
-import {
-	useAuth,
-	useCreateOrganization,
-	useRegister,
-} from "@johanstenius/auth-react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -25,21 +21,14 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const {
-		register,
-		isLoading: registerLoading,
-		error: registerError,
-	} = useRegister();
-	const { createOrganization, isLoading: orgLoading } = useCreateOrganization();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
-	const [organization, setOrganization] = useState("");
+	const [organizationName, setOrganizationName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
-
-	const isLoading = registerLoading || orgLoading;
+	const [isLoading, setIsLoading] = useState(false);
 
 	if (authLoading) {
 		return (
@@ -49,8 +38,8 @@ function RegisterPage() {
 		);
 	}
 
-	if (isAuthenticated) {
-		if (user && !user.emailVerified) {
+	if (session) {
+		if (session.user && !session.user.emailVerified) {
 			navigate({ to: "/check-email" });
 		} else {
 			navigate({ to: "/dashboard" });
@@ -72,20 +61,30 @@ function RegisterPage() {
 			return;
 		}
 
+		setIsLoading(true);
 		try {
-			// Register user
-			const result = await register({ email, password });
+			const result = await signUp.email({ email, password, name: email });
+
+			if (result.error) {
+				setError(result.error.message ?? "Registration failed");
+				return;
+			}
 
 			// If verification is required, redirect to check-email
-			if (result.verificationRequired) {
+			if (result.data?.user && !result.data.user.emailVerified) {
 				navigate({ to: "/check-email" });
 				return;
 			}
 
-			await createOrganization({ name: organization });
+			await organization.create({
+				name: organizationName,
+				slug: organizationName.toLowerCase().replace(/\s+/g, "-"),
+			});
 			navigate({ to: "/dashboard" });
 		} catch (err) {
 			setError(getErrorMessage(err));
+		} finally {
+			setIsLoading(false);
 		}
 	}
 
@@ -114,9 +113,9 @@ function RegisterPage() {
 							<OAuthButtons />
 
 							<form onSubmit={handleSubmit} className="space-y-4 mt-6">
-								{(error || registerError) && (
+								{error && (
 									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-										{error || registerError?.message}
+										{error}
 									</div>
 								)}
 
@@ -125,8 +124,8 @@ function RegisterPage() {
 									<Input
 										id="organization"
 										type="text"
-										value={organization}
-										onChange={(e) => setOrganization(e.target.value)}
+										value={organizationName}
+										onChange={(e) => setOrganizationName(e.target.value)}
 										placeholder="Acme Inc"
 										required
 										autoComplete="organization"

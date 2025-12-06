@@ -1,6 +1,6 @@
 import { NotFoundPage } from "@/components/not-found-page";
 import { Sidebar } from "@/components/sidebar";
-import { useAuth, useOrganizations } from "@johanstenius/auth-react";
+import { useListOrganizations, useSession } from "@/lib/auth-client";
 import {
 	Navigate,
 	Outlet,
@@ -35,11 +35,15 @@ function isPublicPath(pathname: string): boolean {
 
 function RootLayout() {
 	const location = useLocation();
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const { organizations, isLoading: orgsLoading } = useOrganizations();
+	const { data: session, isPending: authLoading } = useSession();
+	const { data: organizations, isPending: orgsLoading } =
+		useListOrganizations();
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isPublic = isPublicPath(location.pathname);
 	const isLoading = authLoading || (isAuthenticated && orgsLoading);
+	const orgList = organizations ?? [];
 
 	// Show loader while checking auth state
 	if (isLoading && !isPublic) {
@@ -65,12 +69,12 @@ function RootLayout() {
 		!isPublic &&
 		isAuthenticated &&
 		user?.emailVerified &&
-		organizations.length === 0
+		orgList.length === 0
 	) {
 		return <Navigate to="/onboarding" />;
 	}
 
-	const showSidebar = !isPublic && isAuthenticated && organizations.length > 0;
+	const showSidebar = !isPublic && isAuthenticated && orgList.length > 0;
 
 	return (
 		<>

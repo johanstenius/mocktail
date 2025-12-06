@@ -29,15 +29,6 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 		requestLogRetentionDays: 30,
 		auditLogRetentionDays: 30,
 	},
-	enterprise: {
-		projects: Number.POSITIVE_INFINITY,
-		endpointsPerProject: Number.POSITIVE_INFINITY,
-		teamMembers: Number.POSITIVE_INFINITY,
-		monthlyRequests: Number.POSITIVE_INFINITY,
-		rateLimit: 500,
-		requestLogRetentionDays: 90,
-		auditLogRetentionDays: 90,
-	},
 } as const;
 
 export const UNAUTHENTICATED_RATE_LIMIT = 10;

@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { exportAuditLogs, getAuditLogs } from "@/lib/api";
+import {
+	organization,
+	useActiveOrganization,
+	useSession,
+} from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
 import type { AuditAction, AuditLog, GetAuditLogsParams } from "@/types";
-import {
-	useActiveOrganization,
-	useAuth,
-	useOrganizationMembers,
-} from "@johanstenius/auth-react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -137,8 +137,8 @@ function AuditLogSkeleton() {
 }
 
 function AuditLogsPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const { activeOrganizationId: orgId } = useActiveOrganization();
+	const { data: session, isPending: authLoading } = useSession();
+	const { data: activeOrg } = useActiveOrganization();
 	const navigate = useNavigate();
 	const [page, setPage] = useState(0);
 	const [actionFilter, setActionFilter] = useState<AuditAction | "">("");
@@ -147,9 +147,24 @@ function AuditLogsPage() {
 	const [toDate, setToDate] = useState("");
 	const [exporting, setExporting] = useState(false);
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
+	const orgId = activeOrg?.id ?? null;
 	const limit = 20;
 	const isVerified = Boolean(user?.emailVerified);
-	const { members: membersData } = useOrganizationMembers(orgId);
+
+	const { data: membersResult } = useQuery({
+		queryKey: ["org-members", orgId],
+		queryFn: async () => {
+			if (!orgId) return null;
+			const result = await organization.listMembers({
+				query: { organizationId: orgId },
+			});
+			return result.data;
+		},
+		enabled: !!orgId,
+	});
+	const membersData = membersResult?.members;
 	const currentMember = membersData?.find((m) => m.userId === user?.id);
 	const role = currentMember?.role;
 	const canView = role === "owner" || role === "admin";

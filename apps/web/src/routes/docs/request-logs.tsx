@@ -56,9 +56,6 @@ function DocsRequestLogs() {
 					<li>
 						<strong>Pro</strong> - 30 days
 					</li>
-					<li>
-						<strong>Enterprise</strong> - 90 days
-					</li>
 				</ul>
 			</Section>
 

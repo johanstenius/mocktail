@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-	useAuth,
-	useCreateOrganization,
-	useOrganizations,
-} from "@johanstenius/auth-react";
+	organization,
+	useListOrganizations,
+	useSession,
+} from "@/lib/auth-client";
 import {
 	Link,
 	Navigate,
@@ -21,13 +21,18 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 function OnboardingPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
-	const { organizations, isLoading: orgsLoading } = useOrganizations();
-	const { createOrganization, isLoading: creating } = useCreateOrganization();
+	const { data: session, isPending: authLoading } = useSession();
+	const { data: organizations, isPending: orgsLoading } =
+		useListOrganizations();
 	const navigate = useNavigate();
 
 	const [name, setName] = useState("");
 	const [error, setError] = useState("");
+	const [creating, setCreating] = useState(false);
+
+	const isAuthenticated = !!session;
+	const user = session?.user;
+	const orgList = organizations ?? [];
 
 	if (authLoading || orgsLoading) {
 		return (
@@ -42,7 +47,7 @@ function OnboardingPage() {
 	}
 
 	// Already has org, go to dashboard
-	if (organizations.length > 0) {
+	if (orgList.length > 0) {
 		return <Navigate to="/dashboard" />;
 	}
 
@@ -55,13 +60,17 @@ function OnboardingPage() {
 			return;
 		}
 
+		setCreating(true);
 		try {
-			await createOrganization({ name: name.trim() });
+			const slug = name.trim().toLowerCase().replace(/\s+/g, "-");
+			await organization.create({ name: name.trim(), slug });
 			navigate({ to: "/dashboard" });
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : "Failed to create organization",
 			);
+		} finally {
+			setCreating(false);
 		}
 	}
 

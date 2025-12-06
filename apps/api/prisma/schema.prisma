@@ -8,100 +8,98 @@ datasource db {
 }
 
 // ============================================
-// Auth Package Models (from @johanstenius/auth)
+// Better-Auth Models
 // ============================================
 
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id
+  name          String
   email         String    @unique
-  passwordHash  String?
-  emailVerified DateTime?
+  emailVerified Boolean   @default(false)
+  image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions                Session[]
-  accounts                Account[]
-  verificationTokens      VerificationToken[]
-  organizationMemberships OrganizationMember[]
-  invitesSent             OrganizationInvite[] @relation("InvitesSent")
-  auditLogs               AuditLog[]           @relation("AuditActor")
+  sessions    Session[]
+  accounts    Account[]
+  members     Member[]
+  invitations Invitation[] @relation("InvitedBy")
+  auditLogs   AuditLog[]   @relation("AuditActor")
 
-  @@map("users")
-}
-
-model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  provider          String
-  providerAccountId String
-  accessToken       String?
-  refreshToken      String?
-  expiresAt         Int?
-  tokenType         String?
-  scope             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-  @@map("accounts")
+  @@map("user")
 }
 
 model Session {
-  id                   String   @id @default(cuid())
+  id                   String    @id
   userId               String
-  token                String   @unique
-  activeOrganizationId String?
+  token                String    @unique
   expiresAt            DateTime
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  activeOrganizationId String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   activeOrganization Organization? @relation(fields: [activeOrganizationId], references: [id])
 
   @@index([userId])
-  @@index([expiresAt])
   @@index([token])
-  @@map("sessions")
+  @@map("session")
 }
 
-model VerificationToken {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  type      String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+model Account {
+  id                String    @id
+  userId            String
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope             String?
+  idToken           String?
+  password          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([expiresAt])
-  @@index([token])
-  @@map("verification_tokens")
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
 }
 
 model Organization {
-  id        String   @id @default(cuid())
+  id        String   @id
   name      String
   slug      String   @unique
+  logo      String?
+  metadata  String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  members      OrganizationMember[]
-  invites      OrganizationInvite[]
+  members      Member[]
+  invitations  Invitation[]
   sessions     Session[]
   projects     Project[]
   auditLogs    AuditLog[]
   subscription Subscription?
 
-  @@map("organizations")
+  @@map("organization")
 }
 
-model OrganizationMember {
-  id             String   @id @default(cuid())
+model Member {
+  id             String   @id
   organizationId String
   userId         String
   role           String   @default("member")
@@ -112,27 +110,24 @@ model OrganizationMember {
 
   @@unique([organizationId, userId])
   @@index([userId])
-  @@map("organization_members")
+  @@map("member")
 }
 
-model OrganizationInvite {
-  id             String   @id @default(cuid())
+model Invitation {
+  id             String   @id
   organizationId String
   email          String
   role           String   @default("member")
-  token          String   @unique
   status         String   @default("pending")
   inviterId      String
   expiresAt      DateTime
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  inviter      User         @relation("InvitesSent", fields: [inviterId], references: [id])
+  inviter      User         @relation("InvitedBy", fields: [inviterId], references: [id])
 
   @@index([email])
-  @@index([token])
-  @@index([status])
-  @@map("organization_invites")
+  @@map("invitation")
 }
 
 // ============================================
@@ -142,7 +137,6 @@ model OrganizationInvite {
 enum Tier {
   free
   pro
-  enterprise
 }
 
 enum AuditAction {

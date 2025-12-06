@@ -7,9 +7,9 @@ import {
 	TableRowSkeleton,
 } from "@/components/skeleton";
 import { getProjects, getRequestLogs } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
 import type { HttpMethod, RequestLog } from "@/types";
-import { useAuth } from "@johanstenius/auth-react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2, TrendingUp } from "lucide-react";
@@ -106,9 +106,11 @@ function ProjectStatBar({
 }
 
 function AnalyticsPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isVerified = Boolean(user?.emailVerified);
 
 	const { data: projects = [], isLoading: projectsLoading } = useQuery({

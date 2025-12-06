@@ -16,9 +16,9 @@ import {
 	reactivateSubscription,
 	retryPayment,
 } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { requireAuth, requireBilling } from "@/lib/route-guards";
 import type { Tier } from "@/types";
-import { useAuth } from "@johanstenius/auth-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createFileRoute,
@@ -33,7 +33,6 @@ import {
 	Loader2,
 	RefreshCw,
 	Sparkles,
-	Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -66,11 +65,6 @@ const TIER_INFO: Record<
 		description: "For teams shipping to production",
 		price: "$29",
 	},
-	enterprise: {
-		name: "Enterprise",
-		description: "For large organizations",
-		price: "Custom",
-	},
 };
 
 const TIER_FEATURES: Record<Tier, string[]> = {
@@ -87,14 +81,6 @@ const TIER_FEATURES: Record<Tier, string[]> = {
 		"100,000 requests/month",
 		"10 team members",
 		"30 day log retention",
-	],
-	enterprise: [
-		"Unlimited projects",
-		"Unlimited endpoints",
-		"Unlimited requests",
-		"Unlimited team members",
-		"90 day log retention",
-		"SSO/SAML",
 	],
 };
 
@@ -173,16 +159,13 @@ function TierCard({
 				{tier === "pro" && (
 					<Sparkles className="h-5 w-5 text-[var(--glow-violet)]" />
 				)}
-				{tier === "enterprise" && (
-					<Zap className="h-5 w-5 text-[var(--glow-pink)]" />
-				)}
 			</div>
 
 			<div className="mb-6">
 				<span className="text-3xl font-bold text-[var(--text-primary)] font-['Outfit']">
 					{info.price}
 				</span>
-				{tier !== "enterprise" && (
+				{tier !== "free" && (
 					<span className="text-[var(--text-muted)] font-['Inter']">
 						/month
 					</span>
@@ -212,12 +195,6 @@ function TierCard({
 						<CreditCard className="mr-2 h-4 w-4" />
 					)}
 					Upgrade to Pro
-				</Button>
-			)}
-
-			{!isCurrentTier && tier === "enterprise" && (
-				<Button variant="outline" className="w-full">
-					Contact Sales
 				</Button>
 			)}
 		</div>
@@ -272,13 +249,15 @@ function PaymentProcessingModal({
 }
 
 function BillingPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
 	const { success, canceled } = useSearch({ from: "/billing" });
 	const queryClient = useQueryClient();
 	const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 	const [modalState, setModalState] = useState<PaymentModalState>(null);
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isVerified = Boolean(user?.emailVerified);
 
 	const {
@@ -296,7 +275,7 @@ function BillingPage() {
 		if (!success || !usage) return;
 
 		// Already upgraded - show success briefly
-		if (usage.tier === "pro" || usage.tier === "enterprise") {
+		if (usage.tier === "pro") {
 			setModalState("success");
 			const timer = setTimeout(() => {
 				setModalState(null);
@@ -313,7 +292,7 @@ function BillingPage() {
 		const interval = setInterval(async () => {
 			const result = await refetch();
 
-			if (result.data?.tier === "pro" || result.data?.tier === "enterprise") {
+			if (result.data?.tier === "pro") {
 				setModalState("success");
 				clearInterval(interval);
 				setTimeout(() => {
@@ -445,8 +424,7 @@ function BillingPage() {
 
 							{/* Plans Section Skeleton */}
 							<div className="h-5 w-12 bg-[var(--bg-surface-active)] rounded animate-pulse mb-4" />
-							<div className="grid md:grid-cols-3 gap-6">
-								<TierCardSkeleton />
+							<div className="grid md:grid-cols-2 gap-6 max-w-2xl">
 								<TierCardSkeleton />
 								<TierCardSkeleton />
 							</div>
@@ -563,17 +541,13 @@ function BillingPage() {
 							<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
 								Plans
 							</h2>
-							<div className="grid md:grid-cols-3 gap-6 mb-8">
+							<div className="grid md:grid-cols-2 gap-6 mb-8 max-w-2xl">
 								<TierCard tier="free" isCurrentTier={currentTier === "free"} />
 								<TierCard
 									tier="pro"
 									isCurrentTier={currentTier === "pro"}
 									onUpgrade={() => upgradeMutation.mutate()}
 									isPending={upgradeMutation.isPending}
-								/>
-								<TierCard
-									tier="enterprise"
-									isCurrentTier={currentTier === "enterprise"}
 								/>
 							</div>
 

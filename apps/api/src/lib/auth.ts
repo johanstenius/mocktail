@@ -1,4 +1,8 @@
-import { createAuth } from "@johanstenius/auth-hono";
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { organization } from "better-auth/plugins";
+import type { Context } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { Resend } from "resend";
 import { config } from "../config";
 import { prisma } from "../repositories/db/prisma";
@@ -7,63 +11,45 @@ import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
 import { logger } from "../utils/logger";
 
-const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+const resend =
+	config.emailEnabled && config.resendApiKey
+		? new Resend(config.resendApiKey)
+		: null;
 
-export const auth = createAuth({
-	database: prisma,
-	baseUrl: config.apiUrl,
-	webUrl: config.appUrl,
+async function createDefaultSubscription(orgId: string) {
+	await prisma.subscription.create({
+		data: {
+			organizationId: orgId,
+			tier: "free",
+		},
+	});
+	logger.info({ orgId }, "created default subscription for org");
+}
 
-	oauth: {
-		google: {
-			clientId: config.googleClientId,
-			clientSecret: config.googleClientSecret,
-		},
-		github: {
-			clientId: config.githubClientId,
-			clientSecret: config.githubClientSecret,
-		},
-	},
+export const auth = betterAuth({
+	database: prismaAdapter(prisma, {
+		provider: "postgresql",
+	}),
+	baseURL: config.apiUrl,
+	basePath: "/auth",
+	trustedOrigins: [config.appUrl],
+	secret: config.authSecret,
 
 	session: {
-		cookieName: "mocktail_session",
-		expiresInSeconds: 30 * 24 * 3600, // 30 days
-		secure: config.isProduction,
-		sameSite: "lax",
-	},
-
-	password: {
-		minLength: 8,
+		cookieCache: {
+			enabled: true,
+			maxAge: 5 * 60, // 5 minutes
+		},
+		expiresIn: 30 * 24 * 60 * 60, // 30 days
+		updateAge: 24 * 60 * 60, // 1 day
 	},
 
 	emailAndPassword: {
 		enabled: true,
-		requireEmailVerification: true,
-		autoLoginAfterVerification: true,
-		sendVerificationEmail: async ({ user, token, url }) => {
-			if (!resend) {
-				logger.warn(
-					{ url },
-					"resend not configured - verification email not sent",
-				);
-				return;
-			}
-
-			const { error } = await resend.emails.send({
-				from: "Mocktail <noreply@mocktail.stenius.me>",
-				to: user.email,
-				subject: "Verify your email",
-				html: verifyEmailTemplate({ verifyUrl: url }),
-			});
-
-			if (error) {
-				logger.error(
-					{ error, to: user.email },
-					"failed to send verification email",
-				);
-			}
-		},
-		sendPasswordResetEmail: async ({ user, token, url }) => {
+		requireEmailVerification: config.emailEnabled,
+		minPasswordLength: 8,
+		autoSignIn: true,
+		sendResetPassword: async ({ user, url }) => {
 			if (!resend) {
 				logger.warn(
 					{ url },
@@ -72,109 +58,155 @@ export const auth = createAuth({
 				return;
 			}
 
-			const { error } = await resend.emails.send({
-				from: "Mocktail <noreply@mocktail.stenius.me>",
-				to: user.email,
-				subject: "Reset your password",
-				html: passwordResetEmailTemplate({ resetUrl: url }),
-			});
-
-			if (error) {
-				logger.error(
-					{ error, to: user.email },
-					"failed to send password reset email",
-				);
-			}
+			void resend.emails
+				.send({
+					from: "Mocktail <noreply@mocktail.stenius.me>",
+					to: user.email,
+					subject: "Reset your password",
+					html: passwordResetEmailTemplate({ resetUrl: url }),
+				})
+				.then(({ error }) => {
+					if (error) {
+						logger.error(
+							{ error, to: user.email },
+							"failed to send password reset email",
+						);
+					}
+				});
 		},
 	},
 
-	organization: {
-		enabled: true,
-		requireOrganization: true,
-		allowPersonalAccounts: false,
-		invitationExpiresInSeconds: 48 * 60 * 60, // 48 hours
-		sendInviteEmail: async ({
-			email,
-			token,
-			url,
-			organization,
-			inviter,
-			role,
-		}) => {
+	emailVerification: {
+		sendOnSignUp: true,
+		autoSignInAfterVerification: true,
+		sendVerificationEmail: async ({ user, url }) => {
 			if (!resend) {
-				logger.warn({ url }, "resend not configured - invite email not sent");
+				logger.warn(
+					{ url },
+					"resend not configured - verification email not sent",
+				);
 				return;
 			}
 
-			const { error } = await resend.emails.send({
-				from: "Mocktail <noreply@mocktail.stenius.me>",
-				to: email,
-				subject: `Join ${organization.name} on Mocktail`,
-				html: inviteEmailTemplate({
-					orgName: organization.name,
-					inviterEmail: inviter.email,
-					role,
-					inviteUrl: url,
-				}),
-			});
-
-			if (error) {
-				logger.error({ error, to: email }, "failed to send invite email");
-			}
-		},
-	},
-
-	hooks: {
-		organization: {
-			afterCreate: async (org) => {
-				// Create default free subscription for new organizations
-				await prisma.subscription.create({
-					data: {
-						organizationId: org.id,
-						tier: "free",
-					},
+			void resend.emails
+				.send({
+					from: "Mocktail <noreply@mocktail.stenius.me>",
+					to: user.email,
+					subject: "Verify your email",
+					html: verifyEmailTemplate({ verifyUrl: url }),
+				})
+				.then(({ error }) => {
+					if (error) {
+						logger.error(
+							{ error, to: user.email },
+							"failed to send verification email",
+						);
+					}
 				});
-				logger.info({ orgId: org.id }, "created default subscription for org");
-			},
 		},
 	},
 
-	// Rate limiting (uses in-memory store, defaults: 10 login/15min, 5 register/15min, etc.)
-	rateLimit: {
-		enabled: true,
+	socialProviders: {
+		google: {
+			clientId: config.googleClientId,
+			clientSecret: config.googleClientSecret,
+			enabled: Boolean(config.googleClientId && config.googleClientSecret),
+		},
+		github: {
+			clientId: config.githubClientId,
+			clientSecret: config.githubClientSecret,
+			enabled: Boolean(config.githubClientId && config.githubClientSecret),
+		},
 	},
+
+	plugins: [
+		organization({
+			allowUserToCreateOrganization: true,
+			organizationLimit: 5,
+			creatorRole: "owner",
+			invitationExpiresIn: 48 * 60 * 60, // 48 hours
+			async sendInvitationEmail({ invitation, inviter }) {
+				if (!resend) {
+					logger.warn("resend not configured - invite email not sent");
+					return;
+				}
+
+				const org = await prisma.organization.findUnique({
+					where: { id: invitation.organizationId },
+				});
+
+				if (!org) {
+					logger.error(
+						{ orgId: invitation.organizationId },
+						"org not found for invite",
+					);
+					return;
+				}
+
+				const inviteUrl = `${config.appUrl}/accept-invite?token=${invitation.id}`;
+				const inviterUser = await prisma.user.findUnique({
+					where: { id: inviter.id },
+					select: { email: true },
+				});
+
+				void resend.emails
+					.send({
+						from: "Mocktail <noreply@mocktail.stenius.me>",
+						to: invitation.email,
+						subject: `Join ${org.name} on Mocktail`,
+						html: inviteEmailTemplate({
+							orgName: org.name,
+							inviterEmail: inviterUser?.email ?? "Unknown",
+							role: invitation.role,
+							inviteUrl,
+						}),
+					})
+					.then(({ error }) => {
+						if (error) {
+							logger.error(
+								{ error, to: invitation.email },
+								"failed to send invite email",
+							);
+						}
+					});
+			},
+			async onOrganizationCreated({
+				organization,
+			}: { organization: { id: string } }) {
+				await createDefaultSubscription(organization.id);
+			},
+		}),
+	],
 });
 
-import type { AuthVariables as PackageAuthVariables } from "@johanstenius/auth-hono";
-import type { Context } from "hono";
-import { HTTPException } from "hono/http-exception";
+export type Session = typeof auth.$Infer.Session;
 
-export type AuthVariables = PackageAuthVariables;
+export type AuthVariables = {
+	user: Session["user"] | null;
+	session: Session["session"] | null;
+};
 
 type AuthContext = Context<{ Variables: AuthVariables }>;
 
-/**
- * Get authenticated session or throw 401
- */
 export function getSession(c: AuthContext) {
-	const authSession = c.get("session");
-	if (!authSession) {
+	const user = c.get("user");
+	const session = c.get("session");
+	if (!user || !session) {
 		throw new HTTPException(401, { message: "Not authenticated" });
 	}
-	return authSession;
+	return { user, session };
 }
 
-/**
- * Get authenticated session with active organization or throw
- */
 export function getAuth(c: AuthContext) {
 	const { user, session } = getSession(c);
-	if (!session.activeOrganizationId) {
+	const activeOrgId = (session as { activeOrganizationId?: string })
+		.activeOrganizationId;
+	if (!activeOrgId) {
 		throw new HTTPException(403, { message: "No active organization" });
 	}
 	return {
 		userId: user.id,
-		orgId: session.activeOrganizationId,
+		orgId: activeOrgId,
 		user,
 		session,
 	};

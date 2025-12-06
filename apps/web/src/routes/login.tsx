@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signIn, useSession } from "@/lib/auth-client";
 import { getErrorMessage } from "@/lib/errors";
-import { useAuth, useLogin } from "@johanstenius/auth-react";
 import {
 	Link,
 	Navigate,
@@ -26,12 +26,12 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-	const { isAuthenticated, isLoading: authLoading } = useAuth();
-	const { login, isLoading: loginLoading, error: loginError } = useLogin();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
+	const [loginLoading, setLoginLoading] = useState(false);
 
 	if (authLoading) {
 		return (
@@ -41,24 +41,30 @@ function LoginPage() {
 		);
 	}
 
-	if (isAuthenticated) {
+	if (session) {
 		return <Navigate to="/dashboard" />;
 	}
 
 	async function handleSubmit(e: FormEvent) {
 		e.preventDefault();
 		setError("");
+		setLoginLoading(true);
 
 		try {
-			await login({ email, password });
-			navigate({ to: "/dashboard" });
-		} catch (err) {
-			const error = err as { code?: string };
-			if (error.code === "EMAIL_NOT_VERIFIED") {
-				navigate({ to: "/check-email", search: { email } });
+			const result = await signIn.email({ email, password });
+			if (result.error) {
+				if (result.error.code === "EMAIL_NOT_VERIFIED") {
+					navigate({ to: "/check-email", search: { email } });
+				} else {
+					setError(result.error.message ?? "Login failed");
+				}
 			} else {
-				setError(getErrorMessage(err));
+				navigate({ to: "/dashboard" });
 			}
+		} catch (err) {
+			setError(getErrorMessage(err));
+		} finally {
+			setLoginLoading(false);
 		}
 	}
 
@@ -81,9 +87,9 @@ function LoginPage() {
 							<OAuthButtons />
 
 							<form onSubmit={handleSubmit} className="space-y-6 mt-6">
-								{(error || loginError) && (
+								{error && (
 									<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-										{error || loginError?.message}
+										{error}
 									</div>
 								)}
 

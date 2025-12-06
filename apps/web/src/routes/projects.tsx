@@ -9,9 +9,9 @@ import {
 	getEndpoints,
 	getProjects,
 } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
 import type { Project } from "@/types";
-import { useAuth } from "@johanstenius/auth-react";
 import {
 	useMutation,
 	useQueries,
@@ -113,11 +113,13 @@ function ProjectCard({
 }
 
 function ProjectsPage() {
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
 	const [createModalOpen, setCreateModalOpen] = useState(false);
 	const queryClient = useQueryClient();
 
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isVerified = Boolean(user?.emailVerified);
 
 	const { data: projects = [], isLoading } = useQuery({

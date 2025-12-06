@@ -38,7 +38,7 @@ export function createSSEConnection(
 	scopeId: string,
 ): SSEConnection {
 	// SSE uses cookies for auth (withCredentials is automatic for same-origin)
-	const url = `${API_BASE}/api/events/${scope}/${scopeId}`;
+	const url = `${API_BASE}/events/${scope}/${scopeId}`;
 	let eventSource: EventSource | null = null;
 	let reconnectAttempts = 0;
 	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;

@@ -2,14 +2,10 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	useAcceptInvite,
-	useAuth,
-	useInviteDetails,
-} from "@johanstenius/auth-react";
+import { organization, useSession } from "@/lib/auth-client";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, CheckCircle, Loader2, Users } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { z } from "zod";
 
 const searchSchema = z.object({
@@ -21,27 +17,58 @@ export const Route = createFileRoute("/invite")({
 	component: InvitePage,
 });
 
+type InviteInfo = {
+	email: string;
+	role: string;
+	organization: { name: string };
+};
+
 function InvitePage() {
 	const { token } = Route.useSearch();
 	const navigate = useNavigate();
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { data: session, isPending: authLoading } = useSession();
 
-	const {
-		invite: inviteInfo,
-		isLoading: isLoadingInvite,
-		error: inviteError,
-	} = useInviteDetails(token ?? "");
-
-	const {
-		acceptInvite,
-		isLoading: isAccepting,
-		error: acceptError,
-	} = useAcceptInvite();
+	const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
+	const [isLoadingInvite, setIsLoadingInvite] = useState(true);
+	const [inviteError, setInviteError] = useState<string | null>(null);
+	const [isAccepting, setIsAccepting] = useState(false);
+	const [acceptError, setAcceptError] = useState<string | null>(null);
 
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [error, setError] = useState("");
 	const [isSuccess, setIsSuccess] = useState(false);
+
+	const isAuthenticated = !!session;
+	const user = session?.user;
+
+	useEffect(() => {
+		if (!token) {
+			setIsLoadingInvite(false);
+			setInviteError("Invalid invite link");
+			return;
+		}
+
+		organization
+			.getInvitation({ query: { id: token } })
+			.then((result) => {
+				if (result.data) {
+					setInviteInfo({
+						email: result.data.email,
+						role: result.data.role,
+						organization: { name: result.data.organizationName },
+					});
+				} else {
+					setInviteError("Invalid or expired invite");
+				}
+			})
+			.catch(() => {
+				setInviteError("Failed to load invite");
+			})
+			.finally(() => {
+				setIsLoadingInvite(false);
+			});
+	}, [token]);
 
 	const isExistingUser = inviteInfo && user?.email === inviteInfo.email;
 	const needsPassword = inviteInfo && !isExistingUser && !isAuthenticated;
@@ -66,11 +93,16 @@ function InvitePage() {
 			return;
 		}
 
+		setIsAccepting(true);
 		try {
-			await acceptInvite(token);
+			await organization.acceptInvitation({ invitationId: token });
 			setIsSuccess(true);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to accept invite");
+			setAcceptError(
+				err instanceof Error ? err.message : "Failed to accept invite",
+			);
+		} finally {
+			setIsAccepting(false);
 		}
 	}
 
@@ -101,8 +133,7 @@ function InvitePage() {
 								Invalid invite
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
-								{inviteError?.message ||
-									"This invite link is invalid or has expired."}
+								{inviteError || "This invite link is invalid or has expired."}
 							</p>
 							<Link
 								to="/login"
@@ -178,7 +209,7 @@ function InvitePage() {
 						<form onSubmit={handleSubmit} className="space-y-6">
 							{(error || acceptError) && (
 								<div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-									{error || acceptError?.message}
+									{error || acceptError}
 								</div>
 							)}
 

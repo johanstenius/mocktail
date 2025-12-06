@@ -18,6 +18,7 @@ import {
 	rotateProjectApiKey,
 	updateProject,
 } from "@/lib/api";
+import { useSession } from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
 import { createSSEConnection } from "@/lib/sse";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
@@ -28,7 +29,6 @@ import type {
 	ProjectStatistics,
 	UpdateProjectInput,
 } from "@/types";
-import { useAuth } from "@johanstenius/auth-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -636,8 +636,10 @@ function ProjectSettings({
 
 function ProjectDetailPage() {
 	const { id: projectId } = Route.useParams();
-	const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+	const { data: session, isPending: authLoading } = useSession();
 	const navigate = useNavigate();
+	const isAuthenticated = !!session;
+	const user = session?.user;
 	const isVerified = Boolean(user?.emailVerified);
 
 	const [activeTab, setActiveTab] = useState<TabId>("endpoints");

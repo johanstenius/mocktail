@@ -19,13 +19,13 @@ export function countProjectsByOrgId(orgId: string) {
 }
 
 export function countMembersByOrgId(orgId: string) {
-	return prisma.organizationMember.count({
+	return prisma.member.count({
 		where: { organizationId: orgId },
 	});
 }
 
 export function countPendingInvitesByOrgId(orgId: string) {
-	return prisma.organizationInvite.count({
+	return prisma.invitation.count({
 		where: {
 			organizationId: orgId,
 			status: "pending",
@@ -65,7 +65,7 @@ export function findAllWithProjectsForCleanup() {
 
 // Find owner of an organization (for billing emails etc)
 export function findOwnerEmail(orgId: string) {
-	return prisma.organizationMember.findFirst({
+	return prisma.member.findFirst({
 		where: { organizationId: orgId, role: "owner" },
 		include: { user: { select: { email: true } } },
 	});
