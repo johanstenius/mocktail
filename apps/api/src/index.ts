@@ -14,6 +14,7 @@ import { projectsRouter } from "./controllers/projects";
 import { requestLogsRouter } from "./controllers/request-logs";
 import { statisticsRouter } from "./controllers/statistics";
 import { variantsRouter } from "./controllers/variants";
+import { initCronJobs } from "./cron";
 import { type AuthVariables, auth } from "./lib/auth";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
@@ -99,6 +100,9 @@ app.doc("/docs", {
 
 const port = Number(process.env.PORT) || 4000;
 logger.info({ port }, "server started");
+
+// Initialize cron jobs
+initCronJobs();
 
 serve({
 	fetch: app.fetch,
