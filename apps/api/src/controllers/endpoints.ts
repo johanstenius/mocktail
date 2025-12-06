@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../lib/auth";
 import {
+	type EndpointResponse,
 	createEndpointRoute,
 	deleteEndpointRoute,
 	getEndpointRoute,
@@ -14,20 +15,21 @@ import { badRequest, conflict, notFound } from "../utils/errors";
 
 export const endpointsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
-function mapEndpointToResponse(endpoint: EndpointModel) {
+function mapEndpointToResponse(endpoint: EndpointModel): EndpointResponse {
 	return {
 		id: endpoint.id,
 		projectId: endpoint.projectId,
-		method: endpoint.method as "GET" | "POST" | "PUT" | "DELETE" | "PATCH",
+		method: endpoint.method as EndpointResponse["method"],
 		path: endpoint.path,
 		status: endpoint.status,
 		headers: endpoint.headers,
 		body: endpoint.body,
-		bodyType: endpoint.bodyType as "static" | "template",
+		bodyType: endpoint.bodyType as EndpointResponse["bodyType"],
 		delay: endpoint.delay,
 		failRate: endpoint.failRate,
 		requestBodySchema: endpoint.requestBodySchema,
-		validationMode: endpoint.validationMode as "none" | "warn" | "strict",
+		validationMode:
+			endpoint.validationMode as EndpointResponse["validationMode"],
 		proxyEnabled: endpoint.proxyEnabled,
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
@@ -40,7 +42,7 @@ endpointsRouter.openapi(listEndpointsRoute, async (c) => {
 	return c.json({ endpoints: endpoints.map(mapEndpointToResponse) }, 200);
 });
 
-// @ts-expect-error - OpenAPI response schema typing issue
+// @ts-expect-error - OpenAPI response type mismatch with unknown fields
 endpointsRouter.openapi(getEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const endpoint = await endpointService.findById(endpointId, projectId);
@@ -52,7 +54,7 @@ endpointsRouter.openapi(getEndpointRoute, async (c) => {
 	return c.json(mapEndpointToResponse(endpoint), 200);
 });
 
-// @ts-expect-error - OpenAPI response schema typing issue
+// @ts-expect-error - OpenAPI response type mismatch with unknown fields
 endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	const { projectId } = c.req.valid("param");
 	const body = c.req.valid("json");
@@ -86,7 +88,7 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	return c.json(mapEndpointToResponse(result.endpoint), 201);
 });
 
-// @ts-expect-error - OpenAPI response schema typing issue
+// @ts-expect-error - OpenAPI response type mismatch with unknown fields
 endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");

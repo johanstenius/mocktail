@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AuthVariables } from "../lib/auth";
 import {
+	type RequestLogResponse,
 	deleteAllRequestLogsRoute,
 	getRequestLogRoute,
 	listRequestLogsRoute,
@@ -14,7 +15,7 @@ export const requestLogsRouter = new OpenAPIHono<{
 	Variables: AuthVariables;
 }>();
 
-function mapRequestLogToResponse(log: RequestLogModel) {
+function mapRequestLogToResponse(log: RequestLogModel): RequestLogResponse {
 	return {
 		id: log.id,
 		projectId: log.projectId,
@@ -22,7 +23,7 @@ function mapRequestLogToResponse(log: RequestLogModel) {
 		method: log.method,
 		path: log.path,
 		status: log.status,
-		source: log.source as "mock" | "proxy" | "proxy_fallback",
+		source: log.source as RequestLogResponse["source"],
 		requestHeaders: log.requestHeaders,
 		requestBody: log.requestBody,
 		responseBody: log.responseBody,
@@ -60,7 +61,7 @@ requestLogsRouter.openapi(listRequestLogsRoute, async (c) => {
 	);
 });
 
-// @ts-expect-error - OpenAPI response schema typing issue with unknown fields
+// @ts-expect-error - OpenAPI response type mismatch with unknown fields
 requestLogsRouter.openapi(getRequestLogRoute, async (c) => {
 	const { projectId, id } = c.req.valid("param");
 
