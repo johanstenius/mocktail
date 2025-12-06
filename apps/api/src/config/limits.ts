@@ -12,13 +12,13 @@ export type TierLimits = {
 
 export const TIER_LIMITS: Record<Tier, TierLimits> = {
 	free: {
-		projects: 3,
-		endpointsPerProject: 10,
-		teamMembers: 3,
-		monthlyRequests: 5_000,
+		projects: 2,
+		endpointsPerProject: 5,
+		teamMembers: 1,
+		monthlyRequests: 1_000,
 		rateLimit: 5,
-		requestLogRetentionDays: 3,
-		auditLogRetentionDays: 7,
+		requestLogRetentionDays: 1,
+		auditLogRetentionDays: 3,
 	},
 	pro: {
 		projects: 10,

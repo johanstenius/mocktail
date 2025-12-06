@@ -69,11 +69,11 @@ const TIER_INFO: Record<
 
 const TIER_FEATURES: Record<Tier, string[]> = {
 	free: [
-		"3 projects",
-		"10 endpoints per project",
-		"5,000 requests/month",
-		"3 team members",
-		"3 day log retention",
+		"2 projects",
+		"5 endpoints per project",
+		"1,000 requests/month",
+		"Solo use only",
+		"1 day log retention",
 	],
 	pro: [
 		"10 projects",
