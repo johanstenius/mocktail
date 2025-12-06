@@ -6,8 +6,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { BILLING_ENABLED } from "@/lib/config";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Database, FileJson, Users, Zap } from "lucide-react";
+import { Database, FileJson, Rocket, Users, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -288,7 +289,7 @@ function LandingPage() {
 					{/* Pro Tier */}
 					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
 						<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
-							RECOMMENDED
+							{BILLING_ENABLED ? "RECOMMENDED" : "COMING SOON"}
 						</div>
 						<CardHeader className="pb-0">
 							<CardTitle className="text-xl font-semibold mb-1">Pro</CardTitle>
@@ -322,12 +323,19 @@ function LandingPage() {
 									</li>
 								))}
 							</ul>
-							<Link
-								to="/register"
-								className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
-							>
-								Get Started
-							</Link>
+							{BILLING_ENABLED ? (
+								<Link
+									to="/register"
+									className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
+								>
+									Get Started
+								</Link>
+							) : (
+								<div className="w-full py-3 rounded-xl bg-[rgba(139,92,246,0.1)] border border-[rgba(139,92,246,0.3)] text-[var(--glow-violet)] font-semibold text-center flex items-center justify-center gap-2 cursor-default">
+									<Rocket className="w-4 h-4" />
+									Coming Soon
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</div>
