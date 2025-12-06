@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { BILLING_ENABLED } from "@/lib/config";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Database, FileJson, Rocket, Users, Zap } from "lucide-react";
+import { Database, FileJson, Rocket, Sparkles, Users, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/")({
 	component: LandingPage,
@@ -287,61 +287,102 @@ function LandingPage() {
 					</Card>
 
 					{/* Pro Tier */}
-					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
-						<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
-							{BILLING_ENABLED ? "RECOMMENDED" : "COMING SOON"}
-						</div>
-						<CardHeader className="pb-0">
-							<CardTitle className="text-xl font-semibold mb-1">Pro</CardTitle>
-						</CardHeader>
-						<CardContent className="flex flex-col flex-grow pt-4">
-							<div
-								className={`text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1 ${!BILLING_ENABLED ? "blur-sm select-none" : ""}`}
-							>
-								$29
-								<span className="text-base text-[var(--text-muted)] font-normal">
-									/mo
-								</span>
+					{BILLING_ENABLED ? (
+						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
+							<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
+								RECOMMENDED
 							</div>
-							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-								For teams shipping to production.
-							</p>
-							<ul
-								className={`space-y-3 mb-8 flex-grow ${!BILLING_ENABLED ? "blur-sm select-none" : ""}`}
-							>
-								{[
-									"10 Projects",
-									"50 Endpoints per Project",
-									"100,000 Requests/mo",
-									"10 Team Members",
-									"30 Day Log Retention",
-								].map((feature) => (
-									<li
-										key={feature}
-										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-									>
-										<span className="text-[var(--accent-primary)] text-lg">
-											✓
-										</span>{" "}
-										{feature}
-									</li>
-								))}
-							</ul>
-							{BILLING_ENABLED ? (
+							<CardHeader className="pb-0">
+								<CardTitle className="text-xl font-semibold mb-1">
+									Pro
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="flex flex-col flex-grow pt-4">
+								<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+									$29
+									<span className="text-base text-[var(--text-muted)] font-normal">
+										/mo
+									</span>
+								</div>
+								<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+									For teams shipping to production.
+								</p>
+								<ul className="space-y-3 mb-8 flex-grow">
+									{[
+										"10 Projects",
+										"50 Endpoints per Project",
+										"100,000 Requests/mo",
+										"10 Team Members",
+										"30 Day Log Retention",
+									].map((feature) => (
+										<li
+											key={feature}
+											className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+										>
+											<span className="text-[var(--accent-primary)] text-lg">
+												✓
+											</span>{" "}
+											{feature}
+										</li>
+									))}
+								</ul>
 								<Link
 									to="/register"
 									className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
 								>
 									Get Started
 								</Link>
-							) : (
-								<div className="w-full py-3 rounded-xl bg-[rgba(139,92,246,0.1)] border border-[rgba(139,92,246,0.3)] text-[var(--glow-violet)] font-semibold text-center flex items-center justify-center gap-2 cursor-default">
-									<Rocket className="w-4 h-4" />
-									Coming Soon
+							</CardContent>
+						</Card>
+					) : (
+						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.08)] to-transparent border-[rgba(139,92,246,0.4)] overflow-hidden">
+							{/* Animated gradient overlay */}
+							<div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(139,92,246,0.1)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shimmer_3s_infinite]" />
+
+							<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.15)] px-2.5 py-1 rounded-full border border-[rgba(139,92,246,0.3)] flex items-center gap-1.5">
+								<span className="relative flex h-2 w-2">
+									<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--glow-violet)] opacity-75" />
+									<span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--glow-violet)]" />
+								</span>
+								COMING SOON
+							</div>
+							<CardHeader className="pb-0 relative z-10">
+								<CardTitle className="text-xl font-semibold mb-1 flex items-center gap-2">
+									Pro
+									<Sparkles className="w-4 h-4 text-[var(--glow-violet)]" />
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="flex flex-col flex-grow pt-4 relative z-10">
+								<p className="text-[var(--text-secondary)] text-sm mb-6">
+									Everything in Free, plus:
+								</p>
+								<ul className="space-y-3 mb-8 flex-grow">
+									{[
+										{ label: "More projects", icon: "📁" },
+										{ label: "More endpoints", icon: "🔗" },
+										{ label: "Higher request limits", icon: "⚡" },
+										{ label: "Team collaboration", icon: "👥" },
+										{ label: "Extended log retention", icon: "📊" },
+									].map((feature, i) => (
+										<li
+											key={feature.label}
+											className="flex items-center gap-3 text-sm"
+											style={{ animationDelay: `${i * 100}ms` }}
+										>
+											<span className="text-base">{feature.icon}</span>
+											<span className="text-[var(--text-secondary)]">
+												{feature.label}
+											</span>
+										</li>
+									))}
+								</ul>
+								<div className="w-full py-3 rounded-xl bg-gradient-to-r from-[rgba(139,92,246,0.2)] to-[rgba(59,130,246,0.2)] border border-[rgba(139,92,246,0.3)] text-[var(--text-primary)] font-semibold text-center flex items-center justify-center gap-2">
+									<Rocket className="w-4 h-4 text-[var(--glow-violet)]" />
+									Launching Soon
 								</div>
-							)}
-						</CardContent>
-					</Card>
+							</CardContent>
+						</Card>
+					)}
 				</div>
 			</section>
 

@@ -28,7 +28,6 @@ import {
 import {
 	AlertCircle,
 	AlertTriangle,
-	ArrowRight,
 	Check,
 	CreditCard,
 	Loader2,
@@ -267,9 +266,9 @@ function ComingSoonPage() {
 						</div>
 
 						{/* Pro Tier - Coming Soon */}
-						<div className="relative p-6 rounded-2xl border border-[var(--glow-violet)]/30 bg-gradient-to-b from-[var(--glow-violet)]/5 to-transparent overflow-hidden">
-							{/* Glow effect */}
-							<div className="absolute inset-0 bg-gradient-to-br from-[var(--glow-violet)]/10 via-transparent to-[var(--glow-blue)]/5" />
+						<div className="relative p-6 rounded-2xl border border-[var(--glow-violet)]/30 bg-gradient-to-b from-[var(--glow-violet)]/8 to-transparent overflow-hidden">
+							{/* Animated shimmer */}
+							<div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(139,92,246,0.1)_50%,transparent_75%)] bg-[length:200%_100%] animate-[shimmer_3s_infinite]" />
 
 							<div className="relative z-10">
 								<div className="flex items-center justify-between mb-6">
@@ -284,66 +283,45 @@ function ComingSoonPage() {
 									</div>
 									<Badge
 										variant="violet"
-										className="bg-[var(--glow-violet)]/20 border-[var(--glow-violet)]/30"
+										className="bg-[var(--glow-violet)]/20 border-[var(--glow-violet)]/30 flex items-center gap-1.5"
 									>
+										<span className="relative flex h-2 w-2">
+											<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--glow-violet)] opacity-75" />
+											<span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--glow-violet)]" />
+										</span>
 										Soon
 									</Badge>
 								</div>
 
-								<div className="mb-6 blur-sm select-none">
-									<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
-										$29
-									</span>
-									<span className="text-[var(--text-muted)] font-['Inter']">
-										{" "}
-										/month
-									</span>
-								</div>
+								<p className="text-[var(--text-secondary)] text-sm mb-6 font-['Inter']">
+									Everything in Free, plus:
+								</p>
 
-								<ul className="space-y-3 mb-6 blur-sm select-none">
-									{PRO_FEATURES.map((feature) => (
+								<ul className="space-y-3 mb-6">
+									{[
+										{ label: "More projects", icon: "📁" },
+										{ label: "More endpoints", icon: "🔗" },
+										{ label: "Higher request limits", icon: "⚡" },
+										{ label: "Team collaboration", icon: "👥" },
+										{ label: "Extended log retention", icon: "📊" },
+										{ label: "Priority support", icon: "💬" },
+									].map((feature) => (
 										<li
-											key={feature.text}
+											key={feature.label}
 											className="flex items-center gap-3 text-sm"
 										>
-											<div
-												className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-													feature.highlight
-														? "bg-[var(--glow-violet)]/20"
-														: "bg-[rgba(255,255,255,0.05)]"
-												}`}
-											>
-												<Check
-													className={`w-3 h-3 ${
-														feature.highlight
-															? "text-[var(--glow-violet)]"
-															: "text-[var(--text-muted)]"
-													}`}
-												/>
-											</div>
-											<span
-												className={`font-['Inter'] ${
-													feature.highlight
-														? "text-[var(--text-primary)]"
-														: "text-[var(--text-secondary)]"
-												}`}
-											>
-												{feature.text}
+											<span className="text-base">{feature.icon}</span>
+											<span className="text-[var(--text-secondary)] font-['Inter']">
+												{feature.label}
 											</span>
-											{feature.highlight && (
-												<ArrowRight className="w-3 h-3 text-[var(--glow-violet)] ml-auto" />
-											)}
 										</li>
 									))}
 								</ul>
 
-								<Button
-									disabled
-									className="w-full bg-[var(--glow-violet)]/20 border border-[var(--glow-violet)]/30 text-[var(--glow-violet)] cursor-not-allowed"
-								>
-									<Rocket className="w-4 h-4 mr-2" />
-									Coming Soon
-								</Button>
+								<div className="w-full py-3 rounded-xl bg-gradient-to-r from-[rgba(139,92,246,0.2)] to-[rgba(59,130,246,0.2)] border border-[rgba(139,92,246,0.3)] text-[var(--text-primary)] font-semibold text-center flex items-center justify-center gap-2 font-['Inter']">
+									<Rocket className="w-4 h-4 text-[var(--glow-violet)]" />
+									Launching Soon
+								</div>
 							</div>
 						</div>
 					</div>
