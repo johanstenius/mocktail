@@ -1,26 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { API_URL } from "@/lib/config";
+import { signIn } from "@/lib/auth-client";
 import { Github } from "lucide-react";
 
 type OAuthButtonsProps = {
 	inviteToken?: string;
 };
 
+const APP_URL = import.meta.env.VITE_APP_URL ?? "http://localhost:4001";
+
 export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
-	const handleGitHubLogin = () => {
-		const url = new URL(`${API_URL}/auth/oauth/github`);
-		if (inviteToken) {
-			url.searchParams.set("invite", inviteToken);
-		}
-		window.location.href = url.toString();
+	const handleGitHubLogin = async () => {
+		const path = inviteToken ? `/invite?token=${inviteToken}` : "/dashboard";
+		await signIn.social({
+			provider: "github",
+			callbackURL: `${APP_URL}${path}`,
+		});
 	};
 
-	const handleGoogleLogin = () => {
-		const url = new URL(`${API_URL}/auth/oauth/google`);
-		if (inviteToken) {
-			url.searchParams.set("invite", inviteToken);
-		}
-		window.location.href = url.toString();
+	const handleGoogleLogin = async () => {
+		const path = inviteToken ? `/invite?token=${inviteToken}` : "/dashboard";
+		await signIn.social({
+			provider: "google",
+			callbackURL: `${APP_URL}${path}`,
+		});
 	};
 
 	return (

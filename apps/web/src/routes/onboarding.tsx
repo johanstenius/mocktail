@@ -63,7 +63,10 @@ function OnboardingPage() {
 		setCreating(true);
 		try {
 			const slug = name.trim().toLowerCase().replace(/\s+/g, "-");
-			await organization.create({ name: name.trim(), slug });
+			const result = await organization.create({ name: name.trim(), slug });
+			if (result.data?.id) {
+				await organization.setActive({ organizationId: result.data.id });
+			}
 			navigate({ to: "/dashboard" });
 		} catch (err) {
 			setError(

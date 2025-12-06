@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resetPassword } from "@/lib/auth-client";
-import { getErrorMessage } from "@/lib/errors";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -47,14 +46,13 @@ function ResetPasswordPage() {
 		}
 
 		setIsLoading(true);
-		try {
-			await resetPassword({ token, newPassword: password });
+		const result = await resetPassword({ token, newPassword: password });
+		if (result.error) {
+			setError(result.error.message ?? "Reset failed");
+		} else {
 			setIsSuccess(true);
-		} catch (err) {
-			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
 		}
+		setIsLoading(false);
 	}
 
 	if (!token) {

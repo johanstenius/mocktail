@@ -1,6 +1,11 @@
 import { NotFoundPage } from "@/components/not-found-page";
 import { Sidebar } from "@/components/sidebar";
-import { useListOrganizations, useSession } from "@/lib/auth-client";
+import {
+	organization,
+	useActiveOrganization,
+	useListOrganizations,
+	useSession,
+} from "@/lib/auth-client";
 import {
 	Navigate,
 	Outlet,
@@ -8,6 +13,7 @@ import {
 	useLocation,
 } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 export const Route = createRootRoute({
 	component: RootLayout,
@@ -33,20 +39,33 @@ function isPublicPath(pathname: string): boolean {
 	);
 }
 
-function RootLayout() {
-	const location = useLocation();
-	const { data: session, isPending: authLoading } = useSession();
+function Background() {
+	return (
+		<div className="glow-bg">
+			<div className="orb orb-1" />
+			<div className="orb orb-2" />
+			<div className="orb orb-3" />
+		</div>
+	);
+}
+
+function AuthenticatedLayout() {
+	const { data: session } = useSession();
 	const { data: organizations, isPending: orgsLoading } =
 		useListOrganizations();
-
-	const isAuthenticated = !!session;
+	const { data: activeOrg, isPending: activeOrgLoading } =
+		useActiveOrganization();
 	const user = session?.user;
-	const isPublic = isPublicPath(location.pathname);
-	const isLoading = authLoading || (isAuthenticated && orgsLoading);
 	const orgList = organizations ?? [];
 
-	// Show loader while checking auth state
-	if (isLoading && !isPublic) {
+	// Set active org if user has orgs but none is active
+	useEffect(() => {
+		if (!orgsLoading && !activeOrgLoading && orgList.length > 0 && !activeOrg) {
+			organization.setActive({ organizationId: orgList[0].id });
+		}
+	}, [orgsLoading, activeOrgLoading, orgList, activeOrg]);
+
+	if (orgsLoading || activeOrgLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
 				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
@@ -54,43 +73,65 @@ function RootLayout() {
 		);
 	}
 
-	// Redirect to login if not authenticated on protected route
-	if (!isPublic && !isAuthenticated) {
-		return <Navigate to="/login" />;
-	}
-
 	// Redirect to check-email if email not verified
-	if (!isPublic && isAuthenticated && user && !user.emailVerified) {
+	if (user && !user.emailVerified) {
 		return <Navigate to="/check-email" />;
 	}
 
 	// Redirect to onboarding if no organization
-	if (
-		!isPublic &&
-		isAuthenticated &&
-		user?.emailVerified &&
-		orgList.length === 0
-	) {
+	if (user?.emailVerified && orgList.length === 0) {
 		return <Navigate to="/onboarding" />;
 	}
 
-	const showSidebar = !isPublic && isAuthenticated && orgList.length > 0;
+	// Wait for active org to be set
+	if (orgList.length > 0 && !activeOrg) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+			</div>
+		);
+	}
 
 	return (
 		<>
-			<div className="glow-bg">
-				<div className="orb orb-1" />
-				<div className="orb orb-2" />
-				<div className="orb orb-3" />
-			</div>
-			{showSidebar ? (
-				<div className="flex h-screen overflow-hidden">
-					<Sidebar />
-					<Outlet />
-				</div>
-			) : (
+			<Background />
+			<div className="flex h-screen overflow-hidden">
+				<Sidebar />
 				<Outlet />
-			)}
+			</div>
 		</>
 	);
+}
+
+function RootLayout() {
+	const location = useLocation();
+	const { data: session, isPending: authLoading } = useSession();
+	const isPublic = isPublicPath(location.pathname);
+
+	// Show loader while checking auth
+	if (authLoading && !isPublic) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[var(--text-muted)]" />
+			</div>
+		);
+	}
+
+	// Public routes - no org fetching
+	if (isPublic) {
+		return (
+			<>
+				<Background />
+				<Outlet />
+			</>
+		);
+	}
+
+	// Not authenticated - redirect to login
+	if (!session) {
+		return <Navigate to="/login" />;
+	}
+
+	// Authenticated - render with org data
+	return <AuthenticatedLayout />;
 }

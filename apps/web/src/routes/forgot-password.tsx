@@ -2,8 +2,7 @@ import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { forgetPassword } from "@/lib/auth-client";
-import { getErrorMessage } from "@/lib/errors";
+import { requestPasswordReset } from "@/lib/auth-client";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { type FormEvent, useState } from "react";
@@ -23,14 +22,16 @@ function ForgotPasswordPage() {
 		setError("");
 		setIsLoading(true);
 
-		try {
-			await forgetPassword({ email, redirectTo: "/reset-password" });
+		const result = await requestPasswordReset({
+			email,
+			redirectTo: "/reset-password",
+		});
+		if (result.error) {
+			setError(result.error.message ?? "Request failed");
+		} else {
 			setIsSubmitted(true);
-		} catch (err) {
-			setError(getErrorMessage(err));
-		} finally {
-			setIsLoading(false);
 		}
+		setIsLoading(false);
 	}
 
 	return (

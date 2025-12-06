@@ -30,11 +30,15 @@ function VerifyEmailPage() {
 			return;
 		}
 
-		verifyEmail({ query: { token } })
-			.then(async () => {
-				await refetch();
-				setIsSuccess(true);
-				setTimeout(() => navigate({ to: "/dashboard" }), 1500);
+		verifyEmail({ token })
+			.then(async (result) => {
+				if (result.error) {
+					setError(result.error.message ?? "Verification failed");
+				} else {
+					await refetch();
+					setIsSuccess(true);
+					setTimeout(() => navigate({ to: "/dashboard" }), 1500);
+				}
 			})
 			.catch((err: unknown) => {
 				setError(getErrorMessage(err));

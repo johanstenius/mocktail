@@ -20,10 +20,32 @@ export const {
 
 export const { organization } = authClient;
 
-// Export password/email functions directly from authClient
-// @ts-expect-error - better-auth types may be incomplete
-export const forgetPassword =
-	authClient.forgetPassword || authClient.requestPasswordReset;
-export const resetPassword = authClient.resetPassword;
-export const sendVerificationEmail = authClient.sendVerificationEmail;
-export const verifyEmail = authClient.verifyEmail;
+// These methods exist on the client but may not be fully typed
+export const {
+	requestPasswordReset,
+	resetPassword,
+	sendVerificationEmail,
+	verifyEmail,
+	changePassword,
+} = authClient as typeof authClient & {
+	requestPasswordReset: (opts: {
+		email: string;
+		redirectTo?: string;
+	}) => Promise<{ data?: unknown; error?: { message: string } }>;
+	resetPassword: (opts: {
+		newPassword: string;
+		token: string;
+	}) => Promise<{ data?: unknown; error?: { message: string } }>;
+	sendVerificationEmail: (opts: {
+		email: string;
+		callbackURL?: string;
+	}) => Promise<{ data?: unknown; error?: { message: string } }>;
+	verifyEmail: (opts: {
+		token: string;
+	}) => Promise<{ data?: unknown; error?: { message: string } }>;
+	changePassword: (opts: {
+		newPassword: string;
+		currentPassword: string;
+		revokeOtherSessions?: boolean;
+	}) => Promise<{ data?: unknown; error?: { message: string } }>;
+};

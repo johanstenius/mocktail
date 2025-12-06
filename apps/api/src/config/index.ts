@@ -1,7 +1,7 @@
 export const config = {
 	port: Number(process.env.PORT) || 4000,
 	isProduction: process.env.NODE_ENV === "production",
-	appUrl: process.env.APP_URL || "http://localhost:3000",
+	appUrl: process.env.APP_URL || "http://localhost:4001",
 	apiUrl: process.env.API_URL || "http://localhost:4000",
 	// Auth
 	authSecret:

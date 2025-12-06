@@ -76,10 +76,13 @@ function RegisterPage() {
 				return;
 			}
 
-			await organization.create({
+			const orgResult = await organization.create({
 				name: organizationName,
 				slug: organizationName.toLowerCase().replace(/\s+/g, "-"),
 			});
+			if (orgResult.data?.id) {
+				await organization.setActive({ organizationId: orgResult.data.id });
+			}
 			navigate({ to: "/dashboard" });
 		} catch (err) {
 			setError(getErrorMessage(err));

@@ -5,6 +5,7 @@ import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { Resend } from "resend";
 import { config } from "../config";
+import { getLimits } from "../config/limits";
 import { prisma } from "../repositories/db/prisma";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
@@ -24,6 +25,34 @@ async function createDefaultSubscription(orgId: string) {
 		},
 	});
 	logger.info({ orgId }, "created default subscription for org");
+}
+
+async function checkMemberLimit(orgId: string): Promise<{
+	allowed: boolean;
+	current: number;
+	limit: number;
+}> {
+	const sub = await prisma.subscription.findUnique({
+		where: { organizationId: orgId },
+	});
+	if (!sub) {
+		return { allowed: false, current: 0, limit: 0 };
+	}
+
+	const limits = getLimits(sub.tier);
+	const memberCount = await prisma.member.count({
+		where: { organizationId: orgId },
+	});
+	const inviteCount = await prisma.invitation.count({
+		where: { organizationId: orgId, status: "pending" },
+	});
+	const total = memberCount + inviteCount;
+
+	return {
+		allowed: total < limits.teamMembers,
+		current: total,
+		limit: limits.teamMembers,
+	};
 }
 
 export const auth = betterAuth({
@@ -125,6 +154,15 @@ export const auth = betterAuth({
 			organizationLimit: 5,
 			creatorRole: "owner",
 			invitationExpiresIn: 48 * 60 * 60, // 48 hours
+			async inviteUser({ data }: { data: { organizationId: string } }) {
+				const check = await checkMemberLimit(data.organizationId);
+				if (!check.allowed) {
+					return {
+						error: `Team member limit reached (${check.limit})`,
+					};
+				}
+				return { data };
+			},
 			async sendInvitationEmail({ invitation, inviter }) {
 				if (!resend) {
 					logger.warn("resend not configured - invite email not sent");
