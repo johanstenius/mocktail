@@ -290,7 +290,7 @@ function ComingSoonPage() {
 									</Badge>
 								</div>
 
-								<div className="mb-6">
+								<div className="mb-6 blur-sm select-none">
 									<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
 										$29
 									</span>
@@ -300,7 +300,7 @@ function ComingSoonPage() {
 									</span>
 								</div>
 
-								<ul className="space-y-3 mb-6">
+								<ul className="space-y-3 mb-6 blur-sm select-none">
 									{PRO_FEATURES.map((feature) => (
 										<li
 											key={feature.text}

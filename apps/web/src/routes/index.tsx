@@ -295,7 +295,9 @@ function LandingPage() {
 							<CardTitle className="text-xl font-semibold mb-1">Pro</CardTitle>
 						</CardHeader>
 						<CardContent className="flex flex-col flex-grow pt-4">
-							<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+							<div
+								className={`text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1 ${!BILLING_ENABLED ? "blur-sm select-none" : ""}`}
+							>
 								$29
 								<span className="text-base text-[var(--text-muted)] font-normal">
 									/mo
@@ -304,7 +306,9 @@ function LandingPage() {
 							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
 								For teams shipping to production.
 							</p>
-							<ul className="space-y-3 mb-8 flex-grow">
+							<ul
+								className={`space-y-3 mb-8 flex-grow ${!BILLING_ENABLED ? "blur-sm select-none" : ""}`}
+							>
 								{[
 									"10 Projects",
 									"50 Endpoints per Project",
