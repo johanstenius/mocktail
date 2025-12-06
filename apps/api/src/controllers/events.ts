@@ -2,8 +2,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { streamSSE } from "hono/streaming";
 import { eventBus } from "../events/event-bus";
 import type { SSEEvent } from "../events/types";
-import { prisma } from "../repositories/db/prisma";
 import * as projectRepo from "../repositories/project.repository";
+import * as sessionRepo from "../repositories/session.repository";
 import { subscribeEventsRoute } from "../schemas/events";
 import * as statisticsService from "../services/statistics.service";
 import { forbidden, unauthorized } from "../utils/errors";
@@ -13,15 +13,8 @@ export const eventsRouter = new OpenAPIHono();
 
 const KEEPALIVE_INTERVAL_MS = 30_000;
 
-/**
- * Verify session token and return user/org info.
- * SSE endpoints use query param token since EventSource can't send cookies.
- */
 async function verifySessionToken(token: string) {
-	const session = await prisma.session.findUnique({
-		where: { token },
-		include: { user: { select: { id: true, email: true } } },
-	});
+	const session = await sessionRepo.findByToken(token);
 
 	if (!session || session.expiresAt < new Date()) {
 		return null;
@@ -46,15 +39,10 @@ eventsRouter.openapi(subscribeEventsRoute, async (c) => {
 		throw forbidden("No active organization");
 	}
 
-	// Check membership
-	const membership = await prisma.organizationMember.findUnique({
-		where: {
-			organizationId_userId: {
-				organizationId: payload.orgId,
-				userId: payload.userId,
-			},
-		},
-	});
+	const membership = await sessionRepo.findMembershipByOrgAndUser(
+		payload.orgId,
+		payload.userId,
+	);
 	if (!membership) {
 		throw forbidden("Not a member of this organization");
 	}

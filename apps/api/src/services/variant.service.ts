@@ -1,5 +1,7 @@
+import { z } from "zod";
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as variantRepo from "../repositories/variant.repository";
+import { logger } from "../utils/logger";
 import * as auditService from "./audit.service";
 import type { AuditContext } from "./audit.service";
 
@@ -56,29 +58,74 @@ export type CreateVariantInput = {
 
 export type UpdateVariantInput = Partial<CreateVariantInput>;
 
+const matchRuleSchema = z.object({
+	target: z.enum(["header", "query", "param", "body"]),
+	key: z.string(),
+	operator: z.enum([
+		"equals",
+		"not_equals",
+		"contains",
+		"not_contains",
+		"exists",
+		"not_exists",
+	]),
+	value: z.string().optional(),
+});
+
+const dbVariantSchema = z.object({
+	headers: z.record(z.string()).catch({}),
+	rules: z.array(matchRuleSchema).catch([]),
+	ruleLogic: z.enum(["and", "or"]).catch("and"),
+	delayType: z.enum(["fixed", "random"]).catch("fixed"),
+});
+
+type DbVariant = NonNullable<Awaited<ReturnType<typeof variantRepo.findById>>>;
+
+function parseVariantFields(db: DbVariant, variantId: string) {
+	const parsed = dbVariantSchema.safeParse({
+		headers: db.headers,
+		rules: db.rules,
+		ruleLogic: db.ruleLogic,
+		delayType: db.delayType,
+	});
+
+	if (!parsed.success) {
+		logger.warn(
+			{ variantId, errors: parsed.error.issues },
+			"Invalid variant data in database, using defaults",
+		);
+	}
+
+	return parsed.success ? parsed.data : dbVariantSchema.parse({});
+}
+
 function dbToModel(
 	db: Awaited<ReturnType<typeof variantRepo.findById>>,
 ): VariantModel | null {
 	if (!db) return null;
+	const validated = parseVariantFields(db, db.id);
 	return {
 		...db,
-		headers: db.headers as Record<string, string>,
-		rules: db.rules as MatchRule[],
-		ruleLogic: db.ruleLogic as RuleLogic,
-		delayType: db.delayType as DelayType,
+		headers: validated.headers,
+		rules: validated.rules,
+		ruleLogic: validated.ruleLogic,
+		delayType: validated.delayType,
 	};
 }
 
 function dbListToModels(
 	list: Awaited<ReturnType<typeof variantRepo.findByEndpointId>>,
 ): VariantModel[] {
-	return list.map((db) => ({
-		...db,
-		headers: db.headers as Record<string, string>,
-		rules: db.rules as MatchRule[],
-		ruleLogic: db.ruleLogic as RuleLogic,
-		delayType: db.delayType as DelayType,
-	}));
+	return list.map((db) => {
+		const validated = parseVariantFields(db, db.id);
+		return {
+			...db,
+			headers: validated.headers,
+			rules: validated.rules,
+			ruleLogic: validated.ruleLogic,
+			delayType: validated.delayType,
+		};
+	});
 }
 
 export async function findByEndpointId(

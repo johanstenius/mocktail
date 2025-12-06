@@ -1,0 +1,19 @@
+import { prisma } from "./db/prisma";
+
+export function findByToken(token: string) {
+	return prisma.session.findUnique({
+		where: { token },
+		include: { user: { select: { id: true, email: true } } },
+	});
+}
+
+export function findMembershipByOrgAndUser(orgId: string, userId: string) {
+	return prisma.organizationMember.findUnique({
+		where: {
+			organizationId_userId: {
+				organizationId: orgId,
+				userId,
+			},
+		},
+	});
+}

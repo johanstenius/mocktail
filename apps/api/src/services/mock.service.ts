@@ -1,7 +1,9 @@
+import { z } from "zod";
 import { eventBus } from "../events/event-bus";
 import { createEvent } from "../events/types";
 import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
+import { logger } from "../utils/logger";
 import { findBestMatch } from "../utils/path-matcher";
 import type { ValidationMode } from "./endpoint.service";
 import { proxyRequest } from "./proxy.service";
@@ -11,7 +13,7 @@ import {
 } from "./request-validator.service";
 import { type MatchContext, findMatchingVariant } from "./rule-matcher.service";
 import { type RequestContext, processTemplate } from "./template-engine";
-import type { MatchRule, RuleLogic, VariantModel } from "./variant.service";
+import type { VariantModel } from "./variant.service";
 
 export type RequestSource = "mock" | "proxy" | "proxy_fallback";
 
@@ -68,13 +70,50 @@ export type MockResult =
 	  }
 	| { success: false; error: "project_not_found" | "endpoint_not_found" };
 
+const matchRuleSchema = z.object({
+	target: z.enum(["header", "query", "param", "body"]),
+	key: z.string(),
+	operator: z.enum([
+		"equals",
+		"not_equals",
+		"contains",
+		"not_contains",
+		"exists",
+		"not_exists",
+	]),
+	value: z.string().optional(),
+});
+
+const dbVariantSchema = z.object({
+	headers: z.record(z.string()).catch({}),
+	rules: z.array(matchRuleSchema).catch([]),
+	ruleLogic: z.enum(["and", "or"]).catch("and"),
+	delayType: z.enum(["fixed", "random"]).catch("fixed"),
+});
+
 function dbVariantToModel(variant: Variant): VariantModel {
+	const parsed = dbVariantSchema.safeParse({
+		headers: variant.headers,
+		rules: variant.rules,
+		ruleLogic: variant.ruleLogic,
+		delayType: variant.delayType,
+	});
+
+	if (!parsed.success) {
+		logger.warn(
+			{ variantId: variant.id, errors: parsed.error.issues },
+			"Invalid variant data in database, using defaults",
+		);
+	}
+
+	const validated = parsed.success ? parsed.data : dbVariantSchema.parse({});
+
 	return {
 		...variant,
-		headers: variant.headers as Record<string, string>,
-		rules: variant.rules as MatchRule[],
-		ruleLogic: variant.ruleLogic as RuleLogic,
-		delayType: variant.delayType as "fixed" | "random",
+		headers: validated.headers,
+		rules: validated.rules,
+		ruleLogic: validated.ruleLogic,
+		delayType: validated.delayType,
 	};
 }
 
@@ -85,6 +124,171 @@ function getEffectiveVariant(
 	if (endpoint.variants.length === 0) return null;
 	const variants = endpoint.variants.map(dbVariantToModel);
 	return findMatchingVariant(variants, matchContext);
+}
+
+type LogContext = {
+	projectId: string;
+	endpointId: string | null;
+	variantId: string | null;
+	request: MockRequest;
+	startTime: number;
+};
+
+async function logAndEmit(
+	ctx: LogContext,
+	status: number,
+	source: RequestSource,
+	responseBody: unknown,
+	validationErrors?: string[] | null,
+): Promise<void> {
+	await logRepo.create({
+		projectId: ctx.projectId,
+		endpointId: ctx.endpointId,
+		variantId: ctx.variantId,
+		method: ctx.request.method,
+		path: ctx.request.path,
+		status,
+		source,
+		requestHeaders: ctx.request.headers,
+		requestBody: ctx.request.body,
+		responseBody,
+		validationErrors,
+		duration: Date.now() - ctx.startTime,
+	});
+	emitStatsUpdate(ctx.projectId, ctx.endpointId);
+}
+
+function validateRequest(
+	endpoint: Endpoint,
+	body: unknown,
+): { valid: true } | { valid: false; errors: string[] } {
+	const validationMode = (endpoint.validationMode ?? "none") as ValidationMode;
+	if (validationMode === "none" || isEmptySchema(endpoint.requestBodySchema)) {
+		return { valid: true };
+	}
+	const result = validateRequestBody(endpoint.requestBodySchema, body);
+	return result.valid
+		? { valid: true }
+		: { valid: false, errors: result.errors };
+}
+
+function processResponseBody(
+	variant: VariantModel,
+	context: RequestContext,
+): unknown {
+	if (variant.bodyType === "template" && typeof variant.body === "string") {
+		const processed = processTemplate(variant.body, context);
+		try {
+			return JSON.parse(processed);
+		} catch {
+			return processed;
+		}
+	}
+	return interpolateParams(variant.body, context.params);
+}
+
+async function applyDelay(variant: VariantModel): Promise<void> {
+	if (variant.delay <= 0) return;
+	const delay =
+		variant.delayType === "random"
+			? Math.floor(Math.random() * (variant.delay + 1))
+			: variant.delay;
+	await new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+function applyFailRate(
+	variant: VariantModel,
+	body: unknown,
+): { status: number; body: unknown } {
+	if (variant.failRate > 0 && Math.random() * 100 < variant.failRate) {
+		return {
+			status: 500,
+			body: { error: "simulated_failure", message: "Random failure triggered" },
+		};
+	}
+	return { status: variant.status, body };
+}
+
+async function handleNoEndpointMatch(
+	project: { id: string; proxyBaseUrl: string | null },
+	request: MockRequest,
+	startTime: number,
+): Promise<MockResult> {
+	if (project.proxyBaseUrl) {
+		return handleProxyRequest(
+			project as Parameters<typeof handleProxyRequest>[0],
+			null,
+			request,
+			startTime,
+			"proxy_fallback",
+		);
+	}
+
+	const errorResponse = {
+		error: "not_found",
+		message: `No endpoint configured for ${request.method} ${request.path}`,
+	};
+
+	await logAndEmit(
+		{
+			projectId: project.id,
+			endpointId: null,
+			variantId: null,
+			request,
+			startTime,
+		},
+		404,
+		"mock",
+		errorResponse,
+	);
+
+	return { success: false, error: "endpoint_not_found" };
+}
+
+async function handleNoVariant(
+	projectId: string,
+	endpointId: string,
+	request: MockRequest,
+	startTime: number,
+): Promise<MockResult> {
+	const errorResponse = {
+		error: "no_variant",
+		message: "No response variant configured for this endpoint",
+	};
+
+	await logAndEmit(
+		{ projectId, endpointId, variantId: null, request, startTime },
+		500,
+		"mock",
+		errorResponse,
+	);
+
+	return { success: false, error: "endpoint_not_found" };
+}
+
+async function handleValidationFailure(
+	ctx: LogContext,
+	variant: VariantModel,
+	errors: string[],
+): Promise<MockResult> {
+	const errorResponse = {
+		error: "validation_failed",
+		message: "Request body validation failed",
+		validationErrors: errors,
+	};
+
+	await logAndEmit(ctx, 400, "mock", errorResponse, errors);
+
+	return {
+		success: true,
+		response: {
+			status: 400,
+			headers: { "Content-Type": "application/json" },
+			body: errorResponse,
+		},
+		endpointId: ctx.endpointId ?? "",
+		variantId: variant.id,
+	};
 }
 
 export async function handleMockRequest(
@@ -102,45 +306,12 @@ export async function handleMockRequest(
 
 	const match = findBestMatch(project.endpoints as Endpoint[], request.path);
 
-	// No endpoint match - try proxy fallback or 404
 	if (!match) {
-		if (project.proxyBaseUrl) {
-			return handleProxyRequest(
-				project,
-				null,
-				request,
-				startTime,
-				"proxy_fallback",
-			);
-		}
-
-		const duration = Date.now() - startTime;
-		const errorResponse = {
-			error: "not_found",
-			message: `No endpoint configured for ${request.method} ${request.path}`,
-		};
-
-		await logRepo.create({
-			projectId: project.id,
-			endpointId: null,
-			variantId: null,
-			method: request.method,
-			path: request.path,
-			status: 404,
-			source: "mock",
-			requestHeaders: request.headers,
-			requestBody: request.body,
-			responseBody: errorResponse,
-			duration,
-		});
-
-		emitStatsUpdate(project.id, null);
-		return { success: false, error: "endpoint_not_found" };
+		return handleNoEndpointMatch(project, request, startTime);
 	}
 
 	const { endpoint, params } = match;
 
-	// Endpoint matched - check if proxy enabled
 	if (endpoint.proxyEnabled && project.proxyBaseUrl) {
 		return handleProxyRequest(
 			project,
@@ -151,7 +322,6 @@ export async function handleMockRequest(
 		);
 	}
 
-	// Mock response path
 	const matchContext: MatchContext = {
 		params,
 		query: request.query,
@@ -160,79 +330,26 @@ export async function handleMockRequest(
 	};
 
 	const variant = getEffectiveVariant(endpoint, matchContext);
-
 	if (!variant) {
-		const duration = Date.now() - startTime;
-		const errorResponse = {
-			error: "no_variant",
-			message: "No response variant configured for this endpoint",
-		};
-
-		await logRepo.create({
-			projectId: project.id,
-			endpointId: endpoint.id,
-			variantId: null,
-			method: request.method,
-			path: request.path,
-			status: 500,
-			source: "mock",
-			requestHeaders: request.headers,
-			requestBody: request.body,
-			responseBody: errorResponse,
-			duration,
-		});
-
-		emitStatsUpdate(project.id, endpoint.id);
-		return { success: false, error: "endpoint_not_found" };
+		return handleNoVariant(project.id, endpoint.id, request, startTime);
 	}
 
-	// Request body validation (from endpoint, not variant)
-	let validationErrors: string[] | null = null;
+	const ctx: LogContext = {
+		projectId: project.id,
+		endpointId: endpoint.id,
+		variantId: variant.id,
+		request,
+		startTime,
+	};
+
+	const validation = validateRequest(endpoint, request.body);
 	const validationMode = (endpoint.validationMode ?? "none") as ValidationMode;
-	const schema = endpoint.requestBodySchema;
 
-	if (validationMode !== "none" && !isEmptySchema(schema)) {
-		const validationResult = validateRequestBody(schema, request.body);
-		if (!validationResult.valid) {
-			validationErrors = validationResult.errors;
-
-			if (validationMode === "strict") {
-				const duration = Date.now() - startTime;
-				const errorResponse = {
-					error: "validation_failed",
-					message: "Request body validation failed",
-					validationErrors,
-				};
-
-				await logRepo.create({
-					projectId: project.id,
-					endpointId: endpoint.id,
-					variantId: variant.id,
-					method: request.method,
-					path: request.path,
-					status: 400,
-					source: "mock",
-					requestHeaders: request.headers,
-					requestBody: request.body,
-					responseBody: errorResponse,
-					validationErrors,
-					duration,
-				});
-
-				emitStatsUpdate(project.id, endpoint.id);
-				return {
-					success: true,
-					response: {
-						status: 400,
-						headers: { "Content-Type": "application/json" },
-						body: errorResponse,
-					},
-					endpointId: endpoint.id,
-					variantId: variant.id,
-				};
-			}
-		}
+	if (!validation.valid && validationMode === "strict") {
+		return handleValidationFailure(ctx, variant, validation.errors);
 	}
+
+	const validationErrors = validation.valid ? null : validation.errors;
 
 	const templateContext: RequestContext = {
 		params,
@@ -241,63 +358,15 @@ export async function handleMockRequest(
 		body: request.body,
 	};
 
-	// Process response body
-	let body: unknown;
-	if (variant.bodyType === "template" && typeof variant.body === "string") {
-		const processed = processTemplate(variant.body, templateContext);
-		try {
-			body = JSON.parse(processed);
-		} catch {
-			body = processed;
-		}
-	} else {
-		body = interpolateParams(variant.body, params);
-	}
+	const body = processResponseBody(variant, templateContext);
+	await applyDelay(variant);
+	const { status, body: responseBody } = applyFailRate(variant, body);
 
-	const headers = variant.headers;
+	await logAndEmit(ctx, status, "mock", responseBody, validationErrors);
 
-	// Apply delay
-	if (variant.delay > 0) {
-		const actualDelay =
-			variant.delayType === "random"
-				? Math.floor(Math.random() * (variant.delay + 1))
-				: variant.delay;
-		await new Promise((resolve) => setTimeout(resolve, actualDelay));
-	}
-
-	// Determine status (apply fail rate)
-	let status = variant.status;
-	let responseBody = body;
-
-	if (variant.failRate > 0 && Math.random() * 100 < variant.failRate) {
-		status = 500;
-		responseBody = {
-			error: "simulated_failure",
-			message: "Random failure triggered",
-		};
-	}
-
-	// Log request
-	const duration = Date.now() - startTime;
-	await logRepo.create({
-		projectId: project.id,
-		endpointId: endpoint.id,
-		variantId: variant.id,
-		method: request.method,
-		path: request.path,
-		status,
-		source: "mock",
-		requestHeaders: request.headers,
-		requestBody: request.body,
-		responseBody,
-		validationErrors,
-		duration,
-	});
-
-	emitStatsUpdate(project.id, endpoint.id);
 	return {
 		success: true,
-		response: { status, headers, body: responseBody },
+		response: { status, headers: variant.headers, body: responseBody },
 		endpointId: endpoint.id,
 		variantId: variant.id,
 	};
@@ -313,7 +382,7 @@ async function handleProxyRequest(
 	},
 	endpointId: string | null,
 	request: MockRequest,
-	startTime: number,
+	_startTime: number,
 	source: "proxy" | "proxy_fallback",
 ): Promise<MockResult> {
 	if (!project.proxyBaseUrl) {
