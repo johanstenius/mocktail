@@ -6,7 +6,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { BILLING_ENABLED } from "@/lib/config";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Database, FileJson, Users, Zap } from "lucide-react";
 
@@ -33,14 +32,12 @@ function LandingPage() {
 						>
 							Features
 						</a>
-						{BILLING_ENABLED && (
-							<a
-								href="#pricing"
-								className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
-							>
-								Pricing
-							</a>
-						)}
+						<a
+							href="#pricing"
+							className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
+						>
+							Pricing
+						</a>
 						<Link
 							to="/docs"
 							className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
@@ -240,110 +237,101 @@ function LandingPage() {
 			</section>
 
 			{/* Pricing Section */}
-			{BILLING_ENABLED && (
-				<section
-					id="pricing"
-					className="container max-w-6xl mx-auto px-6 pb-24"
-				>
-					<h2 className="text-4xl font-bold text-center mb-16 font-['Outfit']">
-						Simple, transparent pricing.
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-						{/* Free Tier */}
-						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
-							<CardHeader className="pb-0">
-								<CardTitle className="text-xl font-semibold mb-1">
-									Free
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="flex flex-col flex-grow pt-4">
-								<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
-									$0
-									<span className="text-base text-[var(--text-muted)] font-normal">
-										/mo
-									</span>
-								</div>
-								<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-									Try it out, no credit card required.
-								</p>
-								<ul className="space-y-3 mb-8 flex-grow">
-									{[
-										"2 Projects",
-										"5 Endpoints per Project",
-										"1,000 Requests/mo",
-										"Solo Use Only",
-										"1 Day Log Retention",
-									].map((feature) => (
-										<li
-											key={feature}
-											className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-										>
-											<span className="text-[var(--accent-primary)] text-lg">
-												✓
-											</span>{" "}
-											{feature}
-										</li>
-									))}
-								</ul>
-								<Link
-									to="/register"
-									className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
-								>
-									Start Free
-								</Link>
-							</CardContent>
-						</Card>
-
-						{/* Pro Tier */}
-						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
-							<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
-								RECOMMENDED
+			<section id="pricing" className="container max-w-6xl mx-auto px-6 pb-24">
+				<h2 className="text-4xl font-bold text-center mb-16 font-['Outfit']">
+					Simple, transparent pricing.
+				</h2>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+					{/* Free Tier */}
+					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
+						<CardHeader className="pb-0">
+							<CardTitle className="text-xl font-semibold mb-1">Free</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col flex-grow pt-4">
+							<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+								$0
+								<span className="text-base text-[var(--text-muted)] font-normal">
+									/mo
+								</span>
 							</div>
-							<CardHeader className="pb-0">
-								<CardTitle className="text-xl font-semibold mb-1">
-									Pro
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="flex flex-col flex-grow pt-4">
-								<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
-									$29
-									<span className="text-base text-[var(--text-muted)] font-normal">
-										/mo
-									</span>
-								</div>
-								<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
-									For teams shipping to production.
-								</p>
-								<ul className="space-y-3 mb-8 flex-grow">
-									{[
-										"10 Projects",
-										"50 Endpoints per Project",
-										"100,000 Requests/mo",
-										"10 Team Members",
-										"30 Day Log Retention",
-									].map((feature) => (
-										<li
-											key={feature}
-											className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
-										>
-											<span className="text-[var(--accent-primary)] text-lg">
-												✓
-											</span>{" "}
-											{feature}
-										</li>
-									))}
-								</ul>
-								<Link
-									to="/register"
-									className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
-								>
-									Get Started
-								</Link>
-							</CardContent>
-						</Card>
-					</div>
-				</section>
-			)}
+							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+								Try it out, no credit card required.
+							</p>
+							<ul className="space-y-3 mb-8 flex-grow">
+								{[
+									"2 Projects",
+									"5 Endpoints per Project",
+									"1,000 Requests/mo",
+									"Solo Use Only",
+									"1 Day Log Retention",
+								].map((feature) => (
+									<li
+										key={feature}
+										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+									>
+										<span className="text-[var(--accent-primary)] text-lg">
+											✓
+										</span>{" "}
+										{feature}
+									</li>
+								))}
+							</ul>
+							<Link
+								to="/register"
+								className="w-full py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--text-primary)] font-semibold text-center hover:border-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.05)] transition-all"
+							>
+								Start Free
+							</Link>
+						</CardContent>
+					</Card>
+
+					{/* Pro Tier */}
+					<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 relative bg-gradient-to-b from-[rgba(139,92,246,0.05)] to-transparent border-[rgba(139,92,246,0.5)]">
+						<div className="absolute top-5 right-5 text-[10px] font-bold text-[#a78bfa] bg-[rgba(139,92,246,0.1)] px-2 py-1 rounded-full border border-[rgba(139,92,246,0.2)]">
+							RECOMMENDED
+						</div>
+						<CardHeader className="pb-0">
+							<CardTitle className="text-xl font-semibold mb-1">Pro</CardTitle>
+						</CardHeader>
+						<CardContent className="flex flex-col flex-grow pt-4">
+							<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+								$29
+								<span className="text-base text-[var(--text-muted)] font-normal">
+									/mo
+								</span>
+							</div>
+							<p className="text-[var(--text-secondary)] text-sm mb-6 min-h-[48px]">
+								For teams shipping to production.
+							</p>
+							<ul className="space-y-3 mb-8 flex-grow">
+								{[
+									"10 Projects",
+									"50 Endpoints per Project",
+									"100,000 Requests/mo",
+									"10 Team Members",
+									"30 Day Log Retention",
+								].map((feature) => (
+									<li
+										key={feature}
+										className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+									>
+										<span className="text-[var(--accent-primary)] text-lg">
+											✓
+										</span>{" "}
+										{feature}
+									</li>
+								))}
+							</ul>
+							<Link
+								to="/register"
+								className="w-full py-3 rounded-xl bg-[var(--text-primary)] text-[var(--bg-void)] font-semibold text-center hover:bg-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all"
+							>
+								Get Started
+							</Link>
+						</CardContent>
+					</Card>
+				</div>
+			</section>
 
 			{/* Footer */}
 			<footer className="border-t border-[var(--border-subtle)] py-16 text-center text-[var(--text-muted)] text-sm bg-[rgba(5,5,5,0.5)] backdrop-blur-md">
