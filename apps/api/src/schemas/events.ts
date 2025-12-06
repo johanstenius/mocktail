@@ -8,9 +8,7 @@ export const eventsParamSchema = z.object({
 	scopeId: z.string(),
 });
 
-export const eventsQuerySchema = z.object({
-	token: z.string().describe("JWT access token for authentication"),
-});
+export const eventsQuerySchema = z.object({});
 
 export const sseEventSchema = z.object({
 	type: z.string(),

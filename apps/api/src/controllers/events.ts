@@ -2,6 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { streamSSE } from "hono/streaming";
 import { eventBus } from "../events/event-bus";
 import type { SSEEvent } from "../events/types";
+import { auth } from "../lib/auth";
 import * as projectRepo from "../repositories/project.repository";
 import * as sessionRepo from "../repositories/session.repository";
 import { subscribeEventsRoute } from "../schemas/events";
@@ -13,35 +14,24 @@ export const eventsRouter = new OpenAPIHono();
 
 const KEEPALIVE_INTERVAL_MS = 30_000;
 
-async function verifySessionToken(token: string) {
-	const session = await sessionRepo.findByToken(token);
-
-	if (!session || session.expiresAt < new Date()) {
-		return null;
-	}
-
-	return {
-		userId: session.userId,
-		orgId: session.activeOrganizationId,
-	};
-}
-
 eventsRouter.openapi(subscribeEventsRoute, async (c) => {
 	const { scope, scopeId } = c.req.valid("param");
-	const { token } = c.req.valid("query");
 
-	const payload = await verifySessionToken(token);
-	if (!payload) {
-		throw unauthorized("Invalid or expired token");
+	// Auth via cookies (same as other routes)
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	if (!session) {
+		throw unauthorized("Not authenticated");
 	}
 
-	if (!payload.orgId) {
+	const activeOrgId = (session.session as { activeOrganizationId?: string })
+		.activeOrganizationId;
+	if (!activeOrgId) {
 		throw forbidden("No active organization");
 	}
 
 	const membership = await sessionRepo.findMembershipByOrgAndUser(
-		payload.orgId,
-		payload.userId,
+		activeOrgId,
+		session.user.id,
 	);
 	if (!membership) {
 		throw forbidden("Not a member of this organization");
@@ -49,15 +39,15 @@ eventsRouter.openapi(subscribeEventsRoute, async (c) => {
 
 	if (scope === "project") {
 		const project = await projectRepo.findById(scopeId);
-		if (!project || project.orgId !== payload.orgId) {
+		if (!project || project.orgId !== activeOrgId) {
 			throw forbidden("No access to this project");
 		}
 	} else if (scope === "org") {
-		if (scopeId !== payload.orgId) {
+		if (scopeId !== activeOrgId) {
 			throw forbidden("No access to this organization");
 		}
 	} else if (scope === "user") {
-		if (scopeId !== payload.userId) {
+		if (scopeId !== session.user.id) {
 			throw forbidden("No access to this user's events");
 		}
 	}
