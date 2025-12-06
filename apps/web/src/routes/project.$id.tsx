@@ -15,6 +15,7 @@ import {
 	getEndpoints,
 	getProject,
 	getProjectStatistics,
+	getUsage,
 	rotateProjectApiKey,
 	updateProject,
 } from "@/lib/api";
@@ -32,6 +33,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+	AlertCircle,
 	FolderOpen,
 	Loader2,
 	Plus,
@@ -661,6 +663,17 @@ function ProjectDetailPage() {
 		enabled: isAuthenticated,
 	});
 
+	const { data: usage } = useQuery({
+		queryKey: ["billing", "usage"],
+		queryFn: getUsage,
+		enabled: isAuthenticated && isVerified,
+	});
+
+	const endpointLimitReached =
+		usage?.endpoints.limit !== null &&
+		usage?.endpoints.current !== undefined &&
+		usage.endpoints.current >= usage.endpoints.limit;
+
 	const queryClient = useQueryClient();
 
 	const { data: statistics } = useQuery({
@@ -779,23 +792,31 @@ function ProjectDetailPage() {
 				]}
 				icon={<FolderOpen className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
-					<>
+					<div className="flex items-center gap-3">
+						{endpointLimitReached && (
+							<span className="text-xs text-[var(--status-warning)] flex items-center gap-1">
+								<AlertCircle className="h-3 w-3" />
+								Endpoint limit reached
+							</span>
+						)}
 						<Button
 							variant="outline"
 							onClick={handleNewEndpoint}
-							className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)]"
+							disabled={endpointLimitReached}
+							className="border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-highlight)] disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<Plus className="h-4 w-4 mr-2" />
 							Create Endpoint
 						</Button>
 						<Button
 							onClick={() => setImportModalOpen(true)}
-							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
+							disabled={endpointLimitReached}
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<Upload className="h-4 w-4 mr-2" />
 							Import Spec
 						</Button>
-					</>
+					</div>
 				}
 			/>
 
@@ -881,16 +902,19 @@ function ProjectDetailPage() {
 										<button
 											type="button"
 											onClick={handleNewEndpoint}
-											className="text-[var(--glow-violet)] hover:underline"
+											disabled={endpointLimitReached}
+											className={`${endpointLimitReached ? "text-[var(--text-muted)] cursor-not-allowed" : "text-[var(--glow-violet)] hover:underline"}`}
 										>
 											create one manually
 										</button>
 									</p>
-									<ImportDropzone
-										projectId={projectId}
-										variant="compact"
-										autoImport
-									/>
+									{!endpointLimitReached && (
+										<ImportDropzone
+											projectId={projectId}
+											variant="compact"
+											autoImport
+										/>
+									)}
 								</div>
 							) : (
 								<div className="space-y-2">

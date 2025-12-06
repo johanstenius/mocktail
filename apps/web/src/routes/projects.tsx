@@ -8,6 +8,7 @@ import {
 	deleteProject,
 	getEndpoints,
 	getProjects,
+	getUsage,
 } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { requireAuth } from "@/lib/route-guards";
@@ -19,7 +20,14 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FolderOpen, FolderPlus, Loader2, Plus, Trash2 } from "lucide-react";
+import {
+	AlertCircle,
+	FolderOpen,
+	FolderPlus,
+	Loader2,
+	Plus,
+	Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -128,6 +136,17 @@ function ProjectsPage() {
 		enabled: isAuthenticated && isVerified,
 	});
 
+	const { data: usage } = useQuery({
+		queryKey: ["billing", "usage"],
+		queryFn: getUsage,
+		enabled: isAuthenticated && isVerified,
+	});
+
+	const projectLimitReached =
+		usage?.projects.limit !== null &&
+		usage?.projects.current !== undefined &&
+		usage.projects.current >= usage.projects.limit;
+
 	const endpointQueries = useQueries({
 		queries: projects.map((project) => ({
 			queryKey: ["endpoints", project.id],
@@ -191,13 +210,22 @@ function ProjectsPage() {
 				title="Projects"
 				icon={<FolderOpen className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
-					<Button
-						onClick={() => setCreateModalOpen(true)}
-						className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-					>
-						<Plus className="h-4 w-4 mr-2" />
-						Create Project
-					</Button>
+					<div className="flex items-center gap-3">
+						{projectLimitReached && (
+							<span className="text-xs text-[var(--status-warning)] flex items-center gap-1">
+								<AlertCircle className="h-3 w-3" />
+								Limit reached
+							</span>
+						)}
+						<Button
+							onClick={() => setCreateModalOpen(true)}
+							disabled={projectLimitReached}
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							<Plus className="h-4 w-4 mr-2" />
+							Create Project
+						</Button>
+					</div>
 				}
 			/>
 
@@ -226,12 +254,14 @@ function ProjectsPage() {
 							action={{
 								label: "Create Project",
 								onClick: () => setCreateModalOpen(true),
+								disabled: projectLimitReached,
 							}}
 							secondaryAction={{
 								label: sampleProjectMutation.isPending
 									? "Creating..."
 									: "Try Demo Project",
 								onClick: () => sampleProjectMutation.mutate(),
+								disabled: projectLimitReached,
 							}}
 						/>
 					) : (

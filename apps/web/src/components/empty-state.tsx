@@ -9,10 +9,12 @@ type EmptyStateProps = {
 	action?: {
 		label: string;
 		onClick: () => void;
+		disabled?: boolean;
 	};
 	secondaryAction?: {
 		label: string;
 		onClick: () => void;
+		disabled?: boolean;
 	};
 	className?: string;
 };
@@ -45,9 +47,17 @@ export function EmptyState({
 			)}
 			{(action || secondaryAction) && (
 				<div className="mt-6 flex items-center gap-3">
-					{action && <Button onClick={action.onClick}>{action.label}</Button>}
+					{action && (
+						<Button onClick={action.onClick} disabled={action.disabled}>
+							{action.label}
+						</Button>
+					)}
 					{secondaryAction && (
-						<Button variant="secondary" onClick={secondaryAction.onClick}>
+						<Button
+							variant="secondary"
+							onClick={secondaryAction.onClick}
+							disabled={secondaryAction.disabled}
+						>
 							{secondaryAction.label}
 						</Button>
 					)}

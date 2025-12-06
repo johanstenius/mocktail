@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { getUsage } from "@/lib/api";
 import {
 	organization,
 	useActiveOrganization,
@@ -19,7 +20,14 @@ import {
 import { requireAuth } from "@/lib/route-guards";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Trash2, UserPlus, Users } from "lucide-react";
+import {
+	AlertCircle,
+	Loader2,
+	Mail,
+	Trash2,
+	UserPlus,
+	Users,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -324,6 +332,17 @@ function TeamPage() {
 		enabled: !!orgId,
 	});
 
+	const { data: usage } = useQuery({
+		queryKey: ["billing", "usage"],
+		queryFn: getUsage,
+		enabled: isAuthenticated && isVerified,
+	});
+
+	const memberLimitReached =
+		usage?.members.limit !== null &&
+		usage?.members.current !== undefined &&
+		usage.members.current >= usage.members.limit;
+
 	const membersData = membersResult?.members;
 
 	const members: MemberData[] = (membersData ?? []).map((m) => ({
@@ -417,13 +436,22 @@ function TeamPage() {
 				icon={<Users className="h-4 w-4 text-[var(--glow-violet)]" />}
 				actions={
 					canInvite && (
-						<Button
-							onClick={() => setInviteModalOpen(true)}
-							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10"
-						>
-							<UserPlus className="h-4 w-4 mr-2" />
-							Invite Member
-						</Button>
+						<div className="flex items-center gap-3">
+							{memberLimitReached && (
+								<span className="text-xs text-[var(--status-warning)] flex items-center gap-1">
+									<AlertCircle className="h-3 w-3" />
+									Member limit reached
+								</span>
+							)}
+							<Button
+								onClick={() => setInviteModalOpen(true)}
+								disabled={memberLimitReached}
+								className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								<UserPlus className="h-4 w-4 mr-2" />
+								Invite Member
+							</Button>
+						</div>
 					)
 				}
 			/>
