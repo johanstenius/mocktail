@@ -130,11 +130,11 @@ export default function Image() {
 					zIndex: 10,
 				}}
 			>
-				{/* Logo mark */}
+				{/* Logo mark - pure geometric abstraction */}
 				<div
 					style={{
-						width: "88px",
-						height: "88px",
+						width: "80px",
+						height: "80px",
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",
@@ -142,56 +142,51 @@ export default function Image() {
 						marginBottom: "32px",
 					}}
 				>
-					{/* Layered geometric forms */}
+					{/* Outer glow ring */}
+					<div
+						style={{
+							position: "absolute",
+							width: "120%",
+							height: "120%",
+							background: "radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)",
+							borderRadius: "50%",
+						}}
+					/>
+					{/* Violet layer */}
 					<div
 						style={{
 							position: "absolute",
 							width: "100%",
 							height: "100%",
 							background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-							borderRadius: "20px",
-							transform: "rotate(12deg)",
-							opacity: 0.9,
-							boxShadow: "0 0 60px rgba(139, 92, 246, 0.4)",
+							borderRadius: "18px",
+							transform: "rotate(15deg)",
+							boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
 						}}
 					/>
+					{/* Blue layer */}
 					<div
 						style={{
 							position: "absolute",
-							width: "100%",
-							height: "100%",
+							width: "85%",
+							height: "85%",
 							background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-							borderRadius: "20px",
-							transform: "rotate(-12deg)",
-							opacity: 0.7,
-							boxShadow: "0 0 40px rgba(59, 130, 246, 0.3)",
+							borderRadius: "14px",
+							transform: "rotate(-10deg)",
+							boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)",
 						}}
 					/>
+					{/* Inner accent */}
 					<div
 						style={{
-							width: "72px",
-							height: "72px",
-							background: "linear-gradient(145deg, #0a0a0c 0%, #12121a 100%)",
-							borderRadius: "16px",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
+							width: "50%",
+							height: "50%",
+							background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+							borderRadius: "8px",
+							transform: "rotate(5deg)",
 							zIndex: 1,
-							border: "1px solid rgba(255, 255, 255, 0.08)",
 						}}
-					>
-						<svg
-							width="38"
-							height="38"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="white"
-							strokeWidth="2"
-							strokeLinecap="round"
-						>
-							<path d="M4 6h16M4 12h16M4 18h10" />
-						</svg>
-					</div>
+					/>
 				</div>
 
 				{/* Product name - whispered typography */}

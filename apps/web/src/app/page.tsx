@@ -115,7 +115,7 @@ export default function LandingPage() {
 								<span className="text-[#c084fc]">await</span>{" "}
 								<span className="text-[#60a5fa]">fetch</span>(
 								<span className="text-[#86efac]">
-									&apos;https://api.mockspec.dev/mock/shop-v1/products&apos;
+									&apos;https://mockspec.dev/mock/shop-v1/products&apos;
 								</span>
 								);
 							</div>

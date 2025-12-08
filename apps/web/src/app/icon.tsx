@@ -21,19 +21,7 @@ export default function Icon() {
 				overflow: "hidden",
 			}}
 		>
-			{/* Subtle glow */}
-			<div
-				style={{
-					position: "absolute",
-					top: "-50%",
-					left: "-50%",
-					width: "200%",
-					height: "200%",
-					background: "radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)",
-				}}
-			/>
-
-			{/* Logo mark container */}
+			{/* Logo mark */}
 			<div
 				style={{
 					width: "24px",
@@ -52,47 +40,31 @@ export default function Icon() {
 						height: "100%",
 						background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
 						borderRadius: "5px",
-						transform: "rotate(12deg)",
-						opacity: 0.9,
+						transform: "rotate(15deg)",
 					}}
 				/>
 				{/* Blue layer */}
 				<div
 					style={{
 						position: "absolute",
-						width: "100%",
-						height: "100%",
+						width: "85%",
+						height: "85%",
 						background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
-						borderRadius: "5px",
-						transform: "rotate(-12deg)",
-						opacity: 0.7,
+						borderRadius: "4px",
+						transform: "rotate(-10deg)",
 					}}
 				/>
-				{/* Center with icon */}
+				{/* Inner accent */}
 				<div
 					style={{
-						width: "20px",
-						height: "20px",
-						background: "#0a0a0c",
-						borderRadius: "4px",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
+						width: "50%",
+						height: "50%",
+						background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)",
+						borderRadius: "2px",
+						transform: "rotate(5deg)",
 						zIndex: 1,
 					}}
-				>
-					<svg
-						width="12"
-						height="12"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="white"
-						strokeWidth="3"
-						strokeLinecap="round"
-					>
-						<path d="M4 6h16M4 12h16M4 18h10" />
-					</svg>
-				</div>
+				/>
 			</div>
 		</div>,
 		{ ...size }
