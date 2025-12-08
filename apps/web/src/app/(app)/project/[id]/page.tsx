@@ -49,6 +49,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type TabId = "endpoints" | "logs" | "analytics" | "settings";
+const PROXY_ENABLED = process.env.NEXT_PUBLIC_PROXY_ENABLED === "true";
 
 function EndpointRow({
 	endpoint,
@@ -114,7 +115,7 @@ function EndpointRow({
 				</div>
 			</div>
 			<div className="flex items-center gap-4">
-				{endpoint.proxyEnabled && hasProxyBaseUrl && (
+				{PROXY_ENABLED && endpoint.proxyEnabled && hasProxyBaseUrl && (
 					<Badge
 						variant="outline"
 						className="border-[var(--glow-blue)]/30 text-[var(--glow-blue)]"
@@ -454,6 +455,7 @@ function ProjectSettings({
 			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Settings</h3>
 
 			<div className="space-y-6">
+				{PROXY_ENABLED && (
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 					<h4 className="text-lg font-semibold mb-2 font-['Outfit']">
 						Proxy Mode
@@ -544,6 +546,7 @@ function ProjectSettings({
 						</Button>
 					</div>
 				</div>
+			)}
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">

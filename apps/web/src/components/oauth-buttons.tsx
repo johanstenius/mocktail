@@ -8,8 +8,9 @@ type OAuthButtonsProps = {
 	inviteToken?: string;
 };
 
-const APP_URL =
-	process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:4001";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:4001";
+const GITHUB_OAUTH_ENABLED =
+	process.env.NEXT_PUBLIC_GITHUB_OAUTH_ENABLED === "true";
 
 export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
 	const handleGitHubLogin = async () => {
@@ -30,15 +31,17 @@ export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
 
 	return (
 		<div className="space-y-3">
-			<Button
-				type="button"
-				variant="outline"
-				className="w-full"
-				onClick={handleGitHubLogin}
-			>
-				<Github className="h-4 w-4 mr-2" />
-				Continue with GitHub
-			</Button>
+			{GITHUB_OAUTH_ENABLED && (
+				<Button
+					type="button"
+					variant="outline"
+					className="w-full"
+					onClick={handleGitHubLogin}
+				>
+					<Github className="h-4 w-4 mr-2" />
+					Continue with GitHub
+				</Button>
+			)}
 			<Button
 				type="button"
 				variant="outline"

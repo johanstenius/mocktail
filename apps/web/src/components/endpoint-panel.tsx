@@ -50,6 +50,7 @@ import { toast } from "sonner";
 const COMMON_STATUS_CODES = [200, 201, 204, 400, 401, 403, 404, 500];
 const NO_BODY_STATUS_CODES = [204, 304];
 const HTTP_METHODS: HttpMethod[] = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+const PROXY_ENABLED = process.env.NEXT_PUBLIC_PROXY_ENABLED === "true";
 
 const MATCH_TARGETS: { value: MatchTarget; label: string }[] = [
 	{ value: "header", label: "Header" },
@@ -1079,7 +1080,7 @@ export function EndpointPanel({
 								</div>
 
 								{/* Proxy Toggle */}
-								{proxyBaseUrl && (
+								{PROXY_ENABLED && proxyBaseUrl && (
 									<div className="space-y-3 bg-[var(--glow-blue)]/5 rounded-xl p-4 border border-[var(--glow-blue)]/20">
 										<div className="flex items-center justify-between">
 											<div>
