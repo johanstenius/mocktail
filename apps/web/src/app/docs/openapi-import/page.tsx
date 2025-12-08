@@ -32,7 +32,7 @@ export default function DocsOpenAPIImport() {
 
 			<Section title="Response Generation">
 				<p className="mb-2">
-					Mocktail generates mock responses from your spec:
+					Mockspec generates mock responses from your spec:
 				</p>
 				<ul className="list-disc list-inside space-y-1 ml-4">
 					<li>

@@ -131,7 +131,7 @@ model Invitation {
 }
 
 // ============================================
-// Mocktail-specific Models
+// Mockspec-specific Models
 // ============================================
 
 enum Tier {

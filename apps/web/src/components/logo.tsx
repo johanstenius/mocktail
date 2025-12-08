@@ -10,7 +10,7 @@ export function Logo({ className, showText = true }: LogoProps) {
 		<div className={cn("flex items-center gap-2", className)}>
 			{showText && (
 				<span className="text-2xl font-extrabold font-['Outfit'] bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] bg-clip-text text-transparent">
-					Mocktail
+					Mockspec
 				</span>
 			)}
 		</div>

@@ -32,9 +32,9 @@ export async function sendInviteEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
-		subject: `Join ${params.orgName} on Mocktail`,
+		subject: `Join ${params.orgName} on Mockspec`,
 		html: inviteEmailTemplate({
 			orgName: params.orgName,
 			inviterEmail: params.inviterEmail,
@@ -64,7 +64,7 @@ export async function sendPasswordResetEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: "Reset your password",
 		html: passwordResetEmailTemplate({ resetUrl }),
@@ -94,7 +94,7 @@ export async function sendVerificationEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: "Verify your email",
 		html: verifyEmailTemplate({ verifyUrl }),
@@ -122,7 +122,7 @@ export async function sendPaymentFailedEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `Payment failed for ${params.orgName}`,
 		html: paymentFailedEmailTemplate({
@@ -157,7 +157,7 @@ export async function sendPaymentReminderEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `${params.daysRemaining} days left to update payment`,
 		html: paymentReminderEmailTemplate({
@@ -191,7 +191,7 @@ export async function sendDowngradedEmail(
 	}
 
 	const { error } = await resend.emails.send({
-		from: "Mocktail <noreply@mocktail.stenius.me>",
+		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `${params.orgName} downgraded to Free`,
 		html: downgradedEmailTemplate({

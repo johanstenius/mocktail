@@ -89,7 +89,7 @@ export const auth = betterAuth({
 
 			void resend.emails
 				.send({
-					from: "Mocktail <noreply@mocktail.stenius.me>",
+					from: "Mockspec <noreply@mockspec.dev>",
 					to: user.email,
 					subject: "Reset your password",
 					html: passwordResetEmailTemplate({ resetUrl: url }),
@@ -119,7 +119,7 @@ export const auth = betterAuth({
 
 			void resend.emails
 				.send({
-					from: "Mocktail <noreply@mocktail.stenius.me>",
+					from: "Mockspec <noreply@mockspec.dev>",
 					to: user.email,
 					subject: "Verify your email",
 					html: verifyEmailTemplate({ verifyUrl: url }),
@@ -189,9 +189,9 @@ export const auth = betterAuth({
 
 				void resend.emails
 					.send({
-						from: "Mocktail <noreply@mocktail.stenius.me>",
+						from: "Mockspec <noreply@mockspec.dev>",
 						to: invitation.email,
-						subject: `Join ${org.name} on Mocktail`,
+						subject: `Join ${org.name} on Mockspec`,
 						html: inviteEmailTemplate({
 							orgName: org.name,
 							inviterEmail: inviterUser?.email ?? "Unknown",

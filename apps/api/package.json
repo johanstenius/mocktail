@@ -1,5 +1,5 @@
 {
-	"name": "@mocktail/api",
+	"name": "@mockspec/api",
 	"version": "0.0.1",
 	"private": true,
 	"type": "module",

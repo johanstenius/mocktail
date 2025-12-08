@@ -22,22 +22,22 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-	title: "Mocktail - Mock APIs in Minutes",
+	title: "Mockspec - Mock APIs in Minutes",
 	description:
 		"Instant mock servers with realistic auth, latency injection, and chaos engineering.",
-	metadataBase: new URL("https://mocktail.dev"),
+	metadataBase: new URL("https://mockspec.dev"),
 	openGraph: {
 		type: "website",
-		url: "https://mocktail.dev",
-		title: "Mocktail - Mock APIs in Minutes",
+		url: "https://mockspec.dev",
+		title: "Mockspec - Mock APIs in Minutes",
 		description:
 			"Instant mock servers with realistic auth, latency injection, and chaos engineering. Import OpenAPI specs, simulate auth flows, and share with your team.",
-		siteName: "Mocktail",
+		siteName: "Mockspec",
 		images: ["/og-image.png"],
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Mocktail - Mock APIs in Minutes",
+		title: "Mockspec - Mock APIs in Minutes",
 		description:
 			"Instant mock servers with realistic auth, latency injection, and chaos engineering.",
 		images: ["/og-image.png"],
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 		"api testing",
 		"frontend development",
 	],
-	authors: [{ name: "Mocktail" }],
+	authors: [{ name: "Mockspec" }],
 	robots: "noindex, nofollow",
 };
 

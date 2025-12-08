@@ -14,7 +14,7 @@ export function inviteEmailTemplate(params: InviteEmailParams): string {
 </h1>
 
 <p style="margin: 20px 0 0 0; font-size: 15px; color: ${emailStyles.textSecondary}; line-height: 1.6;">
-	<strong style="color: ${emailStyles.textPrimary};">${params.inviterEmail}</strong> has invited you to join their organization on Mocktail as a <strong style="color: ${emailStyles.primary};">${params.role.toLowerCase()}</strong>.
+	<strong style="color: ${emailStyles.textPrimary};">${params.inviterEmail}</strong> has invited you to join their organization on Mockspec as a <strong style="color: ${emailStyles.primary};">${params.role.toLowerCase()}</strong>.
 </p>
 
 ${primaryButton("Accept Invitation", params.inviteUrl)}
@@ -27,6 +27,6 @@ ${primaryButton("Accept Invitation", params.inviteUrl)}
 
 	return emailLayout({
 		content,
-		previewText: `${params.inviterEmail} invited you to join ${params.orgName} on Mocktail`,
+		previewText: `${params.inviterEmail} invited you to join ${params.orgName} on Mockspec`,
 	});
 }

@@ -97,7 +97,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 					<div className="flex items-center gap-4">
 						<button
 							type="button"
-							className="lg:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+							className="lg:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--glow-violet)] rounded-lg p-1"
 							onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 						>
 							{isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -212,7 +212,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 
 export function CodeBlock({ children }: { children: string }) {
 	return (
-		<pre className="bg-[rgba(0,0,0,0.4)] border border-[var(--border-subtle)] rounded-xl p-4 overflow-x-auto text-sm font-['JetBrains_Mono'] text-slate-200">
+		<pre className="bg-[rgba(0,0,0,0.4)] border border-[var(--border-subtle)] rounded-xl p-4 overflow-x-auto text-sm font-mono text-[var(--text-secondary)]">
 			<code>{children}</code>
 		</pre>
 	);
@@ -227,7 +227,7 @@ export function DocsHeader({
 }) {
 	return (
 		<div className="mb-12">
-			<h1 className="text-4xl font-bold mb-4 font-['Outfit'] bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+			<h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)] bg-clip-text text-transparent">
 				{title}
 			</h1>
 			<p className="text-lg text-[var(--text-secondary)]">{description}</p>
@@ -244,10 +244,10 @@ export function Section({
 }) {
 	return (
 		<section className="mb-12">
-			<h2 className="text-xl font-bold mb-4 font-['Outfit'] text-[var(--text-primary)]">
+			<h2 className="text-xl font-bold mb-4 text-[var(--text-primary)]">
 				{title}
 			</h2>
-			<div className="space-y-4 text-slate-300 leading-relaxed">{children}</div>
+			<div className="space-y-4 text-[var(--text-secondary)] leading-relaxed">{children}</div>
 		</section>
 	);
 }
@@ -258,7 +258,7 @@ export function DocsFooter() {
 			<p className="text-[var(--text-muted)] text-sm">
 				Need help?{" "}
 				<a
-					href="mailto:support@mocktail.dev"
+					href="mailto:support@mockspec.dev"
 					className="text-[var(--glow-violet)] hover:underline"
 				>
 					Contact support

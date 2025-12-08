@@ -24,6 +24,6 @@ ${primaryButton("Verify Email", params.verifyUrl)}
 
 	return emailLayout({
 		content,
-		previewText: "Verify your Mocktail email address",
+		previewText: "Verify your Mockspec email address",
 	});
 }

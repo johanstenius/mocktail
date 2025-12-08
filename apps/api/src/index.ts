@@ -93,7 +93,7 @@ app.route("/admin", adminRouter);
 app.doc("/docs", {
 	openapi: "3.0.0",
 	info: {
-		title: "Mocktail API",
+		title: "Mockspec API",
 		version: "0.0.1",
 	},
 });

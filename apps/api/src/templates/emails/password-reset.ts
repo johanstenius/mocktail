@@ -26,6 +26,6 @@ ${primaryButton("Reset Password", params.resetUrl)}
 
 	return emailLayout({
 		content,
-		previewText: "Reset your Mocktail password",
+		previewText: "Reset your Mockspec password",
 	});
 }

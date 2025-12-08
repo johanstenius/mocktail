@@ -11,7 +11,7 @@ export default function DocsErrors() {
 		<DocsLayout>
 			<DocsHeader
 				title="Error Responses"
-				description="Standard error responses returned by Mocktail."
+				description="Standard error responses returned by Mockspec."
 			/>
 
 			<Section title="401 Unauthorized">

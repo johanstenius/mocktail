@@ -47,13 +47,13 @@ export default function DocsQuickstart() {
 				</p>
 
 				<p className="text-sm text-[var(--text-muted)] mb-2">curl:</p>
-				<CodeBlock>{`curl -X GET "https://api.mocktail.dev/mock/users" \\
+				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
   -H "X-API-Key: mk_your_api_key_here"`}</CodeBlock>
 
 				<p className="text-sm text-[var(--text-muted)] mb-2 mt-4">
 					TypeScript:
 				</p>
-				<CodeBlock>{`const response = await fetch("https://api.mocktail.dev/mock/users", {
+				<CodeBlock>{`const response = await fetch("https://api.mockspec.dev/mock/users", {
   headers: { "X-API-Key": "mk_your_api_key_here" }
 });
 

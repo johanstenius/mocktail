@@ -28,7 +28,7 @@ export function emailLayout({
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Mocktail</title>
+	<title>Mockspec</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: ${emailStyles.bgColor}; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
 	${previewText ? `<div style="display: none; max-height: 0px; overflow: hidden;">${previewText}</div>` : ""}
@@ -43,7 +43,7 @@ export function emailLayout({
 								<table role="presentation" cellpadding="0" cellspacing="0">
 									<tr>
 										<td style="font-size: 28px; font-weight: 800; color: ${emailStyles.textPrimary}; letter-spacing: -0.03em;">
-											<span style="color: ${emailStyles.primary};">Mocktail</span>
+											<span style="color: ${emailStyles.primary};">Mockspec</span>
 										</td>
 									</tr>
 								</table>
@@ -63,7 +63,7 @@ export function emailLayout({
 						<tr>
 							<td align="center" style="padding-top: 32px;">
 								<p style="margin: 0; font-size: 13px; color: ${emailStyles.textMuted};">
-									&copy; ${new Date().getFullYear()} Mocktail. Mock APIs made simple.
+									&copy; ${new Date().getFullYear()} Mockspec. Mock APIs made simple.
 								</p>
 							</td>
 						</tr>

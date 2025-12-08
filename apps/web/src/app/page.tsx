@@ -115,7 +115,7 @@ export default function LandingPage() {
 								<span className="text-[#c084fc]">await</span>{" "}
 								<span className="text-[#60a5fa]">fetch</span>(
 								<span className="text-[#86efac]">
-									&apos;https://api.mocktail.dev/mock/shop-v1/products&apos;
+									&apos;https://api.mockspec.dev/mock/shop-v1/products&apos;
 								</span>
 								);
 							</div>
@@ -397,7 +397,7 @@ export default function LandingPage() {
 				{/* Footer */}
 				<footer className="border-t border-[var(--border-subtle)] py-16 text-center text-[var(--text-muted)] text-sm bg-[rgba(5,5,5,0.5)] backdrop-blur-md">
 					<div className="container max-w-6xl mx-auto px-6">
-						<p>&copy; 2025 Mocktail. Built by developers, for developers.</p>
+						<p>&copy; 2025 Mockspec.</p>
 					</div>
 				</footer>
 			</div>

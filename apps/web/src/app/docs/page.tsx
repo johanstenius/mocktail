@@ -14,9 +14,9 @@ export default function DocsIntroduction() {
 				description="Everything you need to mock APIs and accelerate your frontend development."
 			/>
 
-			<Section title="What is Mocktail?">
+			<Section title="What is Mockspec?">
 				<p>
-					Mocktail is a mock API server that lets you create realistic API
+					Mockspec is a mock API server that lets you create realistic API
 					endpoints without writing backend code. Define your endpoints,
 					configure responses, and start building your frontend immediately.
 				</p>
@@ -73,7 +73,7 @@ export default function DocsIntroduction() {
 
 			<Section title="Example Request">
 				<p>Once you&apos;ve created an endpoint, call it like any other API:</p>
-				<CodeBlock>{`curl -X GET "https://api.mocktail.dev/mock/users" \\
+				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
   -H "X-API-Key: mk_your_api_key"`}</CodeBlock>
 			</Section>
 

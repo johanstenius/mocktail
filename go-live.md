@@ -23,12 +23,12 @@ All features disabled by default for safe launch:
 1. **Create project** at railway.app
 2. **Add PostgreSQL** (New → Database → PostgreSQL)
 3. **Add API service:**
-   - New → GitHub Repo → select mocktail
+   - New → GitHub Repo → select mockspec
    - Settings → Root Directory: `apps/api`
    - Build Command: `pnpm install && npx prisma generate && pnpm build`
    - Start Command: `node dist/index.js`
 4. **Add Web service:**
-   - New → GitHub Repo → select mocktail
+   - New → GitHub Repo → select mockspec
    - Settings → Root Directory: `apps/web`
    - Build auto-detected (Vite)
 5. **Link DATABASE_URL:**
