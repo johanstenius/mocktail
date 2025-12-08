@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @mockspec/api build"
+buildCommand = "pnpm install --frozen-lockfile && pnpm --filter @mockspec/api db:generate && pnpm --filter @mockspec/api build"
 
 [deploy]
 startCommand = "node apps/api/dist/index.js"
