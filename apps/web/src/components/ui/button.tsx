@@ -3,12 +3,12 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { forwardRef } from "react";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--glow-violet)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-void)] disabled:pointer-events-none disabled:opacity-50 font-['Inter']",
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--glow-violet)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-void)] disabled:pointer-events-none disabled:opacity-50",
 	{
 		variants: {
 			variant: {
 				default:
-					"bg-[var(--glow-violet)] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:bg-[#7c3aed] hover:-translate-y-0.5",
+					"bg-[var(--glow-violet)] text-[var(--text-primary)] shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:brightness-90 hover:-translate-y-0.5",
 				secondary:
 					"bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] backdrop-blur-md hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)]",
 				ghost:

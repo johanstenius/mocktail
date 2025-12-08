@@ -6,28 +6,20 @@ import {
 	GlassStatCardSkeleton,
 	Skeleton,
 } from "@/components/skeleton";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-	getDashboardActivity,
-	getDashboardStats,
-	getProjects,
-} from "@/lib/api";
+import { getDashboardActivity, getDashboardStats } from "@/lib/api";
 import { useActiveOrganization, useSession } from "@/lib/auth-client";
-import type { ActivityItem, DashboardStats, Project } from "@/types";
+import type { ActivityItem, DashboardStats } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import {
 	Activity,
-	ArrowRight,
 	FolderOpen,
 	LayoutDashboard,
-	Plus,
 	Route as RouteIcon,
 	Users,
 	Zap,
 } from "lucide-react";
-import Link from "next/link";
 
 function StatCard({
 	label,
@@ -99,29 +91,6 @@ function StatsGridSkeleton() {
 	);
 }
 
-function OnboardingChecklistSkeleton() {
-	return (
-		<Card>
-			<CardContent className="p-6">
-				<div className="flex items-center justify-between mb-4">
-					<Skeleton className="h-5 w-24" />
-					<Skeleton className="h-4 w-20" />
-				</div>
-				<Skeleton className="h-1.5 w-full rounded-full mb-6" />
-				<div className="space-y-3">
-					{[1, 2, 3, 4].map((i) => (
-						<div key={i} className="flex items-center justify-between py-2">
-							<div className="flex items-center gap-3">
-								<Skeleton className="w-5 h-5 rounded-full" />
-								<Skeleton className="h-4 w-40" />
-							</div>
-						</div>
-					))}
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
 
 function ActivityFeedSkeleton() {
 	return (
@@ -140,129 +109,7 @@ function ActivityFeedSkeleton() {
 	);
 }
 
-function QuickActionsSkeleton() {
-	return (
-		<Card>
-			<CardContent className="p-6">
-				<Skeleton className="h-5 w-28 mb-4" />
-				<div className="grid grid-cols-2 gap-3">
-					<Skeleton className="h-12 rounded-lg" />
-					<Skeleton className="h-12 rounded-lg" />
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
 
-function OnboardingChecklist({
-	stats,
-	projects,
-}: {
-	stats: DashboardStats;
-	projects: Project[];
-}) {
-	const hasProject = stats.projects > 0;
-	const hasEndpoint = stats.endpoints > 0;
-	const hasRequest = stats.requestsToday > 0 || stats.requestsThisWeek > 0;
-	const hasTeam = stats.teamMembers > 1;
-
-	const steps = [
-		{
-			done: hasProject,
-			label: "Create your first project",
-			action: hasProject ? undefined : { to: "/projects", label: "Create" },
-		},
-		{
-			done: hasEndpoint,
-			label: "Add an endpoint",
-			action:
-				hasEndpoint || !hasProject
-					? undefined
-					: { to: `/project/${projects[0]?.id}`, label: "Add" },
-		},
-		{
-			done: hasRequest,
-			label: "Test your mock API",
-			action: undefined,
-		},
-		{
-			done: hasTeam,
-			label: "Invite a team member",
-			action: hasTeam ? undefined : { to: "/team", label: "Invite" },
-		},
-	];
-
-	const completedCount = steps.filter((s) => s.done).length;
-	const progress = (completedCount / steps.length) * 100;
-
-	if (completedCount === steps.length) {
-		return null;
-	}
-
-	return (
-		<Card>
-			<CardHeader className="pb-2">
-				<div className="flex items-center justify-between">
-					<CardTitle className="text-lg">Quick Start</CardTitle>
-					<span className="text-sm text-[var(--text-muted)]">
-						{completedCount}/{steps.length} complete
-					</span>
-				</div>
-			</CardHeader>
-			<CardContent>
-				<div className="h-1.5 bg-[var(--bg-surface-active)] rounded-full mb-6 overflow-hidden">
-					<div
-						className="h-full bg-gradient-to-r from-[var(--glow-violet)] to-[var(--glow-blue)] rounded-full transition-all duration-500"
-						style={{ width: `${progress}%` }}
-					/>
-				</div>
-
-				<div className="space-y-3">
-					{steps.map((step) => (
-						<div
-							key={step.label}
-							className={`flex items-center justify-between py-2 ${step.done ? "opacity-50" : ""}`}
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${step.done ? "border-[var(--glow-emerald)] bg-[var(--glow-emerald)]" : "border-[var(--border-highlight)]"}`}
-								>
-									{step.done && (
-										<svg
-											className="w-3 h-3 text-white"
-											viewBox="0 0 12 12"
-											aria-hidden="true"
-										>
-											<path
-												fill="currentColor"
-												d="M10.28 2.28L4.5 8.06 1.72 5.28a.75.75 0 00-1.06 1.06l3.5 3.5a.75.75 0 001.06 0l6.5-6.5a.75.75 0 00-1.06-1.06z"
-											/>
-										</svg>
-									)}
-								</div>
-								<span
-									className={
-										step.done ? "line-through text-[var(--text-muted)]" : ""
-									}
-								>
-									{step.label}
-								</span>
-							</div>
-							{step.action && !step.done && (
-								<Link href={step.action.to}>
-									<Button variant="ghost" size="sm">
-										{step.action.label}
-										<ArrowRight className="w-4 h-4 ml-1" />
-									</Button>
-								</Link>
-							)}
-						</div>
-					))}
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
 
 function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 	if (activity.length === 0) {
@@ -345,37 +192,6 @@ function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 	);
 }
 
-function QuickActions() {
-	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="text-lg">Quick Actions</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-2 gap-3">
-					<Link href="/projects">
-						<Button
-							variant="ghost"
-							className="w-full justify-start h-auto py-3 glass-hover"
-						>
-							<Plus className="w-4 h-4 mr-2" />
-							New Project
-						</Button>
-					</Link>
-					<Link href="/team">
-						<Button
-							variant="ghost"
-							className="w-full justify-start h-auto py-3 glass-hover"
-						>
-							<Users className="w-4 h-4 mr-2" />
-							Invite Team
-						</Button>
-					</Link>
-				</div>
-			</CardContent>
-		</Card>
-	);
-}
 
 export default function DashboardPage() {
 	const { data: session } = useSession();
@@ -394,12 +210,6 @@ export default function DashboardPage() {
 	const { data: activity = [] } = useQuery({
 		queryKey: ["dashboard-activity"],
 		queryFn: () => getDashboardActivity(10),
-		enabled: isAuthenticated && isVerified,
-	});
-
-	const { data: projects = [] } = useQuery({
-		queryKey: ["projects"],
-		queryFn: getProjects,
 		enabled: isAuthenticated && isVerified,
 	});
 
@@ -429,24 +239,11 @@ export default function DashboardPage() {
 						stats && <StatsGrid stats={stats} />
 					)}
 
-					<div className="grid lg:grid-cols-3 gap-6">
-						<div className="lg:col-span-2 space-y-6">
-							{isLoading ? (
-								<>
-									<OnboardingChecklistSkeleton />
-									<ActivityFeedSkeleton />
-								</>
-							) : (
-								<>
-									{stats && (
-										<OnboardingChecklist stats={stats} projects={projects} />
-									)}
-									<ActivityFeed activity={activity} />
-								</>
-							)}
-						</div>
-						<div>{isLoading ? <QuickActionsSkeleton /> : <QuickActions />}</div>
-					</div>
+					{isLoading ? (
+						<ActivityFeedSkeleton />
+					) : (
+						<ActivityFeed activity={activity} />
+					)}
 				</div>
 			</div>
 		</main>
