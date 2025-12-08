@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { signIn } from "@/lib/auth-client";
 import { Github } from "lucide-react";
@@ -6,7 +8,8 @@ type OAuthButtonsProps = {
 	inviteToken?: string;
 };
 
-const APP_URL = import.meta.env.VITE_APP_URL ?? "http://localhost:4001";
+const APP_URL =
+	process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:4001";
 
 export function OAuthButtons({ inviteToken }: OAuthButtonsProps) {
 	const handleGitHubLogin = async () => {

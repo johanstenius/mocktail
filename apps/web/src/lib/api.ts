@@ -22,7 +22,7 @@ import type {
 } from "@/types";
 import { ApiError } from "./errors";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 	const headers: Record<string, string> = {

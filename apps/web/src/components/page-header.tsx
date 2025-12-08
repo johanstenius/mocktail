@@ -1,17 +1,17 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
-interface Breadcrumb {
+type Breadcrumb = {
 	label: string;
 	href?: string;
-}
+};
 
-interface PageHeaderProps {
+type PageHeaderProps = {
 	title?: string;
 	breadcrumbs?: Breadcrumb[];
 	actions?: ReactNode;
 	icon?: ReactNode;
-}
+};
 
 export function PageHeader({
 	title,
@@ -30,7 +30,7 @@ export function PageHeader({
 							{index > 0 && <span className="opacity-50">/</span>}
 							{crumb.href ? (
 								<Link
-									to={crumb.href}
+									href={crumb.href}
 									className="hover:text-[var(--text-secondary)] transition-colors"
 								>
 									{crumb.label}

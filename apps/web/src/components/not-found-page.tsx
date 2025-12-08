@@ -1,6 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Home } from "lucide-react";
+import Link from "next/link";
 
 export function NotFoundPage() {
 	return (
@@ -27,8 +29,8 @@ export function NotFoundPage() {
 					Endpoint Not Found
 				</h2>
 				<p className="text-[var(--text-muted)] font-['Inter'] max-w-md mx-auto mb-8 text-lg">
-					It seems this route hasn't been mocked yet. Check your URL or return
-					to the dashboard.
+					It seems this route hasn&apos;t been mocked yet. Check your URL or
+					return to the dashboard.
 				</p>
 
 				<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -41,7 +43,7 @@ export function NotFoundPage() {
 						<ArrowLeft className="mr-2 h-4 w-4" />
 						Go Back
 					</Button>
-					<Link to="/">
+					<Link href="/">
 						<Button
 							size="lg"
 							className="w-full sm:w-auto bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/10"

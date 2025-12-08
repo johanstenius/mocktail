@@ -1,2 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-export const BILLING_ENABLED = import.meta.env.VITE_BILLING_ENABLED !== "false";
+export const API_URL =
+	process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+export const BILLING_ENABLED =
+	process.env.NEXT_PUBLIC_BILLING_ENABLED !== "false";

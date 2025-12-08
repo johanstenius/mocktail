@@ -1,8 +1,10 @@
+"use client";
+
 import { createProject } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import type { Project } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
@@ -30,7 +32,7 @@ export function CreateProjectModal({
 	const [slug, setSlug] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
-	const navigate = useNavigate();
+	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	const mutation = useMutation({
@@ -42,7 +44,7 @@ export function CreateProjectModal({
 			setSlug("");
 			setError(null);
 			toast.success("Project created");
-			navigate({ to: "/project/$id", params: { id: project.id } });
+			router.push(`/project/${project.id}`);
 		},
 		onError: (err: unknown) => {
 			setError(getErrorMessage(err));

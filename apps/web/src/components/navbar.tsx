@@ -1,4 +1,7 @@
-import { Link, useLocation } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
 
 type NavbarProps = {
@@ -7,12 +10,10 @@ type NavbarProps = {
 };
 
 export function Navbar({ actions, showNav = true }: NavbarProps) {
-	const location = useLocation();
+	const pathname = usePathname();
 
 	function isActive(path: string) {
-		return (
-			location.pathname === path || location.pathname.startsWith(`${path}/`)
-		);
+		return pathname === path || pathname.startsWith(`${path}/`);
 	}
 
 	return (
@@ -23,7 +24,7 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 					{showNav && (
 						<div className="hidden md:flex items-center gap-6">
 							<Link
-								to="/projects"
+								href="/projects"
 								className={`text-sm font-medium transition-colors ${
 									isActive("/projects")
 										? "text-white"
@@ -33,7 +34,7 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 								Projects
 							</Link>
 							<Link
-								to="/analytics"
+								href="/analytics"
 								className={`text-sm font-medium transition-colors ${
 									isActive("/analytics")
 										? "text-white"

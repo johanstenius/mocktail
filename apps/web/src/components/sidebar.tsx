@@ -1,6 +1,9 @@
+"use client";
+
 import { signOut, useActiveOrganization, useSession } from "@/lib/auth-client";
 import { BILLING_ENABLED } from "@/lib/config";
-import { Link, useLocation } from "@tanstack/react-router";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./logo";
 import {
@@ -18,13 +21,12 @@ type NavItemProps = {
 };
 
 function NavItem({ href, icon, label }: NavItemProps) {
-	const location = useLocation();
-	const isActive =
-		location.pathname === href || location.pathname.startsWith(`${href}/`);
+	const pathname = usePathname();
+	const isActive = pathname === href || pathname.startsWith(`${href}/`);
 
 	return (
 		<Link
-			to={href}
+			href={href}
 			className={`
         flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.9rem] font-medium transition-all duration-200 mb-0.5 font-['Inter']
         ${
@@ -134,7 +136,7 @@ export function Sidebar() {
 	return (
 		<aside className="w-[var(--sidebar-width)] h-screen border-r border-[var(--border-subtle)] bg-[rgba(5,5,5,0.5)] backdrop-blur-xl flex flex-col p-6 flex-shrink-0">
 			<div className="mb-8 px-2">
-				<Link to="/" className="flex items-center gap-2">
+				<Link href="/" className="flex items-center gap-2">
 					<Logo />
 				</Link>
 			</div>

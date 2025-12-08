@@ -1,7 +1,10 @@
+"use client";
+
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 type NavItem = {
@@ -52,12 +55,12 @@ function NavLink({
 	children,
 	onClick,
 }: { href: string; children: string; onClick?: () => void }) {
-	const location = useLocation();
-	const isActive = location.pathname === href;
+	const pathname = usePathname();
+	const isActive = pathname === href;
 
 	return (
 		<Link
-			to={href}
+			href={href}
 			onClick={onClick}
 			className={cn(
 				"block py-1.5 text-sm transition-colors",
@@ -72,11 +75,9 @@ function NavLink({
 }
 
 function useDocsNavigation() {
-	const location = useLocation();
+	const pathname = usePathname();
 	const flatNav = navigation.flatMap((group) => group.items);
-	const currentIndex = flatNav.findIndex(
-		(item) => item.href === location.pathname,
-	);
+	const currentIndex = flatNav.findIndex((item) => item.href === pathname);
 
 	const prev = currentIndex > 0 ? flatNav[currentIndex - 1] : null;
 	const next =
@@ -101,19 +102,19 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 						>
 							{isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
 						</button>
-						<Link to="/" className="flex items-center gap-2">
+						<Link href="/" className="flex items-center gap-2">
 							<Logo />
 						</Link>
 					</div>
 					<nav className="flex items-center gap-6">
 						<Link
-							to="/"
+							href="/"
 							className="hidden sm:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
 						>
 							Home
 						</Link>
 						<Link
-							to="/login"
+							href="/login"
 							className="h-9 px-4 rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--bg-surface-hover)] hover:border-[var(--border-highlight)] transition-all flex items-center"
 						>
 							Sign In
@@ -174,7 +175,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 							<div className="mt-16 pt-8 border-t border-[var(--border-subtle)] flex justify-between gap-4">
 								{prev ? (
 									<Link
-										to={prev.href}
+										href={prev.href}
 										className="group flex flex-col gap-1 p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface)] transition-all text-left"
 									>
 										<span className="text-xs text-[var(--text-muted)] flex items-center gap-1 group-hover:text-[var(--accent-primary)] transition-colors">
@@ -189,7 +190,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 								)}
 								{next && (
 									<Link
-										to={next.href}
+										href={next.href}
 										className="group flex flex-col gap-1 p-4 rounded-xl border border-[var(--border-subtle)] hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface)] transition-all text-right items-end"
 									>
 										<span className="text-xs text-[var(--text-muted)] flex items-center gap-1 group-hover:text-[var(--accent-primary)] transition-colors">
