@@ -27,8 +27,8 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 								href="/projects"
 								className={`text-sm font-medium transition-colors ${
 									isActive("/projects")
-										? "text-white"
-										: "text-white/60 hover:text-white"
+										? "text-[var(--text-primary)]"
+										: "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 								}`}
 							>
 								Projects
@@ -37,8 +37,8 @@ export function Navbar({ actions, showNav = true }: NavbarProps) {
 								href="/analytics"
 								className={`text-sm font-medium transition-colors ${
 									isActive("/analytics")
-										? "text-white"
-										: "text-white/60 hover:text-white"
+										? "text-[var(--text-primary)]"
+										: "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 								}`}
 							>
 								Analytics

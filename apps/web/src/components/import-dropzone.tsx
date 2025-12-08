@@ -183,7 +183,7 @@ export function ImportDropzone({
 								<Button
 									type="submit"
 									disabled={mutation.isPending}
-									className="w-full bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white"
+									className="w-full"
 								>
 									{mutation.isPending ? (
 										<>

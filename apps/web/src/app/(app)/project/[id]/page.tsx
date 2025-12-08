@@ -1,6 +1,7 @@
 "use client";
 
 import { CopyButton } from "@/components/copy-button";
+import { EmptyState } from "@/components/empty-state";
 import { EndpointPanel } from "@/components/endpoint-panel";
 import { ImportDropzone } from "@/components/import-dropzone";
 import { ImportModal } from "@/components/import-modal";
@@ -43,8 +44,8 @@ import {
 	TrendingUp,
 	Upload,
 } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type TabId = "endpoints" | "logs" | "analytics" | "settings";
@@ -70,6 +71,17 @@ function EndpointRow({
 	const queryClient = useQueryClient();
 	const mockUrl = getMockUrl(endpoint.path);
 	const curlCommand = getCurlCommand(endpoint.method, mockUrl, apiKey);
+
+	const handleEscape = useCallback((e: KeyboardEvent) => {
+		if (e.key === "Escape") setShowConfirm(false);
+	}, []);
+
+	useEffect(() => {
+		if (showConfirm) {
+			document.addEventListener("keydown", handleEscape);
+			return () => document.removeEventListener("keydown", handleEscape);
+		}
+	}, [showConfirm, handleEscape]);
 
 	const deleteMutation = useMutation({
 		mutationFn: () => deleteEndpoint(projectId, endpoint.id),
@@ -624,6 +636,7 @@ function ProjectSettings({
 
 export default function ProjectDetailPage() {
 	const params = useParams<{ id: string }>();
+	const router = useRouter();
 	const projectId = params.id;
 	const { data: session } = useSession();
 	const isAuthenticated = !!session;
@@ -734,8 +747,16 @@ export default function ProjectDetailPage() {
 
 	if (!project) {
 		return (
-			<div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center">
-				<div className="text-[var(--color-text-muted)]">Project not found</div>
+			<div className="min-h-screen bg-[var(--bg-void)] flex items-center justify-center p-6">
+				<EmptyState
+					icon={AlertCircle}
+					title="Project not found"
+					description="This project doesn't exist or you don't have access to it."
+					action={{
+						label: "Back to Projects",
+						onClick: () => router.push("/projects"),
+					}}
+				/>
 			</div>
 		);
 	}

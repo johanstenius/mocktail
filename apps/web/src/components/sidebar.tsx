@@ -28,10 +28,10 @@ function NavItem({ href, icon, label }: NavItemProps) {
 		<Link
 			href={href}
 			className={`
-        flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.9rem] font-medium transition-all duration-200 mb-0.5 font-['Inter']
+        flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.9rem] font-medium transition-all duration-200 mb-0.5
         ${
 					isActive
-						? "text-white bg-gradient-to-r from-[rgba(139,92,246,0.1)] to-transparent border-l-2 border-[var(--glow-violet)] rounded-l-none"
+						? "text-[var(--text-primary)] bg-gradient-to-r from-[rgba(139,92,246,0.1)] to-transparent border-l-2 border-[var(--glow-violet)] rounded-l-none"
 						: "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)] border-l-2 border-transparent"
 				}
       `}
@@ -78,11 +78,11 @@ function UserMenu() {
 						{initials}
 					</div>
 					<div className="flex-1 overflow-hidden">
-						<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter'] truncate">
+						<div className="text-sm font-medium text-[var(--text-primary)] truncate">
 							{session.user.email}
 						</div>
 						{org && (
-							<div className="text-xs text-[var(--text-muted)] font-['Inter'] truncate">
+							<div className="text-xs text-[var(--text-muted)] truncate">
 								{org.name}
 							</div>
 						)}
@@ -142,7 +142,7 @@ export function Sidebar() {
 			</div>
 
 			<div className="mb-6">
-				<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 px-4 font-['Inter'] font-semibold">
+				<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 px-4 font-semibold">
 					Platform
 				</div>
 				<NavItem
@@ -198,7 +198,7 @@ export function Sidebar() {
 			</div>
 
 			<div className="mb-6">
-				<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 px-4 font-['Inter'] font-semibold">
+				<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 px-4 font-semibold">
 					Organization
 				</div>
 				<NavItem

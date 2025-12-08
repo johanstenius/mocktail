@@ -82,7 +82,7 @@ function SheetContent({
 				<button
 					type="button"
 					onClick={() => onOpenChange(false)}
-					className="absolute right-4 top-4 z-10 rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)] transition-colors"
+					className="absolute right-4 top-4 z-10 rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--glow-violet)]"
 				>
 					<X className="h-5 w-5" />
 				</button>
@@ -121,7 +121,7 @@ function SheetTitle({
 	return (
 		<h2
 			className={cn(
-				"text-lg font-semibold text-[var(--text-primary)] font-['Outfit']",
+				"text-lg font-semibold text-[var(--text-primary)]",
 				className,
 			)}
 		>

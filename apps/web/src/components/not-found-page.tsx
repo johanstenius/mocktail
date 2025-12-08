@@ -15,20 +15,20 @@ export function NotFoundPage() {
 
 			<div className="relative z-10 text-center px-4">
 				<div className="mb-8 relative">
-					<h1 className="text-[150px] font-bold font-['Outfit'] leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/10 select-none">
+					<h1 className="text-[150px] font-bold leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-[var(--text-primary)] to-[var(--text-primary)]/10 select-none">
 						404
 					</h1>
 					<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-						<h1 className="text-[150px] font-bold font-['Outfit'] leading-none tracking-tighter text-[var(--glow-violet)] blur-2xl opacity-30 select-none">
+						<h1 className="text-[150px] font-bold leading-none tracking-tighter text-[var(--glow-violet)] blur-2xl opacity-30 select-none">
 							404
 						</h1>
 					</div>
 				</div>
 
-				<h2 className="text-2xl md:text-3xl font-bold font-['Outfit'] mb-4">
+				<h2 className="text-2xl md:text-3xl font-bold mb-4">
 					Endpoint Not Found
 				</h2>
-				<p className="text-[var(--text-muted)] font-['Inter'] max-w-md mx-auto mb-8 text-lg">
+				<p className="text-[var(--text-muted)] max-w-md mx-auto mb-8 text-lg">
 					It seems this route hasn&apos;t been mocked yet. Check your URL or
 					return to the dashboard.
 				</p>
@@ -46,7 +46,7 @@ export function NotFoundPage() {
 					<Link href="/">
 						<Button
 							size="lg"
-							className="w-full sm:w-auto bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/10"
+							className="w-full sm:w-auto"
 						>
 							<Home className="mr-2 h-4 w-4" />
 							Return Home

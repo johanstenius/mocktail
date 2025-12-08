@@ -21,7 +21,7 @@ export function PageHeader({
 }: PageHeaderProps) {
 	return (
 		<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-			<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
+			<div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
 				{icon && <div className="mr-1">{icon}</div>}
 
 				{breadcrumbs ? (
