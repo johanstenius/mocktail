@@ -28,8 +28,12 @@ export function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 
-	// Check for session cookie (better-auth uses 'better-auth.session_token')
-	const sessionToken = request.cookies.get("better-auth.session_token");
+	// better-auth adds __Secure- prefix in production (HTTPS)
+	// Check both for dev (HTTP) and prod (HTTPS) compatibility
+	const sessionCookieName = request.url.startsWith("https")
+		? "__Secure-better-auth.session_token"
+		: "better-auth.session_token";
+	const sessionToken = request.cookies.get(sessionCookieName);
 
 	if (!sessionToken) {
 		const loginUrl = new URL("/login", request.url);

@@ -6,6 +6,7 @@ export const config = {
 	// Auth
 	authSecret:
 		process.env.BETTER_AUTH_SECRET || "dev-secret-change-in-production",
+	cookieDomain: process.env.COOKIE_DOMAIN || undefined, // ".mockspec.dev" in prod
 	// Feature flags
 	billingEnabled: process.env.BILLING_ENABLED === "true",
 	emailEnabled: process.env.EMAIL_ENABLED === "true",

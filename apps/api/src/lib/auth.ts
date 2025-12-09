@@ -73,6 +73,13 @@ export const auth = betterAuth({
 		updateAge: 24 * 60 * 60, // 1 day
 	},
 
+	advanced: {
+		crossSubDomainCookies: {
+			enabled: !!config.cookieDomain,
+			domain: config.cookieDomain,
+		},
+	},
+
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: config.emailEnabled,
