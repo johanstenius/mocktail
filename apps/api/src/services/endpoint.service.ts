@@ -159,6 +159,7 @@ export async function create(
 		failRate: input.failRate,
 		rules: [],
 		ruleLogic: "and",
+		sequenceIndex: null,
 	});
 
 	await auditService.log({

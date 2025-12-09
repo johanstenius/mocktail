@@ -1,5 +1,6 @@
 "use client";
 
+import { BucketList } from "@/components/bucket-panel";
 import { CopyButton } from "@/components/copy-button";
 import { EmptyState } from "@/components/empty-state";
 import { EndpointPanel } from "@/components/endpoint-panel";
@@ -19,6 +20,7 @@ import {
 	getProject,
 	getProjectStatistics,
 	getUsage,
+	resetProjectState,
 	rotateProjectApiKey,
 	updateProject,
 } from "@/lib/api";
@@ -48,7 +50,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type TabId = "endpoints" | "logs" | "analytics" | "settings";
+type TabId = "endpoints" | "data" | "logs" | "analytics" | "settings";
 const PROXY_ENABLED = process.env.NEXT_PUBLIC_PROXY_ENABLED === "true";
 
 function EndpointRow({
@@ -215,7 +217,7 @@ function StatCard({
 			<div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
 				{label}
 			</div>
-			<div className={`text-3xl font-bold font-['Outfit'] ${colorMap[color]}`}>
+			<div className={`text-3xl font-bold  ${colorMap[color]}`}>
 				{value}
 			</div>
 			{subtext && (
@@ -288,7 +290,7 @@ function ProjectAnalytics({
 
 	return (
 		<div>
-			<h3 className="text-xl font-bold mb-6 font-['Outfit']">
+			<h3 className="text-xl font-bold mb-6 ">
 				Traffic Overview
 			</h3>
 
@@ -325,7 +327,7 @@ function ProjectAnalytics({
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				<div>
-					<h4 className="text-lg font-bold mb-4 font-['Outfit']">
+					<h4 className="text-lg font-bold mb-4 ">
 						Traffic by Endpoint
 					</h4>
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
@@ -352,7 +354,7 @@ function ProjectAnalytics({
 				</div>
 
 				<div>
-					<h4 className="text-lg font-bold mb-4 font-['Outfit']">
+					<h4 className="text-lg font-bold mb-4 ">
 						Unmatched Requests
 					</h4>
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
@@ -404,7 +406,21 @@ function ProjectSettings({
 		project.proxyAuthHeader ?? "",
 	);
 	const [showAdvanced, setShowAdvanced] = useState(false);
+	const [showConfirmReset, setShowConfirmReset] = useState(false);
 	const queryClient = useQueryClient();
+
+	const resetStateMutation = useMutation({
+		mutationFn: () => resetProjectState(projectId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["statistics", projectId] });
+			queryClient.invalidateQueries({ queryKey: ["buckets", projectId] });
+			toast.success("Project state reset");
+			setShowConfirmReset(false);
+		},
+		onError: () => {
+			toast.error("Failed to reset state");
+		},
+	});
 
 	const rotateMutation = useMutation({
 		mutationFn: () => rotateProjectApiKey(projectId),
@@ -452,12 +468,12 @@ function ProjectSettings({
 
 	return (
 		<div>
-			<h3 className="text-xl font-bold mb-6 font-['Outfit']">Settings</h3>
+			<h3 className="text-xl font-bold mb-6 ">Settings</h3>
 
 			<div className="space-y-6">
 				{PROXY_ENABLED && (
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-2 font-['Outfit']">
+					<h4 className="text-lg font-semibold mb-2 ">
 						Proxy Mode
 					</h4>
 					<p className="text-sm text-[var(--text-muted)] mb-4">
@@ -549,7 +565,7 @@ function ProjectSettings({
 			)}
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">
+					<h4 className="text-lg font-semibold mb-4 ">
 						API Key
 					</h4>
 					<p className="text-sm text-[var(--text-muted)] mb-4">
@@ -616,7 +632,7 @@ function ProjectSettings({
 				</div>
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-4 font-['Outfit']">
+					<h4 className="text-lg font-semibold mb-4 ">
 						Example Usage
 					</h4>
 					<div className="relative">
@@ -630,6 +646,52 @@ function ProjectSettings({
 							size="icon"
 							className="absolute top-2 right-2 h-8 w-8"
 						/>
+					</div>
+				</div>
+
+				<div className="bg-[var(--bg-surface)] border border-amber-500/20 rounded-2xl p-6">
+					<h4 className="text-lg font-semibold mb-2 ">
+						Reset State
+					</h4>
+					<p className="text-sm text-[var(--text-muted)] mb-4">
+						Clear all sequence counters and bucket data. Request logs are preserved.
+					</p>
+					<div className="flex items-center gap-2">
+						{showConfirmReset ? (
+							<>
+								<span className="text-sm text-amber-400">
+									This action cannot be undone.
+								</span>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setShowConfirmReset(false)}
+								>
+									Cancel
+								</Button>
+								<Button
+									variant="destructive"
+									size="sm"
+									onClick={() => resetStateMutation.mutate()}
+									disabled={resetStateMutation.isPending}
+								>
+									{resetStateMutation.isPending ? (
+										<Loader2 className="h-4 w-4 animate-spin mr-2" />
+									) : null}
+									Confirm Reset
+								</Button>
+							</>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setShowConfirmReset(true)}
+								className="text-amber-400 border-amber-400/30 hover:bg-amber-400/10"
+							>
+								<RefreshCw className="h-4 w-4 mr-2" />
+								Reset State
+							</Button>
+						)}
 					</div>
 				</div>
 			</div>
@@ -723,7 +785,7 @@ export default function ProjectDetailPage() {
 		return (
 			<main className="flex-1 flex flex-col overflow-hidden">
 				<header className="h-20 px-8 flex items-center justify-between border-b border-[var(--border-subtle)] bg-[rgba(5,5,5,0.3)] backdrop-blur-md">
-					<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] font-['Inter']">
+					<div className="flex items-center gap-2 text-sm text-[var(--text-muted)] ">
 						<Skeleton className="h-4 w-16" />
 						<span className="opacity-50">/</span>
 						<Skeleton className="h-4 w-24" />
@@ -766,6 +828,7 @@ export default function ProjectDetailPage() {
 
 	const navItems: { id: TabId; label: string }[] = [
 		{ id: "endpoints", label: "Endpoints" },
+		{ id: "data", label: "Data" },
 		{ id: "logs", label: "Logs" },
 		{ id: "analytics", label: "Analytics" },
 		{ id: "settings", label: "Settings" },
@@ -799,7 +862,7 @@ export default function ProjectDetailPage() {
 						<Button
 							onClick={() => setImportModalOpen(true)}
 							disabled={endpointLimitReached}
-							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white  border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<Upload className="h-4 w-4 mr-2" />
 							Import Spec
@@ -811,7 +874,7 @@ export default function ProjectDetailPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-7xl mx-auto">
 					<div className="mb-6">
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							{project.name}
 						</h1>
 						<div className="flex items-center gap-2">
@@ -878,7 +941,7 @@ export default function ProjectDetailPage() {
 									<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] mb-4">
 										<RouteIcon className="h-8 w-8 text-[var(--text-muted)]" />
 									</div>
-									<h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1 font-['Outfit']">
+									<h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1 ">
 										No endpoints yet
 									</h3>
 									<p className="text-sm text-[var(--text-muted)] mb-6">
@@ -918,9 +981,11 @@ export default function ProjectDetailPage() {
 						</div>
 					)}
 
+					{activeTab === "data" && <BucketList projectId={projectId} />}
+
 					{activeTab === "logs" && (
 						<div>
-							<h3 className="text-xl font-bold mb-6 font-['Outfit']">
+							<h3 className="text-xl font-bold mb-6 ">
 								Request Logs
 							</h3>
 							<RequestLogTable projectId={projectId} />

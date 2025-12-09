@@ -33,6 +33,10 @@ export default function DocsIntroduction() {
 						realistic data on each request
 					</li>
 					<li>
+						<strong>Stateful mocks</strong> - Simulate CRUD persistence with data
+						buckets and sequence responses
+					</li>
+					<li>
 						<strong>Chaos engineering</strong> - Simulate delays and failures to
 						test resilience
 					</li>

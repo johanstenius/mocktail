@@ -217,10 +217,26 @@ model Project {
   org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   endpoints   Endpoint[]
   requestLogs RequestLog[]
+  dataBuckets DataBucket[]
 
   @@unique([orgId, slug])
   @@index([orgId])
   @@map("projects")
+}
+
+model DataBucket {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  data      String   @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("data_buckets")
 }
 
 model Endpoint {
@@ -232,6 +248,10 @@ model Endpoint {
   requestBodySchema Json    @default("{}")
   validationMode    String  @default("none")
   proxyEnabled      Boolean @default(false)
+
+  isCrud      Boolean @default(false)
+  crudBucket  String?
+  crudIdField String  @default("id")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -259,8 +279,9 @@ model ResponseVariant {
   delayType String @default("fixed")
   failRate  Int    @default(0)
 
-  rules     Json   @default("[]")
-  ruleLogic String @default("and")
+  rules         Json   @default("[]")
+  ruleLogic     String @default("and")
+  sequenceIndex Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -79,7 +79,7 @@ function MemberRow({
 					{member.email.charAt(0).toUpperCase()}
 				</div>
 				<div>
-					<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+					<div className="text-sm font-medium text-[var(--text-primary)] ">
 						{member.email}
 						{isCurrentUser && (
 							<span className="ml-2 text-xs text-[var(--text-muted)]">
@@ -160,7 +160,7 @@ function InviteRow({
 					<Mail className="h-4 w-4 text-[var(--text-muted)]" />
 				</div>
 				<div>
-					<div className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+					<div className="text-sm font-medium text-[var(--text-primary)] ">
 						{invite.email}
 					</div>
 					<div className="text-xs text-[var(--text-muted)] font-['JetBrains_Mono']">
@@ -430,7 +430,7 @@ export default function TeamPage() {
 							<Button
 								onClick={() => setInviteModalOpen(true)}
 								disabled={memberLimitReached}
-								className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+								className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white  border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 							>
 								<UserPlus className="h-4 w-4 mr-2" />
 								Invite Member
@@ -443,7 +443,7 @@ export default function TeamPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-4xl mx-auto">
 					<div className="mb-6">
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							Team Members
 						</h1>
 						<p className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
@@ -474,7 +474,7 @@ export default function TeamPage() {
 
 							{invites.length > 0 && (
 								<>
-									<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
+									<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 ">
 										Pending Invites
 									</h2>
 									<div className="space-y-3">

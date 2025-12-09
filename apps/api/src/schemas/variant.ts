@@ -43,6 +43,7 @@ export const variantSchema = z.object({
 	failRate: z.number(),
 	rules: z.array(matchRuleSchema),
 	ruleLogic: ruleLogicSchema,
+	sequenceIndex: z.number().nullable(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -59,6 +60,7 @@ export const createVariantSchema = z.object({
 	failRate: z.number().min(0).max(100).default(0),
 	rules: z.array(matchRuleSchema).max(10).default([]),
 	ruleLogic: ruleLogicSchema.default("and"),
+	sequenceIndex: z.number().min(1).nullable().default(null),
 });
 
 export const updateVariantSchema = z.object({
@@ -73,6 +75,7 @@ export const updateVariantSchema = z.object({
 	failRate: z.number().min(0).max(100).optional(),
 	rules: z.array(matchRuleSchema).max(10).optional(),
 	ruleLogic: ruleLogicSchema.optional(),
+	sequenceIndex: z.number().min(1).nullable().optional(),
 });
 
 export const reorderVariantsSchema = z.object({

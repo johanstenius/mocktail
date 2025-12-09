@@ -23,6 +23,7 @@ import {
 	createEndpoint,
 	createVariant,
 	deleteVariant,
+	getBuckets,
 	getVariants,
 	reorderVariants,
 	updateEndpoint,
@@ -31,6 +32,7 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 
 import type {
+	Bucket,
 	CreateEndpointInput,
 	DelayType,
 	Endpoint,
@@ -43,6 +45,7 @@ import type {
 	Variant,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@/components/ui/checkbox";
 import { GripVertical, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -253,6 +256,9 @@ function VariantFormModal({
 	const [ruleLogic, setRuleLogic] = useState<RuleLogic>(
 		variant?.ruleLogic ?? "and",
 	);
+	const [sequenceIndex, setSequenceIndex] = useState<number | null>(
+		variant?.sequenceIndex ?? null,
+	);
 	const [error, setError] = useState<string | null>(null);
 
 	const isTemplate = body.includes("{{");
@@ -273,6 +279,7 @@ function VariantFormModal({
 				setFailRate(variant.failRate);
 				setRules(variant.rules);
 				setRuleLogic(variant.ruleLogic);
+				setSequenceIndex(variant.sequenceIndex);
 			} else {
 				setName("Variant");
 				setIsDefault(false);
@@ -283,6 +290,7 @@ function VariantFormModal({
 				setFailRate(0);
 				setRules([]);
 				setRuleLogic("and");
+				setSequenceIndex(null);
 			}
 			setError(null);
 		}
@@ -313,6 +321,7 @@ function VariantFormModal({
 				failRate,
 				rules,
 				ruleLogic,
+				sequenceIndex,
 			});
 		},
 		onSuccess: () => {
@@ -352,6 +361,7 @@ function VariantFormModal({
 				failRate,
 				rules,
 				ruleLogic,
+				sequenceIndex,
 			});
 		},
 		onSuccess: () => {
@@ -412,15 +422,17 @@ function VariantFormModal({
 									required
 								/>
 							</div>
-							<div className="flex items-end">
-								<label className="flex items-center gap-2 cursor-pointer">
-									<input
-										type="checkbox"
+							<div>
+								<Label>&nbsp;</Label>
+								<label className="flex items-center gap-2.5 cursor-pointer h-9 px-3 mt-1.5 rounded-lg bg-white/5 border border-white/10 hover:border-white/20 transition-colors">
+									<Checkbox
+										id="isDefault"
 										checked={isDefault}
-										onChange={(e) => setIsDefault(e.target.checked)}
-										className="rounded border-[var(--border-subtle)]"
+										onCheckedChange={(checked) =>
+											setIsDefault(checked === true)
+										}
 									/>
-									<span className="text-sm">Default fallback</span>
+									<span className="text-sm text-[var(--text-secondary)]">Default fallback</span>
 								</label>
 							</div>
 						</div>
@@ -492,9 +504,9 @@ function VariantFormModal({
 							</p>
 						)}
 
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-2 gap-4 items-end">
 							<div>
-								<div className="flex items-center justify-between mb-1.5">
+								<div className="flex items-center justify-between">
 									<Label htmlFor="delay">
 										{delayType === "random" ? "Max Delay (ms)" : "Delay (ms)"}
 									</Label>
@@ -530,6 +542,7 @@ function VariantFormModal({
 									max={30000}
 									value={delay}
 									onChange={(e) => setDelay(Number(e.target.value))}
+									className="mt-1.5"
 								/>
 							</div>
 							<div>
@@ -543,6 +556,44 @@ function VariantFormModal({
 									onChange={(e) => setFailRate(Number(e.target.value))}
 									className="mt-1.5"
 								/>
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-4 items-end">
+							<div>
+								<Label htmlFor="sequenceIndex">Sequence Position</Label>
+								<Input
+									id="sequenceIndex"
+									type="number"
+									min={1}
+									max={100}
+									value={sequenceIndex ?? ""}
+									onChange={(e) =>
+										setSequenceIndex(
+											e.target.value ? Number(e.target.value) : null,
+										)
+									}
+									placeholder="Any"
+									className="mt-1.5"
+								/>
+							</div>
+							<div className="flex items-center h-9 gap-2">
+								{sequenceIndex !== null && (
+									<button
+										type="button"
+										onClick={() => setSequenceIndex(null)}
+										className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] px-2 py-1 rounded bg-white/5 border border-white/10 hover:border-white/20"
+									>
+										Clear
+									</button>
+								)}
+								<span className="text-sm text-[var(--text-muted)]">
+									{sequenceIndex === null
+										? "Matches any request"
+										: sequenceIndex === 1
+											? "Only 1st request"
+											: `Only ${sequenceIndex}${sequenceIndex === 2 ? "nd" : sequenceIndex === 3 ? "rd" : "th"} request`}
+								</span>
 							</div>
 						</div>
 
@@ -623,6 +674,14 @@ function VariantCard({
 							className="text-xs border-[var(--glow-blue)]/30 text-[var(--glow-blue)]"
 						>
 							Default
+						</Badge>
+					)}
+					{variant.sequenceIndex !== null && (
+						<Badge
+							variant="outline"
+							className="text-xs border-amber-400/30 text-amber-400"
+						>
+							#{variant.sequenceIndex}
 						</Badge>
 					)}
 					<StatusBadge status={variant.status} />
@@ -801,6 +860,9 @@ export function EndpointPanel({
 	const [validationMode, setValidationMode] =
 		useState<ValidationMode>("strict");
 	const [proxyEnabled, setProxyEnabled] = useState(false);
+	const [isCrud, setIsCrud] = useState(false);
+	const [crudBucket, setCrudBucket] = useState("");
+	const [crudIdField, setCrudIdField] = useState("id");
 	const [configError, setConfigError] = useState<string | null>(null);
 
 	const isTemplate = body.includes("{{");
@@ -828,6 +890,9 @@ export function EndpointPanel({
 				);
 				setValidationMode(endpoint.validationMode ?? "strict");
 				setProxyEnabled(endpoint.proxyEnabled ?? false);
+				setIsCrud(endpoint.isCrud ?? false);
+				setCrudBucket(endpoint.crudBucket ?? "");
+				setCrudIdField(endpoint.crudIdField ?? "id");
 			} else {
 				// Create mode defaults
 				setMethod("GET");
@@ -840,6 +905,9 @@ export function EndpointPanel({
 				setRequestBodySchema("");
 				setValidationMode("strict");
 				setProxyEnabled(false);
+				setIsCrud(false);
+				setCrudBucket("");
+				setCrudIdField("id");
 			}
 			setConfigError(null);
 		}
@@ -849,6 +917,12 @@ export function EndpointPanel({
 		queryKey: ["variants", projectId, endpoint?.id],
 		queryFn: () => getVariants(projectId, endpoint?.id ?? ""),
 		enabled: open && !!endpoint,
+	});
+
+	const { data: buckets = [] } = useQuery<Bucket[]>({
+		queryKey: ["buckets", projectId],
+		queryFn: () => getBuckets(projectId),
+		enabled: open,
 	});
 
 	const createEndpointMutation = useMutation({
@@ -941,6 +1015,9 @@ export function EndpointPanel({
 			requestBodySchema: parsedSchema,
 			validationMode: validationEnabled ? validationMode : "none",
 			proxyEnabled,
+			isCrud,
+			crudBucket: isCrud ? crudBucket : undefined,
+			crudIdField: isCrud ? crudIdField : undefined,
 		};
 
 		if (endpoint) {
@@ -959,7 +1036,7 @@ export function EndpointPanel({
 			<Sheet open={open} onOpenChange={onOpenChange}>
 				<SheetContent className="w-[500px] sm:w-[600px] p-0 flex flex-col bg-[var(--bg-void)] border-l border-[var(--border-subtle)]">
 					<SheetHeader className="px-6 py-4 border-b border-[var(--border-subtle)]">
-						<SheetTitle className="font-['Outfit'] text-xl">
+						<SheetTitle className=" text-xl">
 							{endpoint ? "Endpoint Details" : "Create Endpoint"}
 						</SheetTitle>
 						{endpoint && (
@@ -1071,7 +1148,14 @@ export function EndpointPanel({
 										<Input
 											id="path"
 											value={path}
-											onChange={(e) => setPath(e.target.value)}
+											onChange={(e) => {
+												const newPath = e.target.value;
+												setPath(newPath);
+												const paramMatch = newPath.match(/:(\w+)$/);
+												if (paramMatch) {
+													setCrudIdField(paramMatch[1]);
+												}
+											}}
 											placeholder="/users/:id"
 											className="mt-1.5 font-mono"
 											required
@@ -1091,7 +1175,11 @@ export function EndpointPanel({
 											</div>
 											<button
 												type="button"
-												onClick={() => setProxyEnabled(!proxyEnabled)}
+												onClick={() => {
+													const newValue = !proxyEnabled;
+													setProxyEnabled(newValue);
+													if (newValue) setIsCrud(false);
+												}}
 												className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
 													proxyEnabled ? "bg-[var(--glow-blue)]" : "bg-white/10"
 												}`}
@@ -1167,8 +1255,76 @@ export function EndpointPanel({
 									)}
 								</div>
 
-								{/* Response Config */}
-								{!proxyEnabled && (
+								{/* Stateful Mode */}
+								<div className="space-y-3">
+									<div className="flex items-center justify-between">
+										<div>
+											<Label>Stateful</Label>
+											<p className="text-xs text-[var(--text-muted)] mt-0.5">
+												Link to a data bucket for persistence
+											</p>
+										</div>
+										<button
+											type="button"
+											onClick={() => {
+												const newValue = !isCrud;
+												setIsCrud(newValue);
+												if (newValue) setProxyEnabled(false);
+											}}
+											className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+												isCrud ? "bg-[var(--glow-violet)]" : "bg-white/10"
+											}`}
+										>
+											<span
+												className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+													isCrud ? "translate-x-4.5" : "translate-x-1"
+												}`}
+											/>
+										</button>
+									</div>
+									{isCrud && (
+										<div className="space-y-3 pl-4 border-l-2 border-[var(--border-subtle)]">
+											<div>
+												<Label htmlFor="crudBucket">Bucket</Label>
+												{buckets.length > 0 ? (
+													<Select
+														id="crudBucket"
+														value={crudBucket}
+														onChange={(e) => setCrudBucket(e.target.value)}
+														className="mt-1.5"
+													>
+														<option value="">Select a bucket...</option>
+														{buckets.map((b) => (
+															<option key={b.id} value={b.name}>
+																{b.name} ({b.data.length} items)
+															</option>
+														))}
+													</Select>
+												) : (
+													<p className="text-sm text-[var(--text-muted)] mt-1.5">
+														No buckets yet. Create one in the Data tab first.
+													</p>
+												)}
+											</div>
+											<div>
+												<Label htmlFor="crudIdField">ID Field</Label>
+												<Input
+													id="crudIdField"
+													value={crudIdField}
+													onChange={(e) => setCrudIdField(e.target.value)}
+													placeholder="id"
+													className="mt-1.5 font-mono"
+												/>
+												<p className="text-xs text-[var(--text-muted)] mt-1">
+													Field used for lookups in the bucket
+												</p>
+											</div>
+										</div>
+									)}
+								</div>
+
+								{/* Response Config - hidden when proxy or stateful */}
+								{!proxyEnabled && !isCrud && (
 									<>
 										<div>
 											<Label htmlFor="status">Status Code</Label>
@@ -1230,34 +1386,37 @@ export function EndpointPanel({
 												Status {status} does not allow a response body
 											</p>
 										)}
-
-										<div className="grid grid-cols-2 gap-4">
-											<div>
-												<Label htmlFor="delay">Delay (ms)</Label>
-												<Input
-													id="delay"
-													type="number"
-													min={0}
-													max={30000}
-													value={delay}
-													onChange={(e) => setDelay(Number(e.target.value))}
-													className="mt-1.5"
-												/>
-											</div>
-											<div>
-												<Label htmlFor="failRate">Fail Rate (%)</Label>
-												<Input
-													id="failRate"
-													type="number"
-													min={0}
-													max={100}
-													value={failRate}
-													onChange={(e) => setFailRate(Number(e.target.value))}
-													className="mt-1.5"
-												/>
-											</div>
-										</div>
 									</>
+								)}
+
+								{/* Chaos Config - always visible except proxy */}
+								{!proxyEnabled && (
+									<div className="grid grid-cols-2 gap-4">
+										<div>
+											<Label htmlFor="delay">Delay (ms)</Label>
+											<Input
+												id="delay"
+												type="number"
+												min={0}
+												max={30000}
+												value={delay}
+												onChange={(e) => setDelay(Number(e.target.value))}
+												className="mt-1.5"
+											/>
+										</div>
+										<div>
+											<Label htmlFor="failRate">Fail Rate (%)</Label>
+											<Input
+												id="failRate"
+												type="number"
+												min={0}
+												max={100}
+												value={failRate}
+												onChange={(e) => setFailRate(Number(e.target.value))}
+												className="mt-1.5"
+											/>
+										</div>
+									</div>
 								)}
 
 								{configError && (

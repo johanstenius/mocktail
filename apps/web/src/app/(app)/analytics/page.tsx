@@ -41,7 +41,7 @@ function StatCard({
 			<div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
 				{label}
 			</div>
-			<div className={`text-3xl font-bold font-['Outfit'] ${colorMap[color]}`}>
+			<div className={`text-3xl font-bold  ${colorMap[color]}`}>
 				{value}
 			</div>
 			{subtext && (
@@ -303,7 +303,7 @@ export default function AnalyticsPage() {
 
 							<div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
 								<div>
-									<h3 className="text-xl font-bold mb-4 font-['Outfit']">
+									<h3 className="text-xl font-bold mb-4 ">
 										Live Request Log
 									</h3>
 									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
@@ -386,7 +386,7 @@ export default function AnalyticsPage() {
 								</div>
 
 								<div>
-									<h3 className="text-xl font-bold mb-4 font-['Outfit']">
+									<h3 className="text-xl font-bold mb-4 ">
 										Traffic by Project
 									</h3>
 									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">

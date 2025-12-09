@@ -1,6 +1,8 @@
 import type {
 	ActivityItem,
 	AuditLog,
+	Bucket,
+	CreateBucketInput,
 	CreateEndpointInput,
 	CreateProjectInput,
 	CreateVariantInput,
@@ -14,6 +16,7 @@ import type {
 	RequestLog,
 	RequestSource,
 	SampleProjectResult,
+	UpdateBucketInput,
 	UpdateEndpointInput,
 	UpdateProjectInput,
 	UpdateVariantInput,
@@ -401,4 +404,61 @@ export function getSessionToken(): string | null {
 	// SSE will need to use a different approach - pass the session ID or use cookies
 	// For now, we'll get it from the auth context
 	return null;
+}
+
+// Buckets
+export async function getBuckets(projectId: string): Promise<Bucket[]> {
+	const data = await fetchJson<{ buckets: Bucket[] }>(
+		`${API_BASE}/projects/${projectId}/buckets`,
+	);
+	return data.buckets;
+}
+
+export async function getBucket(
+	projectId: string,
+	bucketName: string,
+): Promise<Bucket> {
+	return fetchJson<Bucket>(
+		`${API_BASE}/projects/${projectId}/buckets/${bucketName}`,
+	);
+}
+
+export async function createBucket(
+	projectId: string,
+	input: CreateBucketInput,
+): Promise<Bucket> {
+	return fetchJson<Bucket>(`${API_BASE}/projects/${projectId}/buckets`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+}
+
+export async function updateBucket(
+	projectId: string,
+	bucketName: string,
+	input: UpdateBucketInput,
+): Promise<Bucket> {
+	return fetchJson<Bucket>(
+		`${API_BASE}/projects/${projectId}/buckets/${bucketName}`,
+		{
+			method: "PUT",
+			body: JSON.stringify(input),
+		},
+	);
+}
+
+export async function deleteBucket(
+	projectId: string,
+	bucketName: string,
+): Promise<void> {
+	await fetchVoid(`${API_BASE}/projects/${projectId}/buckets/${bucketName}`, {
+		method: "DELETE",
+	});
+}
+
+// State reset
+export async function resetProjectState(projectId: string): Promise<void> {
+	await fetchVoid(`${API_BASE}/projects/${projectId}/state/reset`, {
+		method: "POST",
+	});
 }

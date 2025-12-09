@@ -174,6 +174,35 @@ export const rotateKeyRoute = createRoute({
 	},
 });
 
+export const resetStateResponseSchema = z.object({
+	message: z.string(),
+});
+
+export const resetStateRoute = createRoute({
+	method: "post",
+	path: "/{id}/state/reset",
+	tags: ["Projects"],
+	summary: "Reset project state",
+	description: "Clears all sequence counters for the project",
+	request: {
+		params: idParamSchema,
+	},
+	responses: {
+		200: {
+			description: "State reset successfully",
+			content: {
+				"application/json": { schema: resetStateResponseSchema },
+			},
+		},
+		404: {
+			description: "Project not found",
+			content: {
+				"application/json": { schema: errorSchema },
+			},
+		},
+	},
+});
+
 export type ProjectResponse = z.infer<typeof projectSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;

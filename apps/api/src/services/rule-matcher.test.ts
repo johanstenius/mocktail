@@ -287,6 +287,7 @@ describe("findMatchingVariant", () => {
 		priority: number,
 		isDefault: boolean,
 		rules: MatchRule[],
+		sequenceIndex: number | null = null,
 	): VariantModel {
 		return {
 			id,
@@ -303,6 +304,7 @@ describe("findMatchingVariant", () => {
 			failRate: 0,
 			rules,
 			ruleLogic: "and",
+			sequenceIndex,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
@@ -371,5 +373,88 @@ describe("findMatchingVariant", () => {
 	it("returns null for empty variants", () => {
 		const result = findMatchingVariant([], ctx);
 		expect(result).toBeNull();
+	});
+
+	describe("sequence matching", () => {
+		it("matches variant with sequenceIndex on correct request count", () => {
+			const variants = [
+				makeVariant("first", 0, false, [], 1),
+				makeVariant("second", 1, false, [], 2),
+				makeVariant("default", 2, true, []),
+			];
+
+			const result1 = findMatchingVariant(variants, {
+				...ctx,
+				requestCount: 1,
+			});
+			expect(result1?.id).toBe("first");
+
+			const result2 = findMatchingVariant(variants, {
+				...ctx,
+				requestCount: 2,
+			});
+			expect(result2?.id).toBe("second");
+
+			const result3 = findMatchingVariant(variants, {
+				...ctx,
+				requestCount: 3,
+			});
+			expect(result3?.id).toBe("default");
+		});
+
+		it("falls back to null sequenceIndex variant when no sequence match", () => {
+			const variants = [
+				makeVariant("first", 0, false, [], 1),
+				makeVariant("fallback", 1, false, [], null),
+			];
+
+			const result = findMatchingVariant(variants, { ...ctx, requestCount: 5 });
+			expect(result?.id).toBe("fallback");
+		});
+
+		it("combines sequence matching with rule matching", () => {
+			const variants = [
+				makeVariant(
+					"first-admin",
+					0,
+					false,
+					[
+						{
+							target: "query",
+							key: "type",
+							operator: "equals",
+							value: "admin",
+						},
+					],
+					1,
+				),
+				makeVariant(
+					"first-user",
+					1,
+					false,
+					[{ target: "query", key: "type", operator: "equals", value: "user" }],
+					1,
+				),
+				makeVariant("default", 2, true, []),
+			];
+
+			const adminCtx = { ...ctx, query: { type: "admin" }, requestCount: 1 };
+			const result = findMatchingVariant(variants, adminCtx);
+			expect(result?.id).toBe("first-admin");
+
+			const userCtx = { ...ctx, query: { type: "user" }, requestCount: 1 };
+			const result2 = findMatchingVariant(variants, userCtx);
+			expect(result2?.id).toBe("first-user");
+		});
+
+		it("defaults requestCount to 1 when not provided", () => {
+			const variants = [
+				makeVariant("first", 0, false, [], 1),
+				makeVariant("default", 1, true, []),
+			];
+
+			const result = findMatchingVariant(variants, ctx);
+			expect(result?.id).toBe("first");
+		});
 	});
 });

@@ -61,7 +61,7 @@ function ResetPasswordContent() {
 				<main className="flex-1 flex items-center justify-center px-4 relative z-10">
 					<div className="w-full max-w-md">
 						<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-xl rounded-2xl p-8 text-center">
-							<h1 className="text-2xl font-bold mb-4 font-['Outfit']">
+							<h1 className="text-2xl font-bold mb-4 ">
 								Invalid reset link
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
@@ -96,7 +96,7 @@ function ResetPasswordContent() {
 								<div className="w-16 h-16 rounded-full bg-[var(--glow-emerald)]/10 flex items-center justify-center mx-auto mb-6">
 									<CheckCircle className="w-8 h-8 text-[var(--glow-emerald)]" />
 								</div>
-								<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+								<h1 className="text-2xl font-bold mb-2 ">
 									Password reset!
 								</h1>
 								<p className="text-[var(--text-secondary)] mb-6">
@@ -109,7 +109,7 @@ function ResetPasswordContent() {
 						) : (
 							<>
 								<div className="text-center mb-8">
-									<h1 className="text-3xl font-bold mb-2 font-['Outfit']">
+									<h1 className="text-3xl font-bold mb-2 ">
 										Set new password
 									</h1>
 									<p className="text-[var(--text-secondary)]">

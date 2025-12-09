@@ -121,6 +121,7 @@ export async function importSpec(
 			failRate: 0,
 			rules: [],
 			ruleLogic: "and",
+			sequenceIndex: null,
 		});
 
 		createdEndpoints.push(toImportedEndpoint(created));

@@ -5,6 +5,7 @@ export type MatchContext = {
 	query: Record<string, string>;
 	headers: Record<string, string>;
 	body: unknown;
+	requestCount?: number;
 };
 
 function getValueByPath(obj: unknown, path: string): unknown {
@@ -67,22 +68,31 @@ function matchVariant(
 	return rules.some((rule) => evaluateRule(rule, ctx));
 }
 
+function matchesSequence(variant: VariantModel, requestCount: number): boolean {
+	if (variant.sequenceIndex === null) return true;
+	return variant.sequenceIndex === requestCount;
+}
+
 export function findMatchingVariant(
 	variants: VariantModel[],
 	ctx: MatchContext,
 ): VariantModel | null {
 	const sorted = [...variants].sort((a, b) => a.priority - b.priority);
+	const requestCount = ctx.requestCount ?? 1;
 
 	for (const variant of sorted) {
-		if (
-			!variant.isDefault &&
-			matchVariant(variant.rules, variant.ruleLogic, ctx)
-		) {
-			return variant;
-		}
+		if (variant.isDefault) continue;
+		if (!matchesSequence(variant, requestCount)) continue;
+		if (!matchVariant(variant.rules, variant.ruleLogic, ctx)) continue;
+		return variant;
 	}
 
-	return sorted.find((v) => v.isDefault) ?? sorted[0] ?? null;
+	const defaultVariant = sorted.find((v) => v.isDefault);
+	if (defaultVariant && matchesSequence(defaultVariant, requestCount)) {
+		return defaultVariant;
+	}
+
+	return sorted.find((v) => v.sequenceIndex === null) ?? sorted[0] ?? null;
 }
 
 export { evaluateRule, matchVariant, getValueByPath };

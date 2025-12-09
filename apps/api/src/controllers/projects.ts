@@ -6,12 +6,14 @@ import {
 	deleteProjectRoute,
 	getProjectRoute,
 	listProjectsRoute,
+	resetStateRoute,
 	rotateKeyRoute,
 	updateProjectRoute,
 } from "../schemas/project";
 import * as limitsService from "../services/limits.service";
 import * as projectService from "../services/project.service";
 import type { ProjectModel } from "../services/project.service";
+import * as stateService from "../services/state.service";
 import { conflict, notFound } from "../utils/errors";
 
 export const projectsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
@@ -115,4 +117,18 @@ projectsRouter.openapi(rotateKeyRoute, async (c) => {
 	invalidateProjectKeyCache(oldKey);
 
 	return c.json(mapProjectToResponse(project), 200);
+});
+
+projectsRouter.openapi(resetStateRoute, async (c) => {
+	const auth = getAuth(c);
+	const { id } = c.req.valid("param");
+
+	const existing = await projectService.findById(id);
+	if (!existing || existing.orgId !== auth.orgId) {
+		throw notFound("Project");
+	}
+
+	stateService.resetProjectState(id);
+
+	return c.json({ message: "State reset successfully" }, 200);
 });

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockspec - Design Preview</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Satoshi Font (from Fontshare) -->
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      /* New Color Palette - Emerald Focus */
+      --bg-void: #050505;
+      --bg-surface: rgba(255, 255, 255, 0.05);
+      --bg-surface-hover: rgba(255, 255, 255, 0.08);
+      --bg-surface-active: rgba(255, 255, 255, 0.12);
+
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(255, 255, 255, 0.15);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      /* New Accent Colors */
+      --accent-primary: #10b981;
+      --accent-secondary: #06b6d4;
+      --glow-primary: #10b981;
+      --glow-secondary: #0ea5e9;
+
+      /* Refined radius scale */
+      --radius-xs: 4px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-void);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid background instead of orbs */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Single accent glow */
+    .glow-accent {
+      position: fixed;
+      top: -200px;
+      right: 20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-primary), transparent 70%);
+      opacity: 0.15;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: 1rem 1.5rem;
+    }
+
+    .header-inner {
+      max-width: 72rem;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: var(--radius-sm);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      background: var(--bg-surface);
+      padding: 0.5rem 1.5rem;
+      border-radius: 100px;
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(12px);
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text-primary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Buttons - New Style */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: var(--bg-void);
+      /* No glow by default - appears on hover */
+    }
+
+    .btn-primary:hover {
+      background: #0ea572;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(12px);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-highlight);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text-primary);
+    }
+
+    .btn-lg {
+      padding: 0.75rem 1.75rem;
+      font-size: 1rem;
+      border-radius: var(--radius-lg);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 12rem 1.5rem 6rem;
+      text-align: center;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, #fff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 36rem;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+
+    /* Code Preview - Enhanced */
+    .code-preview {
+      max-width: 48rem;
+      margin: 0 auto;
+      background: rgba(10, 10, 10, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      text-align: left;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .code-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border-highlight);
+    }
+
+    .code-body {
+      padding: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.8;
+      color: #e2e8f0;
+    }
+
+    .code-comment { color: #64748b; }
+    .code-keyword { color: #a78bfa; }
+    .code-function { color: #60a5fa; }
+    .code-string { color: var(--accent-primary); }
+
+    /* Features Section */
+    .features {
+      padding: 6rem 1.5rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-header h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1.125rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Cards - Enhanced depth */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .card:hover {
+      background: var(--bg-surface-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 1rem;
+      color: var(--accent-primary);
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+    }
+
+    .card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    /* Comparison Section */
+    .comparison {
+      padding: 4rem 1.5rem;
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .comparison-col {
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .comparison-col.before {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .comparison-col.after {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .comparison-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .before .comparison-label { color: #ef4444; }
+    .after .comparison-label { color: var(--accent-primary); }
+
+    .comparison-col h3 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .comparison-col ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .comparison-col li {
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      border-radius: var(--radius-xs);
+    }
+
+    .badge-get {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    .badge-post {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .badge-status {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border-subtle);
+      max-width: 72rem;
+      margin: 0 auto;
+    }
+
+    /* Input - for demo */
+    .input {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Form demo section */
+    .form-demo {
+      padding: 4rem 1.5rem;
+      max-width: 28rem;
+      margin: 0 auto;
+    }
+
+    .form-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .form-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-card p {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    footer {
+      padding: 4rem 1.5rem;
+      text-align: center;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(5, 5, 5, 0.5);
+    }
+
+    footer p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="glow-accent"></div>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark"></div>
+        Mockspec
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#docs">Docs</a>
+      </nav>
+      <div class="header-actions">
+        <a href="#" class="btn btn-ghost">Sign In</a>
+        <a href="#" class="btn btn-primary">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>Instant Mock APIs.<br>Ready in seconds.</h1>
+    <p>The mock API server for modern teams. Import OpenAPI specs, simulate real-world conditions, and ship faster together.</p>
+    <div class="hero-actions">
+      <a href="#" class="btn btn-primary btn-lg">Start for Free</a>
+      <a href="#" class="btn btn-secondary btn-lg">Read Documentation</a>
+    </div>
+
+    <div class="code-preview">
+      <div class="code-header">
+        <div class="code-dot"></div>
+        <div class="code-dot"></div>
+        <div class="code-dot"></div>
+      </div>
+      <div class="code-body">
+        <div><span class="code-comment">// 1. Define your mock endpoint</span></div>
+        <div><span class="code-keyword">const</span> response = <span class="code-keyword">await</span> <span class="code-function">fetch</span>(<span class="code-string">'https://api.mockspec.dev/mock/shop-v1/products'</span>);</div>
+        <br>
+        <div><span class="code-comment">// 2. Get realistic data instantly</span></div>
+        <div><span class="code-keyword">const</span> data = <span class="code-keyword">await</span> response.<span class="code-function">json</span>();</div>
+        <div><span class="code-comment">// { id: 'prod_123', name: 'Premium Plan', price: 2900 }</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="features" id="features">
+    <div class="section-header">
+      <h2>Built for modern engineering teams.</h2>
+      <p>Everything you need to mock APIs at scale, without the complexity.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <h3>OpenAPI Import</h3>
+        <p>Generate endpoints instantly from your Swagger/OpenAPI specs.</p>
+      </div>
+
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        <h3>Chaos Engineering</h3>
+        <p>Simulate latency, errors, and failures to test your app's resilience.</p>
+      </div>
+
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+        <h3>Dynamic Data</h3>
+        <p>Generate realistic fake data with templates. Names, emails, UUIDs, and more.</p>
+      </div>
+
+      <div class="card">
+        <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h3>Team Collaboration</h3>
+        <p>Share mock APIs with your team. Everyone stays in sync.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="comparison">
+    <div class="section-header">
+      <h2>Design comparison</h2>
+      <p>Old vs new aesthetic direction</p>
+    </div>
+
+    <div class="comparison-grid">
+      <div class="comparison-col before">
+        <div class="comparison-label">Before</div>
+        <h3>Generic Dark SaaS</h3>
+        <ul>
+          <li>Inter + Outfit fonts</li>
+          <li>Violet (#8b5cf6) accent</li>
+          <li>Violet/Blue/Pink gradient orbs</li>
+          <li>Always-on button glows</li>
+          <li>3% surface opacity</li>
+          <li>12px border radius everywhere</li>
+        </ul>
+      </div>
+
+      <div class="comparison-col after">
+        <div class="comparison-label">After</div>
+        <h3>Distinctive & Memorable</h3>
+        <ul>
+          <li>Satoshi font (geometric, warm)</li>
+          <li>Emerald (#10b981) accent</li>
+          <li>Subtle grid + single glow</li>
+          <li>Glow appears on hover only</li>
+          <li>5% surface with subtle gradient</li>
+          <li>Varied radius scale (4-24px)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section class="form-demo">
+    <div class="form-card">
+      <h3>Welcome back</h3>
+      <p>Sign in to your account</p>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="input" placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="input" placeholder="••••••••">
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Sign in</button>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section style="padding: 4rem 1.5rem; text-align: center;">
+    <h2 style="font-size: 2rem; margin-bottom: 2rem;">Component Samples</h2>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+      <span class="badge badge-get">GET</span>
+      <span class="badge badge-post">POST</span>
+      <span class="badge badge-status">200 OK</span>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <button class="btn btn-primary">Primary Button</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost</button>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Mockspec. Design Preview.</p>
+  </footer>
+</body>
+</html>

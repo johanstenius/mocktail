@@ -38,6 +38,7 @@ export type VariantModel = {
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
+	sequenceIndex: number | null;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -54,6 +55,7 @@ export type CreateVariantInput = {
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
+	sequenceIndex: number | null;
 };
 
 export type UpdateVariantInput = Partial<CreateVariantInput>;
@@ -110,6 +112,7 @@ function dbToModel(
 		rules: validated.rules,
 		ruleLogic: validated.ruleLogic,
 		delayType: validated.delayType,
+		sequenceIndex: db.sequenceIndex,
 	};
 }
 
@@ -124,6 +127,7 @@ function dbListToModels(
 			rules: validated.rules,
 			ruleLogic: validated.ruleLogic,
 			delayType: validated.delayType,
+			sequenceIndex: db.sequenceIndex,
 		};
 	});
 }
@@ -178,6 +182,7 @@ export async function create(
 		failRate: input.failRate,
 		rules: input.rules,
 		ruleLogic: input.ruleLogic,
+		sequenceIndex: input.sequenceIndex,
 	});
 
 	const model = dbToModel(variant);
@@ -229,6 +234,9 @@ export async function update(
 		...(input.failRate !== undefined && { failRate: input.failRate }),
 		...(input.rules !== undefined && { rules: input.rules }),
 		...(input.ruleLogic !== undefined && { ruleLogic: input.ruleLogic }),
+		...(input.sequenceIndex !== undefined && {
+			sequenceIndex: input.sequenceIndex,
+		}),
 	});
 
 	const changedFields: string[] = [];
@@ -249,6 +257,7 @@ export async function update(
 	if (input.headers !== undefined) changedFields.push("headers");
 	if (input.body !== undefined) changedFields.push("body");
 	if (input.rules !== undefined) changedFields.push("rules");
+	if (input.sequenceIndex !== undefined) changedFields.push("sequenceIndex");
 
 	if (changedFields.length > 0) {
 		await auditService.log({

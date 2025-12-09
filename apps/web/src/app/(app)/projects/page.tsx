@@ -50,12 +50,12 @@ function ProjectCard({
 				className="absolute inset-0 rounded-xl"
 			/>
 			<div className="flex items-center gap-4">
-				<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--glow-violet)]/20 to-[var(--glow-blue)]/20 border border-white/10 flex items-center justify-center text-sm font-bold text-white font-['Outfit']">
+				<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--glow-violet)]/20 to-[var(--glow-blue)]/20 border border-white/10 flex items-center justify-center text-sm font-bold text-white ">
 					{project.name.charAt(0).toUpperCase()}
 				</div>
 				<div>
 					<div className="flex items-center gap-2">
-						<h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--glow-violet)] transition-colors font-['Outfit']">
+						<h3 className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--glow-violet)] transition-colors ">
 							{project.name}
 						</h3>
 					</div>
@@ -197,7 +197,7 @@ export default function ProjectsPage() {
 						<Button
 							onClick={() => setCreateModalOpen(true)}
 							disabled={projectLimitReached}
-							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+							className="bg-[var(--glow-violet)] hover:bg-[#7c3aed] text-white  border border-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							<Plus className="h-4 w-4 mr-2" />
 							Create Project
@@ -209,7 +209,7 @@ export default function ProjectsPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-4xl mx-auto">
 					<div className="mb-8">
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							Projects
 						</h1>
 						<p className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">

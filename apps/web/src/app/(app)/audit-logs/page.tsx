@@ -100,7 +100,7 @@ function AuditLogRow({ log }: { log: AuditLog }) {
 						<Badge variant={ACTION_VARIANTS[log.action] ?? "default"}>
 							{ACTION_LABELS[log.action] ?? log.action}
 						</Badge>
-						<span className="text-sm text-[var(--text-primary)] font-['Inter']">
+						<span className="text-sm text-[var(--text-primary)] ">
 							{log.actor?.email ?? "System"}
 						</span>
 					</div>
@@ -261,7 +261,7 @@ export default function AuditLogsPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-5xl mx-auto">
 					<div className="mb-6">
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							Audit Logs
 						</h1>
 						<p className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">

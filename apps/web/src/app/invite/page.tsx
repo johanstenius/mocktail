@@ -123,7 +123,7 @@ function InviteContent() {
 							<div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
 								<AlertCircle className="w-8 h-8 text-red-400" />
 							</div>
-							<h1 className="text-2xl font-bold mb-4 font-['Outfit']">
+							<h1 className="text-2xl font-bold mb-4 ">
 								Invalid invite
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
@@ -157,7 +157,7 @@ function InviteContent() {
 							<div className="w-16 h-16 rounded-full bg-[var(--glow-emerald)]/10 flex items-center justify-center mx-auto mb-6">
 								<CheckCircle className="w-8 h-8 text-[var(--glow-emerald)]" />
 							</div>
-							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+							<h1 className="text-2xl font-bold mb-2 ">
 								Welcome to {inviteInfo.organization.name}!
 							</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
@@ -188,7 +188,7 @@ function InviteContent() {
 							<div className="w-16 h-16 rounded-full bg-[var(--glow-violet)]/10 flex items-center justify-center mx-auto mb-6">
 								<Users className="w-8 h-8 text-[var(--glow-violet)]" />
 							</div>
-							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+							<h1 className="text-2xl font-bold mb-2 ">
 								Join {inviteInfo.organization.name}
 							</h1>
 							<p className="text-[var(--text-secondary)]">

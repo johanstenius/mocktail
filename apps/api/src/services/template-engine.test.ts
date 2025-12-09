@@ -125,4 +125,21 @@ describe("template-engine", () => {
 			expect(parsed.premium).toBe(false);
 		});
 	});
+
+	describe("bucket helpers", () => {
+		it("returns empty array when no projectId", () => {
+			const result = processTemplate("{{bucket 'users'}}", baseContext);
+			expect(result).toBe("[]");
+		});
+
+		it("returns 0 for bucketLength when no projectId", () => {
+			const result = processTemplate("{{bucketLength 'users'}}", baseContext);
+			expect(result).toBe("0");
+		});
+
+		it("returns null for bucketItem when no projectId", () => {
+			const result = processTemplate("{{bucketItem 'users' 0}}", baseContext);
+			expect(result).toBe("null");
+		});
+	});
 });

@@ -92,7 +92,11 @@ function LogRow({ log }: { log: RequestLog }) {
 									Request Body
 								</h4>
 								<pre className="text-xs font-mono bg-black/20 rounded-lg p-3 overflow-auto max-h-40">
-									{log.requestBody || "(empty)"}
+									{log.requestBody
+										? typeof log.requestBody === "string"
+											? log.requestBody
+											: JSON.stringify(log.requestBody, null, 2)
+										: "(empty)"}
 								</pre>
 							</div>
 							<div className="col-span-2">
@@ -100,7 +104,11 @@ function LogRow({ log }: { log: RequestLog }) {
 									Response Body
 								</h4>
 								<pre className="text-xs font-mono bg-black/20 rounded-lg p-3 overflow-auto max-h-40">
-									{log.responseBody || "(empty)"}
+									{log.responseBody
+										? typeof log.responseBody === "string"
+											? log.responseBody
+											: JSON.stringify(log.responseBody, null, 2)
+										: "(empty)"}
 								</pre>
 							</div>
 							{log.validationErrors && log.validationErrors.length > 0 && (

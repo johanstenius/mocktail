@@ -91,7 +91,7 @@ export default function OnboardingPage() {
 							<div className="w-16 h-16 rounded-full bg-[var(--glow-violet)]/10 flex items-center justify-center mx-auto mb-6">
 								<Building2 className="w-8 h-8 text-[var(--glow-violet)]" />
 							</div>
-							<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+							<h1 className="text-2xl font-bold mb-2 ">
 								Create your organization
 							</h1>
 							<p className="text-[var(--text-secondary)]">

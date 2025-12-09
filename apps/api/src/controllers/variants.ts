@@ -31,6 +31,7 @@ function mapVariantToResponse(variant: VariantModel): VariantResponse {
 		failRate: variant.failRate,
 		rules: variant.rules,
 		ruleLogic: variant.ruleLogic,
+		sequenceIndex: variant.sequenceIndex,
 		createdAt: variant.createdAt.toISOString(),
 		updatedAt: variant.updatedAt.toISOString(),
 	};
@@ -71,6 +72,7 @@ variantsRouter.openapi(createVariantRoute, async (c) => {
 		failRate: body.failRate,
 		rules: body.rules,
 		ruleLogic: body.ruleLogic,
+		sequenceIndex: body.sequenceIndex,
 	});
 
 	if ("error" in result) {

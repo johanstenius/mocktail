@@ -1,11 +1,13 @@
 import { faker } from "@faker-js/faker";
 import Handlebars from "handlebars";
+import { getBucketData } from "./state.service";
 
 export type RequestContext = {
 	params: Record<string, string>;
 	query: Record<string, string>;
 	headers: Record<string, string>;
 	body: unknown;
+	projectId?: string;
 };
 
 type HandlebarsOptions = {
@@ -80,10 +82,41 @@ function registerFakerHelpers(): void {
 }
 
 let helpersRegistered = false;
+let currentProjectId: string | undefined;
+
+function registerBucketHelpers(): void {
+	Handlebars.registerHelper("bucket", (bucketName: string) => {
+		if (!currentProjectId) return "[]";
+		const data = getBucketData(currentProjectId, bucketName);
+		return JSON.stringify(data ?? []);
+	});
+
+	Handlebars.registerHelper("bucketLength", (bucketName: string) => {
+		if (!currentProjectId) return 0;
+		const data = getBucketData(currentProjectId, bucketName);
+		return data?.length ?? 0;
+	});
+
+	Handlebars.registerHelper(
+		"bucketItem",
+		(bucketName: string, index: number | HandlebarsOptions) => {
+			if (!currentProjectId) return "null";
+			const data = getBucketData(currentProjectId, bucketName);
+			if (!data || data.length === 0) return "null";
+
+			const idx = typeof index === "number" ? index : 0;
+			const actualIndex = idx < 0 ? data.length + idx : idx;
+
+			if (actualIndex < 0 || actualIndex >= data.length) return "null";
+			return JSON.stringify(data[actualIndex]);
+		},
+	);
+}
 
 function ensureHelpers(): void {
 	if (!helpersRegistered) {
 		registerFakerHelpers();
+		registerBucketHelpers();
 		helpersRegistered = true;
 	}
 }
@@ -93,6 +126,7 @@ export function processTemplate(
 	context: RequestContext,
 ): string {
 	ensureHelpers();
+	currentProjectId = context.projectId;
 
 	const templateContext = {
 		request: {
@@ -104,5 +138,7 @@ export function processTemplate(
 	};
 
 	const compiled = Handlebars.compile(template, { noEscape: true });
-	return compiled(templateContext);
+	const result = compiled(templateContext);
+	currentProjectId = undefined;
+	return result;
 }

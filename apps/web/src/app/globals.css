@@ -58,6 +58,17 @@
 
 	/* Sidebar Width */
 	--sidebar-width: 260px;
+
+	/* Shadcn UI variables (dark theme) */
+	--radius: 0.625rem;
+	--background: #050505;
+	--foreground: #f8fafc;
+	--primary: #8b5cf6;
+	--primary-foreground: #ffffff;
+	--input: rgba(255, 255, 255, 0.15);
+	--ring: #8b5cf6;
+	--border: rgba(255, 255, 255, 0.1);
+	--destructive: #ef4444;
 }
 
 @layer base {
@@ -254,4 +265,32 @@ input:-webkit-autofill:active {
 	font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
 		sans-serif !important;
 	font-size: 0.875rem !important;
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
+	appearance: textfield;
+}
+
+/* Tailwind v4 theme for shadcn variables */
+@theme inline {
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
 }

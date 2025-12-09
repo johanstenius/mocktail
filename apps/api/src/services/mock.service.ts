@@ -6,6 +6,7 @@ import * as projectRepo from "../repositories/project.repository";
 import * as logRepo from "../repositories/request-log.repository";
 import { logger } from "../utils/logger";
 import { findBestMatch } from "../utils/path-matcher";
+import * as crudService from "./crud.service";
 import type { ValidationMode } from "./endpoint.service";
 import { proxyRequest } from "./proxy.service";
 import {
@@ -13,6 +14,7 @@ import {
 	validateRequestBody,
 } from "./request-validator.service";
 import { type MatchContext, findMatchingVariant } from "./rule-matcher.service";
+import { incrementEndpointCounter } from "./state.service";
 import { type RequestContext, processTemplate } from "./template-engine";
 import type { VariantModel } from "./variant.service";
 
@@ -33,6 +35,7 @@ type Variant = {
 	failRate: number;
 	rules: unknown;
 	ruleLogic: string;
+	sequenceIndex: number | null;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -44,6 +47,9 @@ type Endpoint = {
 	requestBodySchema: unknown;
 	validationMode: string;
 	proxyEnabled: boolean;
+	isCrud: boolean;
+	crudBucket: string | null;
+	crudIdField: string;
 	variants: Variant[];
 };
 
@@ -115,6 +121,7 @@ function dbVariantToModel(variant: Variant): VariantModel {
 		rules: validated.rules,
 		ruleLogic: validated.ruleLogic,
 		delayType: validated.delayType,
+		sequenceIndex: variant.sequenceIndex,
 	};
 }
 
@@ -292,6 +299,99 @@ async function handleValidationFailure(
 	};
 }
 
+async function handleCrudRequest(
+	projectId: string,
+	endpoint: Endpoint,
+	params: Record<string, string>,
+	request: MockRequest,
+	startTime: number,
+): Promise<MockResult> {
+	const config = {
+		projectId,
+		bucketName: endpoint.crudBucket ?? "",
+		idField: endpoint.crudIdField,
+	};
+
+	const idParam = params.id ?? params[endpoint.crudIdField];
+	let result: Awaited<ReturnType<typeof crudService.handleGetAll>>;
+
+	switch (request.method) {
+		case "GET":
+			result = idParam
+				? await crudService.handleGetOne(config, idParam)
+				: await crudService.handleGetAll(config);
+			break;
+		case "POST":
+			result = await crudService.handleCreate(config, request.body);
+			break;
+		case "PUT":
+		case "PATCH":
+			if (!idParam) {
+				result = {
+					success: false,
+					status: 400,
+					body: {
+						error: "missing_id",
+						message: "ID parameter required for update",
+					},
+				};
+			} else {
+				result = await crudService.handleUpdate(config, idParam, request.body);
+			}
+			break;
+		case "DELETE":
+			if (!idParam) {
+				result = {
+					success: false,
+					status: 400,
+					body: {
+						error: "missing_id",
+						message: "ID parameter required for delete",
+					},
+				};
+			} else {
+				result = await crudService.handleDelete(config, idParam);
+			}
+			break;
+		default:
+			result = {
+				success: false,
+				status: 405,
+				body: {
+					error: "method_not_allowed",
+					message: `Method ${request.method} not supported for CRUD endpoints`,
+				},
+			};
+	}
+
+	await logRepo.create({
+		projectId,
+		endpointId: endpoint.id,
+		variantId: null,
+		method: request.method,
+		path: request.path,
+		status: result.status,
+		source: "mock",
+		requestHeaders: request.headers,
+		requestBody: request.body,
+		responseBody: result.body,
+		duration: Date.now() - startTime,
+	});
+
+	emitStatsUpdate(projectId, endpoint.id);
+
+	return {
+		success: true,
+		response: {
+			status: result.status,
+			headers: { "Content-Type": "application/json" },
+			body: result.body,
+		},
+		endpointId: endpoint.id,
+		variantId: null,
+	};
+}
+
 export async function handleMockRequest(
 	request: MockRequest,
 	startTime: number,
@@ -323,11 +423,18 @@ export async function handleMockRequest(
 		);
 	}
 
+	if (endpoint.isCrud && endpoint.crudBucket) {
+		return handleCrudRequest(project.id, endpoint, params, request, startTime);
+	}
+
+	const requestCount = incrementEndpointCounter(project.id, endpoint.id);
+
 	const matchContext: MatchContext = {
 		params,
 		query: request.query,
 		headers: request.headers,
 		body: request.body,
+		requestCount,
 	};
 
 	const variant = getEffectiveVariant(endpoint, matchContext);
@@ -357,6 +464,7 @@ export async function handleMockRequest(
 		query: request.query,
 		headers: request.headers,
 		body: request.body,
+		projectId: project.id,
 	};
 
 	const body = processResponseBody(variant, templateContext);

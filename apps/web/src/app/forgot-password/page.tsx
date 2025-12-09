@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 								<div className="w-16 h-16 rounded-full bg-[var(--glow-emerald)]/10 flex items-center justify-center mx-auto mb-6">
 									<Mail className="w-8 h-8 text-[var(--glow-emerald)]" />
 								</div>
-								<h1 className="text-2xl font-bold mb-2 font-['Outfit']">
+								<h1 className="text-2xl font-bold mb-2 ">
 									Check your email
 								</h1>
 								<p className="text-[var(--text-secondary)] mb-6">
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
 						) : (
 							<>
 								<div className="text-center mb-8">
-									<h1 className="text-3xl font-bold mb-2 font-['Outfit']">
+									<h1 className="text-3xl font-bold mb-2 ">
 										Forgot password?
 									</h1>
 									<p className="text-[var(--text-secondary)]">

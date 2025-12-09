@@ -5,6 +5,7 @@ import { cors } from "hono/cors";
 import { adminRouter } from "./controllers/admin";
 import { auditRouter } from "./controllers/audit";
 import { billingRouter } from "./controllers/billing";
+import { bucketsRouter } from "./controllers/buckets";
 import { dashboardRouter } from "./controllers/dashboard";
 import { endpointsRouter } from "./controllers/endpoints";
 import { eventsRouter } from "./controllers/events";
@@ -78,6 +79,7 @@ app.route(
 app.route("/projects/:projectId/import", importRouter);
 app.route("/projects/:projectId/logs", requestLogsRouter);
 app.route("/projects/:projectId/statistics", statisticsRouter);
+app.route("/projects/:id/buckets", bucketsRouter);
 app.route("/billing", billingRouter);
 app.route("/", auditRouter);
 app.route("/dashboard", dashboardRouter);

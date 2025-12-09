@@ -14,6 +14,7 @@ export type CreateVariantData = {
 	failRate: number;
 	rules: unknown;
 	ruleLogic: string;
+	sequenceIndex: number | null;
 };
 
 export type UpdateVariantData = Partial<Omit<CreateVariantData, "endpointId">>;
@@ -58,6 +59,7 @@ export function create(data: CreateVariantData) {
 			failRate: data.failRate,
 			rules: data.rules as Prisma.InputJsonValue,
 			ruleLogic: data.ruleLogic,
+			sequenceIndex: data.sequenceIndex,
 		},
 	});
 }
@@ -83,6 +85,9 @@ export function update(id: string, data: UpdateVariantData) {
 				rules: data.rules as Prisma.InputJsonValue,
 			}),
 			...(data.ruleLogic && { ruleLogic: data.ruleLogic }),
+			...(data.sequenceIndex !== undefined && {
+				sequenceIndex: data.sequenceIndex,
+			}),
 		},
 	});
 }

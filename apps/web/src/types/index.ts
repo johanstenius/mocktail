@@ -2,6 +2,25 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 export type BodyType = "static" | "template";
 export type DelayType = "fixed" | "random";
 
+// Bucket types
+export type Bucket = {
+	id: string;
+	projectId: string;
+	name: string;
+	data: unknown[];
+	createdAt: string;
+	updatedAt: string;
+};
+
+export type CreateBucketInput = {
+	name: string;
+	data?: unknown[];
+};
+
+export type UpdateBucketInput = {
+	data: unknown[];
+};
+
 // Variant types
 export type MatchTarget = "header" | "query" | "param" | "body";
 export type MatchOperator =
@@ -36,6 +55,7 @@ export type Variant = {
 	failRate: number;
 	rules: MatchRule[];
 	ruleLogic: RuleLogic;
+	sequenceIndex: number | null;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -52,6 +72,7 @@ export type CreateVariantInput = {
 	failRate?: number;
 	rules?: MatchRule[];
 	ruleLogic?: RuleLogic;
+	sequenceIndex?: number | null;
 };
 
 export type UpdateVariantInput = Partial<CreateVariantInput>;
@@ -83,6 +104,9 @@ export type Endpoint = {
 	requestBodySchema: unknown;
 	validationMode: ValidationMode;
 	proxyEnabled: boolean;
+	isCrud: boolean;
+	crudBucket: string | null;
+	crudIdField: string;
 	createdAt: string;
 	updatedAt: string;
 };
@@ -98,8 +122,8 @@ export type RequestLog = {
 	status: number;
 	source: RequestSource;
 	requestHeaders: Record<string, string>;
-	requestBody: string | null;
-	responseBody: string | null;
+	requestBody: unknown;
+	responseBody: unknown;
 	validationErrors: string[] | null;
 	duration: number;
 	createdAt: string;
@@ -122,6 +146,9 @@ export type CreateEndpointInput = {
 	requestBodySchema?: unknown;
 	validationMode?: ValidationMode;
 	proxyEnabled?: boolean;
+	isCrud?: boolean;
+	crudBucket?: string;
+	crudIdField?: string;
 };
 
 export type UpdateProjectInput = {

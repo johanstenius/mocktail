@@ -42,7 +42,7 @@ function StatCard({
 						<Icon className="h-5 w-5 text-[var(--text-secondary)]" />
 					</div>
 				</div>
-				<div className="text-3xl font-bold font-['Outfit'] mb-1">{value}</div>
+				<div className="text-3xl font-bold  mb-1">{value}</div>
 				<div className="text-sm text-[var(--text-muted)]">{label}</div>
 			</CardContent>
 		</Card>
@@ -225,10 +225,10 @@ export default function DashboardPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-6xl mx-auto space-y-8">
 					<div>
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							Welcome back
 						</h1>
-						<p className="text-[var(--text-muted)] font-['Inter'] text-sm">
+						<p className="text-[var(--text-muted)]  text-sm">
 							{activeOrg?.name}
 						</p>
 					</div>

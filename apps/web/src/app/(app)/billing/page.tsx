@@ -114,11 +114,11 @@ function UsageRing({
 				</div>
 			</div>
 			<div className="flex-1 min-w-0">
-				<div className="text-sm text-[var(--text-muted)] font-['Inter'] mb-1">
+				<div className="text-sm text-[var(--text-muted)]  mb-1">
 					{label}
 				</div>
 				<div className="flex items-baseline gap-1">
-					<span className="text-2xl font-bold text-[var(--text-primary)] font-['Outfit'] tabular-nums">
+					<span className="text-2xl font-bold text-[var(--text-primary)]  tabular-nums">
 						{current.toLocaleString()}
 					</span>
 					<span className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
@@ -126,7 +126,7 @@ function UsageRing({
 					</span>
 				</div>
 				{isNearLimit && (
-					<div className="text-xs text-[var(--status-warning)] mt-1 font-['Inter']">
+					<div className="text-xs text-[var(--status-warning)] mt-1 ">
 						{Math.round(percentage)}% used
 					</div>
 				)}
@@ -154,12 +154,12 @@ function ComingSoonPage() {
 							<div className="relative z-10">
 								<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--glow-violet)]/10 border border-[var(--glow-violet)]/20 mb-6">
 									<Rocket className="w-4 h-4 text-[var(--glow-violet)]" />
-									<span className="text-sm font-medium text-[var(--glow-violet)] font-['Inter']">
+									<span className="text-sm font-medium text-[var(--glow-violet)] ">
 										Coming Soon
 									</span>
 								</div>
 
-								<h1 className="text-4xl md:text-5xl font-bold mb-4 font-['Outfit'] leading-tight">
+								<h1 className="text-4xl md:text-5xl font-bold mb-4  leading-tight">
 									<span className="bg-gradient-to-r from-white via-white to-[var(--text-secondary)] bg-clip-text text-transparent">
 										Pro tier is on
 									</span>
@@ -169,7 +169,7 @@ function ComingSoonPage() {
 									</span>
 								</h1>
 
-								<p className="text-lg text-[var(--text-secondary)] font-['Inter'] max-w-xl mb-8">
+								<p className="text-lg text-[var(--text-secondary)]  max-w-xl mb-8">
 									We're putting the finishing touches on our Pro plan. Get ready
 									for more projects, more endpoints, and team collaboration.
 								</p>
@@ -179,7 +179,7 @@ function ComingSoonPage() {
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-violet)]/10 flex items-center justify-center">
 											<Zap className="w-4 h-4 text-[var(--glow-violet)]" />
 										</div>
-										<span className="text-sm font-['Inter']">
+										<span className="text-sm ">
 											100k requests/mo
 										</span>
 									</div>
@@ -187,7 +187,7 @@ function ComingSoonPage() {
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-blue)]/10 flex items-center justify-center">
 											<Users className="w-4 h-4 text-[var(--glow-blue)]" />
 										</div>
-										<span className="text-sm font-['Inter']">
+										<span className="text-sm ">
 											Team collaboration
 										</span>
 									</div>
@@ -195,7 +195,7 @@ function ComingSoonPage() {
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-pink)]/10 flex items-center justify-center">
 											<Sparkles className="w-4 h-4 text-[var(--glow-pink)]" />
 										</div>
-										<span className="text-sm font-['Inter']">
+										<span className="text-sm ">
 											Priority support
 										</span>
 									</div>
@@ -208,10 +208,10 @@ function ComingSoonPage() {
 						<div className="p-6 rounded-2xl border border-[var(--border-subtle)] bg-[rgba(255,255,255,0.02)]">
 							<div className="flex items-center justify-between mb-6">
 								<div>
-									<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit']">
+									<h3 className="text-xl font-semibold text-[var(--text-primary)] ">
 										Free
 									</h3>
-									<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+									<p className="text-sm text-[var(--text-muted)] ">
 										What you have now
 									</p>
 								</div>
@@ -219,10 +219,10 @@ function ComingSoonPage() {
 							</div>
 
 							<div className="mb-6">
-								<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+								<span className="text-4xl font-bold text-[var(--text-primary)] ">
 									$0
 								</span>
-								<span className="text-[var(--text-muted)] font-['Inter']">
+								<span className="text-[var(--text-muted)] ">
 									{" "}
 									forever
 								</span>
@@ -237,7 +237,7 @@ function ComingSoonPage() {
 										<div className="w-5 h-5 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center flex-shrink-0">
 											<Check className="w-3 h-3 text-[var(--text-muted)]" />
 										</div>
-										<span className="text-[var(--text-secondary)] font-['Inter']">
+										<span className="text-[var(--text-secondary)] ">
 											{feature.text}
 										</span>
 									</li>
@@ -251,11 +251,11 @@ function ComingSoonPage() {
 							<div className="relative z-10">
 								<div className="flex items-center justify-between mb-6">
 									<div>
-										<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit'] flex items-center gap-2">
+										<h3 className="text-xl font-semibold text-[var(--text-primary)]  flex items-center gap-2">
 											Pro
 											<Sparkles className="w-5 h-5 text-[var(--glow-violet)]" />
 										</h3>
-										<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+										<p className="text-sm text-[var(--text-muted)] ">
 											For teams & production
 										</p>
 									</div>
@@ -271,7 +271,7 @@ function ComingSoonPage() {
 									</Badge>
 								</div>
 
-								<p className="text-[var(--text-secondary)] text-sm mb-6 font-['Inter']">
+								<p className="text-[var(--text-secondary)] text-sm mb-6 ">
 									Everything in Free, plus:
 								</p>
 
@@ -289,14 +289,14 @@ function ComingSoonPage() {
 											className="flex items-center gap-3 text-sm"
 										>
 											<span className="text-base">{feature.icon}</span>
-											<span className="text-[var(--text-secondary)] font-['Inter']">
+											<span className="text-[var(--text-secondary)] ">
 												{feature.label}
 											</span>
 										</li>
 									))}
 								</ul>
 
-								<div className="w-full py-3 rounded-xl bg-gradient-to-r from-[rgba(139,92,246,0.2)] to-[rgba(59,130,246,0.2)] border border-[rgba(139,92,246,0.3)] text-[var(--text-primary)] font-semibold text-center flex items-center justify-center gap-2 font-['Inter']">
+								<div className="w-full py-3 rounded-xl bg-gradient-to-r from-[rgba(139,92,246,0.2)] to-[rgba(59,130,246,0.2)] border border-[rgba(139,92,246,0.3)] text-[var(--text-primary)] font-semibold text-center flex items-center justify-center gap-2 ">
 									<Rocket className="w-4 h-4 text-[var(--glow-violet)]" />
 									Launching Soon
 								</div>
@@ -324,12 +324,12 @@ function PaymentProcessingModal({
 		<Dialog open onOpenChange={(open) => !open && onClose()}>
 			<DialogContent className="sm:max-w-md bg-[var(--bg-surface)] border-[var(--border-subtle)]">
 				<DialogHeader>
-					<DialogTitle className="font-['Outfit']">
+					<DialogTitle className="">
 						{state === "processing" && "Processing payment..."}
 						{state === "success" && "Welcome to Pro!"}
 						{state === "timeout" && "Payment received"}
 					</DialogTitle>
-					<DialogDescription className="font-['Inter']">
+					<DialogDescription className="">
 						{state === "processing" && "Activating your Pro plan..."}
 						{state === "success" && "Your new limits are now active."}
 						{state === "timeout" &&
@@ -482,7 +482,7 @@ function ActiveBillingPage() {
 			<div className="flex-1 overflow-y-auto p-8">
 				<div className="max-w-5xl mx-auto">
 					<div className="mb-8">
-						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent font-['Outfit']">
+						<h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent ">
 							Billing & Usage
 						</h1>
 						<p className="text-[var(--text-muted)] font-['JetBrains_Mono'] text-sm">
@@ -513,10 +513,10 @@ function ActiveBillingPage() {
 								<div className="mb-6 p-4 rounded-xl bg-[rgba(239,68,68,0.1)] border border-[var(--status-error)]/20 flex items-start gap-3">
 									<AlertCircle className="h-5 w-5 text-[var(--status-error)] mt-0.5" />
 									<div>
-										<p className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+										<p className="text-sm font-medium text-[var(--text-primary)] ">
 											Subscription cancelling
 										</p>
-										<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+										<p className="text-sm text-[var(--text-muted)] ">
 											Your subscription will end on{" "}
 											{usage.currentPeriodEnd
 												? new Date(usage.currentPeriodEnd).toLocaleDateString()
@@ -540,7 +540,7 @@ function ActiveBillingPage() {
 							)}
 
 							{canceled && (
-								<div className="mb-6 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-sm text-[var(--text-muted)] font-['Inter']">
+								<div className="mb-6 p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-sm text-[var(--text-muted)] ">
 									Checkout was canceled. You can upgrade anytime.
 								</div>
 							)}
@@ -549,10 +549,10 @@ function ActiveBillingPage() {
 								<div className="mb-6 p-4 rounded-xl bg-[rgba(245,158,11,0.1)] border border-[var(--status-warning)]/30 flex items-start gap-3">
 									<AlertTriangle className="h-5 w-5 text-[var(--status-warning)] mt-0.5" />
 									<div className="flex-1">
-										<p className="text-sm font-medium text-[var(--text-primary)] font-['Inter']">
+										<p className="text-sm font-medium text-[var(--text-primary)] ">
 											Payment failed
 										</p>
-										<p className="text-sm text-[var(--text-muted)] font-['Inter']">
+										<p className="text-sm text-[var(--text-muted)] ">
 											{(() => {
 												const failedDate = new Date(usage.paymentFailedAt);
 												const now = new Date();
@@ -585,7 +585,7 @@ function ActiveBillingPage() {
 							)}
 
 							<div className="mb-8">
-								<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
+								<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 ">
 									Current Usage
 								</h2>
 								<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -620,7 +620,7 @@ function ActiveBillingPage() {
 								</div>
 							</div>
 
-							<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 font-['Outfit']">
+							<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 ">
 								Plans
 							</h2>
 							<div className="grid md:grid-cols-2 gap-6 mb-8 max-w-3xl">
@@ -632,7 +632,7 @@ function ActiveBillingPage() {
 									}`}
 								>
 									<div className="flex items-center justify-between mb-4">
-										<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit']">
+										<h3 className="text-xl font-semibold text-[var(--text-primary)] ">
 											Free
 										</h3>
 										{currentTier === "free" && (
@@ -641,7 +641,7 @@ function ActiveBillingPage() {
 									</div>
 
 									<div className="mb-6">
-										<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+										<span className="text-4xl font-bold text-[var(--text-primary)] ">
 											$0
 										</span>
 									</div>
@@ -653,7 +653,7 @@ function ActiveBillingPage() {
 												className="flex items-center gap-2 text-sm"
 											>
 												<Check className="h-4 w-4 text-[var(--status-success)]" />
-												<span className="text-[var(--text-secondary)] font-['Inter']">
+												<span className="text-[var(--text-secondary)] ">
 													{feature.text}
 												</span>
 											</li>
@@ -674,7 +674,7 @@ function ActiveBillingPage() {
 
 									<div className="relative z-10">
 										<div className="flex items-center justify-between mb-4">
-											<h3 className="text-xl font-semibold text-[var(--text-primary)] font-['Outfit'] flex items-center gap-2">
+											<h3 className="text-xl font-semibold text-[var(--text-primary)]  flex items-center gap-2">
 												Pro
 												<Sparkles className="w-5 h-5 text-[var(--glow-violet)]" />
 											</h3>
@@ -684,10 +684,10 @@ function ActiveBillingPage() {
 										</div>
 
 										<div className="mb-6">
-											<span className="text-4xl font-bold text-[var(--text-primary)] font-['Outfit']">
+											<span className="text-4xl font-bold text-[var(--text-primary)] ">
 												$29
 											</span>
-											<span className="text-[var(--text-muted)] font-['Inter']">
+											<span className="text-[var(--text-muted)] ">
 												/mo
 											</span>
 										</div>
@@ -702,7 +702,7 @@ function ActiveBillingPage() {
 														className={`h-4 w-4 ${feature.highlight ? "text-[var(--glow-violet)]" : "text-[var(--status-success)]"}`}
 													/>
 													<span
-														className={`font-['Inter'] ${feature.highlight ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
+														className={` ${feature.highlight ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}
 													>
 														{feature.text}
 													</span>
@@ -730,16 +730,16 @@ function ActiveBillingPage() {
 
 							{currentTier === "pro" && !usage?.cancelAtPeriodEnd && (
 								<div className="p-6 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]">
-									<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2 font-['Outfit']">
+									<h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2 ">
 										Manage Subscription
 									</h2>
-									<p className="text-sm text-[var(--text-muted)] mb-4 font-['Inter']">
+									<p className="text-sm text-[var(--text-muted)] mb-4 ">
 										{usage?.currentPeriodEnd &&
 											`Next billing date: ${new Date(usage.currentPeriodEnd).toLocaleDateString()}`}
 									</p>
 									{showCancelConfirm ? (
 										<div className="flex items-center gap-3">
-											<span className="text-sm text-[var(--text-secondary)] font-['Inter']">
+											<span className="text-sm text-[var(--text-secondary)] ">
 												Are you sure?
 											</span>
 											<Button

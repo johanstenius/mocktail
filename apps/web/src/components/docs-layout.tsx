@@ -36,6 +36,7 @@ const navigation: NavGroup[] = [
 	{
 		title: "Features",
 		items: [
+			{ href: "/docs/stateful-mocks", label: "Stateful Mocks" },
 			{ href: "/docs/chaos-engineering", label: "Chaos Engineering" },
 			{ href: "/docs/openapi-import", label: "OpenAPI Import" },
 			{ href: "/docs/request-logs", label: "Request Logs" },
