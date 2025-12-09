@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Providers } from "./providers";
+import { StructuredData } from "./structured-data";
 
 const inter = Inter({
 	variable: "--font-inter",
@@ -26,6 +28,9 @@ export const metadata: Metadata = {
 	description:
 		"Instant mock servers with realistic auth, latency injection, and chaos engineering.",
 	metadataBase: new URL("https://mockspec.dev"),
+	alternates: {
+		canonical: "https://mockspec.dev",
+	},
 	openGraph: {
 		type: "website",
 		url: "https://mockspec.dev",
@@ -63,6 +68,10 @@ export const metadata: Metadata = {
 			"max-snippet": -1,
 		},
 	},
+	other: {
+		"theme-color": "#050507",
+		"msapplication-TileColor": "#050507",
+	},
 };
 
 export default function RootLayout({
@@ -72,10 +81,14 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
+			<head>
+				<StructuredData />
+			</head>
 			<body
 				className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased`}
 			>
 				<Providers>{children}</Providers>
+				<Analytics />
 			</body>
 		</html>
 	);

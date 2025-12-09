@@ -1,0 +1,32 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+	return {
+		name: "Mockspec - Mock APIs in Minutes",
+		short_name: "Mockspec",
+		description:
+			"Instant mock servers with realistic auth, latency injection, and chaos engineering.",
+		start_url: "/",
+		display: "standalone",
+		background_color: "#050507",
+		theme_color: "#050507",
+		icons: [
+			{
+				src: "/icon-192.png",
+				sizes: "192x192",
+				type: "image/png",
+			},
+			{
+				src: "/icon-512.png",
+				sizes: "512x512",
+				type: "image/png",
+			},
+			{
+				src: "/icon-512.png",
+				sizes: "512x512",
+				type: "image/png",
+				purpose: "maskable",
+			},
+		],
+	};
+}
