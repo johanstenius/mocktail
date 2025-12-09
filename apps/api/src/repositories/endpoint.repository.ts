@@ -8,6 +8,9 @@ type CreateEndpointData = {
 	requestBodySchema?: unknown;
 	validationMode?: string;
 	proxyEnabled?: boolean;
+	isCrud?: boolean;
+	crudBucket?: string | null;
+	crudIdField?: string;
 };
 
 type UpdateEndpointData = Partial<Omit<CreateEndpointData, "projectId">>;
@@ -51,6 +54,9 @@ export function create(data: CreateEndpointData) {
 				(data.requestBodySchema as Prisma.InputJsonValue) ?? {},
 			validationMode: data.validationMode ?? "none",
 			proxyEnabled: data.proxyEnabled ?? false,
+			isCrud: data.isCrud ?? false,
+			crudBucket: data.crudBucket ?? null,
+			crudIdField: data.crudIdField ?? "id",
 		},
 	});
 }
@@ -68,6 +74,9 @@ export function update(id: string, data: UpdateEndpointData) {
 			...(data.proxyEnabled !== undefined && {
 				proxyEnabled: data.proxyEnabled,
 			}),
+			...(data.isCrud !== undefined && { isCrud: data.isCrud }),
+			...(data.crudBucket !== undefined && { crudBucket: data.crudBucket }),
+			...(data.crudIdField !== undefined && { crudIdField: data.crudIdField }),
 		},
 	});
 }

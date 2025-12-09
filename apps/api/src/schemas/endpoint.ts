@@ -31,6 +31,9 @@ export const endpointSchema = z.object({
 	requestBodySchema: z.unknown(),
 	validationMode: validationModeSchema,
 	proxyEnabled: z.boolean(),
+	isCrud: z.boolean(),
+	crudBucket: z.string().nullable(),
+	crudIdField: z.string(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
 });
@@ -47,6 +50,9 @@ export const createEndpointSchema = z.object({
 	requestBodySchema: z.unknown().optional(),
 	validationMode: validationModeSchema.optional(),
 	proxyEnabled: z.boolean().default(false),
+	isCrud: z.boolean().default(false),
+	crudBucket: z.string().optional(),
+	crudIdField: z.string().default("id"),
 });
 
 export const updateEndpointSchema = z.object({
@@ -61,6 +67,9 @@ export const updateEndpointSchema = z.object({
 	requestBodySchema: z.unknown().optional(),
 	validationMode: validationModeSchema.optional(),
 	proxyEnabled: z.boolean().optional(),
+	isCrud: z.boolean().optional(),
+	crudBucket: z.string().nullable().optional(),
+	crudIdField: z.string().optional(),
 });
 
 export const endpointListSchema = z.object({

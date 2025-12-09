@@ -31,6 +31,9 @@ function mapEndpointToResponse(endpoint: EndpointModel): EndpointResponse {
 		validationMode:
 			endpoint.validationMode as EndpointResponse["validationMode"],
 		proxyEnabled: endpoint.proxyEnabled,
+		isCrud: endpoint.isCrud,
+		crudBucket: endpoint.crudBucket,
+		crudIdField: endpoint.crudIdField,
 		createdAt: endpoint.createdAt.toISOString(),
 		updatedAt: endpoint.updatedAt.toISOString(),
 	};
@@ -93,7 +96,10 @@ endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");
 
-	const result = await endpointService.update(endpointId, projectId, body);
+	const result = await endpointService.update(endpointId, projectId, {
+		...body,
+		crudBucket: body.crudBucket ?? undefined,
+	});
 
 	if (!result) {
 		throw notFound("Endpoint");

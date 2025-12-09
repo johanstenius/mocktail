@@ -15,6 +15,9 @@ export type EndpointModel = {
 	requestBodySchema: unknown;
 	validationMode: ValidationMode;
 	proxyEnabled: boolean;
+	isCrud: boolean;
+	crudBucket: string | null;
+	crudIdField: string;
 	createdAt: Date;
 	updatedAt: Date;
 	// For API response, we include the default variant's response config
@@ -34,6 +37,9 @@ type PrismaEndpoint = {
 	requestBodySchema: unknown;
 	validationMode: string;
 	proxyEnabled: boolean;
+	isCrud: boolean;
+	crudBucket: string | null;
+	crudIdField: string;
 	createdAt: Date;
 	updatedAt: Date;
 };
@@ -59,6 +65,9 @@ function toEndpointModel(
 		requestBodySchema: e.requestBodySchema,
 		validationMode: e.validationMode as ValidationMode,
 		proxyEnabled: e.proxyEnabled,
+		isCrud: e.isCrud,
+		crudBucket: e.crudBucket,
+		crudIdField: e.crudIdField,
 		createdAt: e.createdAt,
 		updatedAt: e.updatedAt,
 		// Response config from default variant or defaults
@@ -83,6 +92,9 @@ export type CreateEndpointInput = {
 	requestBodySchema?: unknown;
 	validationMode?: ValidationMode;
 	proxyEnabled?: boolean;
+	isCrud?: boolean;
+	crudBucket?: string;
+	crudIdField?: string;
 };
 
 export type UpdateEndpointInput = Partial<CreateEndpointInput>;
@@ -144,6 +156,9 @@ export async function create(
 		requestBodySchema: input.requestBodySchema ?? {},
 		validationMode: input.validationMode ?? "none",
 		proxyEnabled: input.proxyEnabled ?? false,
+		isCrud: input.isCrud ?? false,
+		crudBucket: input.crudBucket ?? null,
+		crudIdField: input.crudIdField ?? "id",
 	});
 
 	const variant = await variantRepo.create({
@@ -195,7 +210,7 @@ export async function update(
 		}
 	}
 
-	// Update endpoint (only method, path, validation fields, proxyEnabled)
+	// Update endpoint fields
 	const endpoint = await endpointRepo.update(endpointId, {
 		...(input.method && { method: input.method }),
 		...(input.path && { path: input.path }),
@@ -207,6 +222,15 @@ export async function update(
 		}),
 		...(input.proxyEnabled !== undefined && {
 			proxyEnabled: input.proxyEnabled,
+		}),
+		...(input.isCrud !== undefined && {
+			isCrud: input.isCrud,
+		}),
+		...(input.crudBucket !== undefined && {
+			crudBucket: input.crudBucket,
+		}),
+		...(input.crudIdField !== undefined && {
+			crudIdField: input.crudIdField,
 		}),
 	});
 

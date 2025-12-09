@@ -977,6 +977,11 @@ export function EndpointPanel({
 		e.preventDefault();
 		setConfigError(null);
 
+		if (isCrud && !crudBucket) {
+			setConfigError("Please select a bucket for stateful mode");
+			return;
+		}
+
 		const statusAllowsBody = !NO_BODY_STATUS_CODES.includes(status);
 		const bodyType = isTemplate ? "template" : "static";
 
