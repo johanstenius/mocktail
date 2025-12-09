@@ -63,7 +63,7 @@ export default function LandingPage() {
 							</Link>
 							<Link
 								href="/register"
-								className="h-9 px-4 rounded-full bg-[var(--glow-violet)] text-white text-sm font-medium shadow-[0_0_15px_rgba(139,92,246,0.3)] border border-white/10 hover:bg-[#7c3aed] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-all flex items-center"
+								className="h-9 px-4 rounded-full bg-[var(--glow-violet)] text-white text-sm font-medium border border-white/10 hover:bg-[#7c3aed] hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:-translate-y-0.5 transition-all flex items-center"
 							>
 								Get Started
 							</Link>
@@ -73,7 +73,7 @@ export default function LandingPage() {
 
 				{/* Hero Section */}
 				<section className="container max-w-6xl mx-auto px-6 pt-44 pb-24 text-center relative">
-					<h1 className="text-7xl font-bold leading-[1.1] mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent font-['Outfit'] tracking-tight">
+					<h1 className="text-7xl font-bold leading-[1.1] mb-6 bg-gradient-to-b from-white to-slate-400 bg-clip-text text-transparent  tracking-tight">
 						Instant Mock APIs.
 						<br />
 						Ready in seconds.
@@ -85,13 +85,13 @@ export default function LandingPage() {
 					<div className="flex gap-4 justify-center mb-16">
 						<Link
 							href="/register"
-							className="h-12 px-7 rounded-full bg-[var(--accent-primary)] text-white font-semibold shadow-[0_0_20px_rgba(139,92,246,0.3)] border border-white/10 hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] hover:bg-[#7c3aed] hover:-translate-y-0.5 transition-all flex items-center font-['Inter']"
+							className="h-12 px-7 rounded-full bg-[var(--accent-primary)] text-white font-semibold border border-white/10 hover:shadow-[0_0_25px_rgba(139,92,246,0.4)] hover:bg-[#7c3aed] hover:-translate-y-0.5 transition-all flex items-center"
 						>
 							Start for Free
 						</Link>
 						<Link
 							href="/docs"
-							className="h-12 px-7 rounded-full bg-[rgba(255,255,255,0.05)] text-[var(--text-primary)] border border-[var(--border-subtle)] font-semibold backdrop-blur-md hover:bg-[rgba(255,255,255,0.1)] hover:border-[var(--border-highlight)] transition-all flex items-center font-['Inter']"
+							className="h-12 px-7 rounded-full bg-[rgba(255,255,255,0.05)] text-[var(--text-primary)] border border-[var(--border-subtle)] font-semibold backdrop-blur-md hover:bg-[rgba(255,255,255,0.1)] hover:border-[var(--border-highlight)] transition-all flex items-center "
 						>
 							Read Documentation
 						</Link>
@@ -142,7 +142,7 @@ export default function LandingPage() {
 				{/* Features Section */}
 				<section id="features" className="container max-w-6xl mx-auto px-6 py-24">
 					<div className="text-center mb-16">
-						<h2 className="text-4xl font-bold mb-4 font-['Outfit']">
+						<h2 className="text-4xl font-bold mb-4 ">
 							Built for modern engineering teams.
 						</h2>
 						<p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
@@ -196,7 +196,7 @@ export default function LandingPage() {
 				{/* How It Works Section */}
 				<section className="container max-w-6xl mx-auto px-6 py-24 border-t border-[var(--border-subtle)]">
 					<div className="text-center mb-16">
-						<h2 className="text-4xl font-bold mb-4 font-['Outfit']">
+						<h2 className="text-4xl font-bold mb-4 ">
 							From zero to mock API in minutes.
 						</h2>
 						<p className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto">
@@ -228,8 +228,8 @@ export default function LandingPage() {
 							>
 								<div className="absolute top-0 right-0 p-32 bg-[var(--accent-primary)]/5 rounded-full blur-3xl -mr-16 -mt-16 transition-opacity opacity-0 group-hover:opacity-100" />
 								<CardHeader>
-									<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-violet-600 flex items-center justify-center mb-6 shadow-[0_0_15px_rgba(139,92,246,0.3)] group-hover:scale-110 transition-transform duration-300">
-										<span className="text-white font-bold font-['Outfit'] text-lg">
+									<div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-violet-600 flex items-center justify-center mb-6  group-hover:scale-110 transition-transform duration-300">
+										<span className="text-white font-bold  text-lg">
 											{item.step}
 										</span>
 									</div>
@@ -247,7 +247,7 @@ export default function LandingPage() {
 
 				{/* Pricing Section */}
 				<section id="pricing" className="container max-w-6xl mx-auto px-6 pb-24">
-					<h2 className="text-4xl font-bold text-center mb-16 font-['Outfit']">
+					<h2 className="text-4xl font-bold text-center mb-16 ">
 						Simple, transparent pricing.
 					</h2>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
@@ -257,7 +257,7 @@ export default function LandingPage() {
 								<CardTitle className="text-xl font-semibold mb-1">Free</CardTitle>
 							</CardHeader>
 							<CardContent className="flex flex-col flex-grow pt-4">
-								<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+								<div className="text-4xl font-bold mb-4  flex items-baseline gap-1">
 									$0
 									<span className="text-base text-[var(--text-muted)] font-normal">
 										/mo
@@ -306,7 +306,7 @@ export default function LandingPage() {
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="flex flex-col flex-grow pt-4">
-									<div className="text-4xl font-bold mb-4 font-['Outfit'] flex items-baseline gap-1">
+									<div className="text-4xl font-bold mb-4  flex items-baseline gap-1">
 										$29
 										<span className="text-base text-[var(--text-muted)] font-normal">
 											/mo

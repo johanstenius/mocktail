@@ -1,24 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Outfit } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { Providers } from "./providers";
 import { StructuredData } from "./structured-data";
 
-const inter = Inter({
-	variable: "--font-inter",
+const dmSans = DM_Sans({
+	variable: "--font-dm-sans",
 	subsets: ["latin"],
 	display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
 	variable: "--font-jetbrains-mono",
-	subsets: ["latin"],
-	display: "swap",
-});
-
-const outfit = Outfit({
-	variable: "--font-outfit",
 	subsets: ["latin"],
 	display: "swap",
 });
@@ -85,7 +79,7 @@ export default function RootLayout({
 				<StructuredData />
 			</head>
 			<body
-				className={`${inter.variable} ${jetbrainsMono.variable} ${outfit.variable} antialiased`}
+				className={`${dmSans.variable} ${jetbrainsMono.variable} antialiased`}
 			>
 				<Providers>{children}</Providers>
 				<Analytics />
