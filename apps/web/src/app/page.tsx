@@ -268,7 +268,7 @@ export default function LandingPage() {
 								</p>
 								<ul className="space-y-3 mb-8 flex-grow">
 									{[
-										"2 Projects",
+										"1 Project",
 										"5 Endpoints per Project",
 										"1,000 Requests/mo",
 										"Solo Use Only",
