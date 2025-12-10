@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useFeatures } from "@/hooks/use-features";
 import {
 	deleteEndpoint,
 	getEndpoints,
@@ -408,6 +409,7 @@ function ProjectSettings({
 	const [showAdvanced, setShowAdvanced] = useState(false);
 	const [showConfirmReset, setShowConfirmReset] = useState(false);
 	const queryClient = useQueryClient();
+	const { features } = useFeatures();
 
 	const resetStateMutation = useMutation({
 		mutationFn: () => resetProjectState(projectId),
@@ -471,7 +473,7 @@ function ProjectSettings({
 			<h3 className="text-xl font-bold mb-6 ">Settings</h3>
 
 			<div className="space-y-6">
-				{PROXY_ENABLED && (
+				{PROXY_ENABLED && features?.proxyMode && (
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 					<h4 className="text-lg font-semibold mb-2 ">
 						Proxy Mode
@@ -828,7 +830,7 @@ export default function ProjectDetailPage() {
 
 	const navItems: { id: TabId; label: string }[] = [
 		{ id: "endpoints", label: "Endpoints" },
-		{ id: "data", label: "Data" },
+		...(usage?.features?.statefulMocks ? [{ id: "data" as const, label: "Data" }] : []),
 		{ id: "logs", label: "Logs" },
 		{ id: "analytics", label: "Analytics" },
 		{ id: "settings", label: "Settings" },
@@ -981,7 +983,7 @@ export default function ProjectDetailPage() {
 						</div>
 					)}
 
-					{activeTab === "data" && <BucketList projectId={projectId} />}
+					{activeTab === "data" && usage?.features?.statefulMocks && <BucketList projectId={projectId} />}
 
 					{activeTab === "logs" && (
 						<div>

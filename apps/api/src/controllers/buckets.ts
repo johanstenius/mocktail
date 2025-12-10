@@ -11,10 +11,17 @@ import {
 } from "../schemas/bucket";
 import * as bucketService from "../services/bucket.service";
 import type { BucketModel } from "../services/bucket.service";
+import * as limitsService from "../services/limits.service";
 import * as projectService from "../services/project.service";
 import { badRequest, conflict, notFound } from "../utils/errors";
 
 export const bucketsRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
+
+bucketsRouter.use("/*", async (c, next) => {
+	const auth = getAuth(c);
+	await limitsService.requireFeature(auth.orgId, "statefulMocks");
+	await next();
+});
 
 function mapBucketToResponse(bucket: BucketModel): BucketResponse {
 	return {

@@ -4,6 +4,7 @@ import type { ContentfulStatusCode, StatusCode } from "hono/utils/http-status";
 import {
 	getMockOrgId,
 	getMockProjectId,
+	getMockTier,
 	mockAuthMiddleware,
 } from "../middleware/mock-auth";
 import * as limitsService from "../services/limits.service";
@@ -54,6 +55,7 @@ async function extractBody(request: Request): Promise<unknown> {
 mockRouter.all("/*", async (c) => {
 	const projectId = getMockProjectId(c);
 	const orgId = getMockOrgId(c);
+	const tier = getMockTier(c);
 
 	// Quota check (org-level)
 	const quotaCheck = await limitsService.trackRequest(orgId);
@@ -78,6 +80,7 @@ mockRouter.all("/*", async (c) => {
 
 	const result = await mockService.handleMockRequest(
 		{ projectId, method, path, headers, query, body },
+		tier,
 		startTime,
 	);
 

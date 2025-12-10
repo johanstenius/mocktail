@@ -17,9 +17,12 @@ import { logger } from "../utils/logger";
 
 export const billingRouter = new OpenAPIHono<{ Variables: AuthVariables }>();
 
-// Block all billing routes except webhook when billing disabled
+// Block only Stripe-specific routes when billing disabled (usage always available)
+const STRIPE_ROUTES = ["/checkout", "/cancel", "/reactivate", "/retry-payment"];
+
 billingRouter.use("/*", async (c, next) => {
-	if (!config.billingEnabled && !c.req.path.endsWith("/webhook")) {
+	const isStripeRoute = STRIPE_ROUTES.some((r) => c.req.path.endsWith(r));
+	if (!config.billingEnabled && isStripeRoute) {
 		return c.json({ error: "Billing is disabled" }, 404);
 	}
 	await next();
@@ -37,10 +40,11 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 		return c.json(
 			{
 				tier: "free" as const,
-				projects: { current: 0, limit: 3 },
-				endpoints: { current: 0, limit: 30 },
-				members: { current: 0, limit: 3 },
-				requests: { current: 0, limit: 10000 },
+				projects: { current: 0, limit: 1 },
+				endpoints: { current: 0, limit: 5 },
+				members: { current: 0, limit: 1 },
+				requests: { current: 0, limit: 1000 },
+				features: { proxyMode: false, statefulMocks: false },
 				cancelAtPeriodEnd: false,
 				currentPeriodEnd: null,
 				paymentFailedAt: null,
@@ -68,6 +72,7 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 				current: usage.requests.used,
 				limit: toLimit(usage.requests.limit),
 			},
+			features: usage.features,
 			cancelAtPeriodEnd: usage.cancelAtPeriodEnd,
 			currentPeriodEnd: usage.currentPeriodEnd?.toISOString() ?? null,
 			paymentFailedAt: usage.paymentFailedAt?.toISOString() ?? null,

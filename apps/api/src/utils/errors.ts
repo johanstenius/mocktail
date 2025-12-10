@@ -19,6 +19,7 @@ export const ErrorCode = {
 	// Rate limiting
 	RATE_LIMITED: "RATE_LIMITED",
 	QUOTA_EXCEEDED: "QUOTA_EXCEEDED",
+	FEATURE_GATED: "FEATURE_GATED",
 
 	// Server
 	INTERNAL_ERROR: "INTERNAL_ERROR",
@@ -91,6 +92,13 @@ export function quotaExceeded(message = "Quota exceeded"): HTTPException {
 	return new HTTPException(429, {
 		message,
 		cause: { code: ErrorCode.QUOTA_EXCEEDED },
+	});
+}
+
+export function featureGated(feature: string): HTTPException {
+	return new HTTPException(403, {
+		message: `${feature} requires Pro plan`,
+		cause: { code: ErrorCode.FEATURE_GATED, feature },
 	});
 }
 

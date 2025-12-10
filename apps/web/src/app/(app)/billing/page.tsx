@@ -38,7 +38,7 @@ import { Suspense, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 const FREE_FEATURES = [
-	{ text: "2 projects", highlight: false },
+	{ text: "1 project", highlight: false },
 	{ text: "5 endpoints per project", highlight: false },
 	{ text: "1,000 requests/month", highlight: false },
 	{ text: "Solo use only", highlight: false },
@@ -51,6 +51,8 @@ const PRO_FEATURES = [
 	{ text: "100,000 requests/month", highlight: true },
 	{ text: "10 team members", highlight: true },
 	{ text: "30 day log retention", highlight: false },
+	{ text: "Proxy mode", highlight: true },
+	{ text: "Stateful mocks (CRUD)", highlight: true },
 	{ text: "Priority support", highlight: false },
 ];
 

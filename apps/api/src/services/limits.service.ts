@@ -1,9 +1,9 @@
-import { getLimits } from "../config/limits";
+import { type TierFeatures, getFeatures, getLimits } from "../config/limits";
 import * as endpointRepo from "../repositories/endpoint.repository";
 import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as subRepo from "../repositories/subscription.repository";
-import { quotaExceeded } from "../utils/errors";
+import { featureGated, quotaExceeded } from "../utils/errors";
 
 export type Tier = "free" | "pro";
 
@@ -20,6 +20,7 @@ export type UsageData = {
 	endpoints: { used: number; limit: number };
 	members: { used: number; limit: number };
 	requests: { used: number; limit: number };
+	features: TierFeatures;
 	cancelAtPeriodEnd: boolean;
 	currentPeriodEnd: Date | null;
 	paymentFailedAt: Date | null;
@@ -34,6 +35,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 	if (!sub) return null;
 
 	const limits = getLimits(sub.tier);
+	const features = getFeatures(sub.tier);
 	const totalEndpoints = org.projects.reduce(
 		(sum, p) => sum + p._count.endpoints,
 		0,
@@ -52,6 +54,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 			limit: limits.teamMembers,
 		},
 		requests: { used: sub.monthlyRequests, limit: limits.monthlyRequests },
+		features,
 		cancelAtPeriodEnd: sub.stripeCancelAtPeriodEnd,
 		currentPeriodEnd: sub.stripeCurrentPeriodEnd,
 		paymentFailedAt: sub.paymentFailedAt,
@@ -220,4 +223,24 @@ export async function requireMemberLimit(orgId: string): Promise<void> {
 
 export async function requireEndpointLimit(projectId: string): Promise<void> {
 	requireLimit(await checkEndpointLimit(projectId));
+}
+
+export function checkFeature(tier: Tier, feature: keyof TierFeatures): boolean {
+	const features = getFeatures(tier);
+	return features[feature];
+}
+
+export async function requireFeature(
+	orgId: string,
+	feature: keyof TierFeatures,
+): Promise<void> {
+	const sub = await subRepo.findByOrgId(orgId);
+	if (!sub) {
+		throw featureGated(feature);
+	}
+
+	const features = getFeatures(sub.tier);
+	if (!features[feature]) {
+		throw featureGated(feature);
+	}
 }

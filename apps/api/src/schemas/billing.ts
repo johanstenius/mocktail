@@ -8,12 +8,18 @@ const usageItemSchema = z.object({
 	limit: z.number().nullable(),
 });
 
+const tierFeaturesSchema = z.object({
+	proxyMode: z.boolean(),
+	statefulMocks: z.boolean(),
+});
+
 export const usageSchema = z.object({
 	tier: tierSchema,
 	projects: usageItemSchema,
 	endpoints: usageItemSchema,
 	members: usageItemSchema,
 	requests: usageItemSchema,
+	features: tierFeaturesSchema,
 	cancelAtPeriodEnd: z.boolean(),
 	currentPeriodEnd: z.string().nullable(),
 	paymentFailedAt: z.string().nullable(),

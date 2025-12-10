@@ -10,29 +10,55 @@ export type TierLimits = {
 	auditLogRetentionDays: number;
 };
 
-export const TIER_LIMITS: Record<Tier, TierLimits> = {
+export type TierFeatures = {
+	proxyMode: boolean;
+	statefulMocks: boolean;
+};
+
+export type TierConfig = {
+	limits: TierLimits;
+	features: TierFeatures;
+};
+
+export const TIER_CONFIG: Record<Tier, TierConfig> = {
 	free: {
-		projects: 2,
-		endpointsPerProject: 5,
-		teamMembers: 1,
-		monthlyRequests: 1_000,
-		rateLimit: 5,
-		requestLogRetentionDays: 1,
-		auditLogRetentionDays: 3,
+		limits: {
+			projects: 1,
+			endpointsPerProject: 5,
+			teamMembers: 1,
+			monthlyRequests: 1_000,
+			rateLimit: 5,
+			requestLogRetentionDays: 1,
+			auditLogRetentionDays: 3,
+		},
+		features: {
+			proxyMode: false,
+			statefulMocks: false,
+		},
 	},
 	pro: {
-		projects: 10,
-		endpointsPerProject: 50,
-		teamMembers: 10,
-		monthlyRequests: 100_000,
-		rateLimit: 50,
-		requestLogRetentionDays: 30,
-		auditLogRetentionDays: 30,
+		limits: {
+			projects: 10,
+			endpointsPerProject: 50,
+			teamMembers: 10,
+			monthlyRequests: 100_000,
+			rateLimit: 50,
+			requestLogRetentionDays: 30,
+			auditLogRetentionDays: 30,
+		},
+		features: {
+			proxyMode: true,
+			statefulMocks: true,
+		},
 	},
 } as const;
 
 export const UNAUTHENTICATED_RATE_LIMIT = 10;
 
 export function getLimits(tier: Tier): TierLimits {
-	return TIER_LIMITS[tier];
+	return TIER_CONFIG[tier].limits;
+}
+
+export function getFeatures(tier: Tier): TierFeatures {
+	return TIER_CONFIG[tier].features;
 }

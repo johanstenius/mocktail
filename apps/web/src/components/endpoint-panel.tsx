@@ -46,6 +46,7 @@ import type {
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useFeatures } from "@/hooks/use-features";
 import { GripVertical, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -847,6 +848,7 @@ export function EndpointPanel({
 	const [variantModalOpen, setVariantModalOpen] = useState(false);
 	const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
 	const queryClient = useQueryClient();
+	const { features } = useFeatures();
 
 	// Endpoint Config State
 	const [method, setMethod] = useState<HttpMethod>("GET");
@@ -1169,7 +1171,7 @@ export function EndpointPanel({
 								</div>
 
 								{/* Proxy Toggle */}
-								{PROXY_ENABLED && proxyBaseUrl && (
+								{PROXY_ENABLED && proxyBaseUrl && features?.proxyMode && (
 									<div className="space-y-3 bg-[var(--glow-blue)]/5 rounded-xl p-4 border border-[var(--glow-blue)]/20">
 										<div className="flex items-center justify-between">
 											<div>
@@ -1261,6 +1263,7 @@ export function EndpointPanel({
 								</div>
 
 								{/* Stateful Mode */}
+								{features?.statefulMocks && (
 								<div className="space-y-3">
 									<div className="flex items-center justify-between">
 										<div>
@@ -1327,6 +1330,7 @@ export function EndpointPanel({
 										</div>
 									)}
 								</div>
+								)}
 
 								{/* Response Config - hidden when proxy or stateful */}
 								{!proxyEnabled && !isCrud && (

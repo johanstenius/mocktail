@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import type { AuthVariables } from "../lib/auth";
+import { type AuthVariables, getAuth } from "../lib/auth";
 import {
 	type EndpointResponse,
 	createEndpointRoute,
@@ -61,8 +61,13 @@ endpointsRouter.openapi(getEndpointRoute, async (c) => {
 endpointsRouter.openapi(createEndpointRoute, async (c) => {
 	const { projectId } = c.req.valid("param");
 	const body = c.req.valid("json");
+	const auth = getAuth(c);
 
 	await limitsService.requireEndpointLimit(projectId);
+
+	if (body.proxyEnabled) {
+		await limitsService.requireFeature(auth.orgId, "proxyMode");
+	}
 
 	const result = await endpointService.create(projectId, {
 		method: body.method,
@@ -95,6 +100,14 @@ endpointsRouter.openapi(createEndpointRoute, async (c) => {
 endpointsRouter.openapi(updateEndpointRoute, async (c) => {
 	const { projectId, endpointId } = c.req.valid("param");
 	const body = c.req.valid("json");
+	const auth = getAuth(c);
+
+	if (body.proxyEnabled === true) {
+		await limitsService.requireFeature(auth.orgId, "proxyMode");
+	}
+	if (body.isCrud === true) {
+		await limitsService.requireFeature(auth.orgId, "statefulMocks");
+	}
 
 	const result = await endpointService.update(endpointId, projectId, {
 		...body,

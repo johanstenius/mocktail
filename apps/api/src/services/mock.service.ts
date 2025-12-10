@@ -1,5 +1,7 @@
+import type { Tier } from "@prisma/client";
 import { z } from "zod";
 import { config } from "../config";
+import { getFeatures } from "../config/limits";
 import { eventBus } from "../events/event-bus";
 import { createEvent } from "../events/types";
 import * as projectRepo from "../repositories/project.repository";
@@ -394,6 +396,7 @@ async function handleCrudRequest(
 
 export async function handleMockRequest(
 	request: MockRequest,
+	tier: Tier,
 	startTime: number,
 ): Promise<MockResult> {
 	const project = await projectRepo.findByIdWithEndpoints(
@@ -405,6 +408,7 @@ export async function handleMockRequest(
 		return { success: false, error: "project_not_found" };
 	}
 
+	const features = getFeatures(tier);
 	const match = findBestMatch(project.endpoints as Endpoint[], request.path);
 
 	if (!match) {
@@ -414,17 +418,31 @@ export async function handleMockRequest(
 	const { endpoint, params } = match;
 
 	if (config.proxyEnabled && endpoint.proxyEnabled && project.proxyBaseUrl) {
-		return handleProxyRequest(
-			project,
-			endpoint.id,
-			request,
-			startTime,
-			"proxy",
-		);
+		if (!features.proxyMode) {
+			logger.warn({ tier, projectId: project.id }, "proxy blocked by tier");
+		} else {
+			return handleProxyRequest(
+				project,
+				endpoint.id,
+				request,
+				startTime,
+				"proxy",
+			);
+		}
 	}
 
 	if (endpoint.isCrud && endpoint.crudBucket) {
-		return handleCrudRequest(project.id, endpoint, params, request, startTime);
+		if (!features.statefulMocks) {
+			logger.warn({ tier, projectId: project.id }, "crud blocked by tier");
+		} else {
+			return handleCrudRequest(
+				project.id,
+				endpoint,
+				params,
+				request,
+				startTime,
+			);
+		}
 	}
 
 	const requestCount = incrementEndpointCounter(project.id, endpoint.id);

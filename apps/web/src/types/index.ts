@@ -201,12 +201,18 @@ export type UsageItem = {
 	limit: number | null;
 };
 
+export type TierFeatures = {
+	proxyMode: boolean;
+	statefulMocks: boolean;
+};
+
 export type Usage = {
 	tier: Tier;
 	projects: UsageItem;
 	endpoints: UsageItem;
 	members: UsageItem;
 	requests: UsageItem;
+	features: TierFeatures;
 	cancelAtPeriodEnd: boolean;
 	currentPeriodEnd: string | null;
 	paymentFailedAt: string | null;
