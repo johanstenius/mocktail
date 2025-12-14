@@ -7,6 +7,7 @@ import { Resend } from "resend";
 import { config } from "../config";
 import { getLimits } from "../config/limits";
 import { prisma } from "../repositories/db/prisma";
+import * as subRepo from "../repositories/subscription.repository";
 import { inviteEmailTemplate } from "../templates/emails/invite";
 import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
@@ -18,13 +19,15 @@ const resend =
 		: null;
 
 async function createDefaultSubscription(orgId: string) {
-	await prisma.subscription.create({
-		data: {
-			organizationId: orgId,
-			tier: "free",
-		},
-	});
-	logger.info({ orgId }, "created default subscription for org");
+	try {
+		await subRepo.create(orgId);
+		logger.info({ orgId }, "created default subscription for org");
+	} catch (err) {
+		logger.error(
+			{ orgId, err },
+			"failed to create default subscription for org",
+		);
+	}
 }
 
 async function checkMemberLimit(orgId: string): Promise<{

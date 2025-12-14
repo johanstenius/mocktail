@@ -4,6 +4,7 @@ import * as orgRepo from "../repositories/organization.repository";
 import * as projectRepo from "../repositories/project.repository";
 import * as subRepo from "../repositories/subscription.repository";
 import { featureGated, quotaExceeded } from "../utils/errors";
+import { logger } from "../utils/logger";
 
 export type Tier = "free" | "pro";
 
@@ -26,14 +27,23 @@ export type UsageData = {
 	paymentFailedAt: Date | null;
 };
 
+async function getOrCreateSubscription(orgId: string) {
+	const sub = await subRepo.findByOrgId(orgId);
+	if (sub) return sub;
+
+	logger.warn(
+		{ orgId },
+		"subscription missing for org, creating fallback free tier",
+	);
+	return subRepo.create(orgId);
+}
+
 export async function getUsage(orgId: string): Promise<UsageData | null> {
 	const org = await orgRepo.findByIdWithUsage(orgId);
 
 	if (!org) return null;
 
-	const sub = org.subscription;
-	if (!sub) return null;
-
+	const sub = org.subscription ?? (await getOrCreateSubscription(orgId));
 	const limits = getLimits(sub.tier);
 	const features = getFeatures(sub.tier);
 	const totalEndpoints = org.projects.reduce(
@@ -64,16 +74,7 @@ export async function getUsage(orgId: string): Promise<UsageData | null> {
 export async function checkProjectLimit(
 	orgId: string,
 ): Promise<LimitCheckResult> {
-	const sub = await subRepo.findByOrgId(orgId);
-	if (!sub) {
-		return {
-			allowed: false,
-			reason: "Subscription not found",
-			current: 0,
-			limit: 0,
-		};
-	}
-
+	const sub = await getOrCreateSubscription(orgId);
 	const limits = getLimits(sub.tier);
 	const count = await orgRepo.countProjectsByOrgId(orgId);
 
@@ -92,16 +93,7 @@ export async function checkProjectLimit(
 export async function checkMemberLimit(
 	orgId: string,
 ): Promise<LimitCheckResult> {
-	const sub = await subRepo.findByOrgId(orgId);
-	if (!sub) {
-		return {
-			allowed: false,
-			reason: "Subscription not found",
-			current: 0,
-			limit: 0,
-		};
-	}
-
+	const sub = await getOrCreateSubscription(orgId);
 	const limits = getLimits(sub.tier);
 	const memberCount = await orgRepo.countMembersByOrgId(orgId);
 	const inviteCount = await orgRepo.countPendingInvitesByOrgId(orgId);
@@ -132,16 +124,7 @@ export async function checkEndpointLimit(
 		};
 	}
 
-	const sub = await subRepo.findByOrgId(project.orgId);
-	if (!sub) {
-		return {
-			allowed: false,
-			reason: "Subscription not found",
-			current: 0,
-			limit: 0,
-		};
-	}
-
+	const sub = await getOrCreateSubscription(project.orgId);
 	const limits = getLimits(sub.tier);
 	const count = await endpointRepo.countByProjectId(projectId);
 
@@ -160,11 +143,7 @@ export async function checkEndpointLimit(
 export async function trackRequest(
 	orgId: string,
 ): Promise<{ allowed: boolean; remaining: number }> {
-	const sub = await subRepo.findByOrgId(orgId);
-	if (!sub) {
-		return { allowed: false, remaining: 0 };
-	}
-
+	const sub = await getOrCreateSubscription(orgId);
 	const limits = getLimits(sub.tier);
 
 	const now = new Date();
@@ -234,11 +213,7 @@ export async function requireFeature(
 	orgId: string,
 	feature: keyof TierFeatures,
 ): Promise<void> {
-	const sub = await subRepo.findByOrgId(orgId);
-	if (!sub) {
-		throw featureGated(feature);
-	}
-
+	const sub = await getOrCreateSubscription(orgId);
 	const features = getFeatures(sub.tier);
 	if (!features[feature]) {
 		throw featureGated(feature);
