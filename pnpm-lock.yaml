@@ -26,6 +26,9 @@ importers:
       '@hono/zod-openapi':
         specifier: 0.18.3
         version: 0.18.3(hono@4.10.7)(zod@3.23.8)
+      '@prisma/client':
+        specifier: 6.19.0
+        version: 6.19.0(prisma@6.19.0(typescript@5.7.2))(typescript@5.7.2)
       ajv:
         specifier: 8.17.1
         version: 8.17.1
@@ -75,9 +78,6 @@ importers:
       '@biomejs/biome':
         specifier: 1.9.4
         version: 1.9.4
-      '@prisma/client':
-        specifier: 6.19.0
-        version: 6.19.0(prisma@6.19.0(typescript@5.7.2))(typescript@5.7.2)
       '@types/node':
         specifier: 22.10.1
         version: 22.10.1
