@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import { SendPigeon } from "sendpigeon";
 import { config } from "../config";
 import { downgradedEmailTemplate } from "../templates/emails/downgraded";
 import { inviteEmailTemplate } from "../templates/emails/invite";
@@ -8,9 +8,9 @@ import { paymentReminderEmailTemplate } from "../templates/emails/payment-remind
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
 import { logger } from "../utils/logger";
 
-const resend =
-	config.emailEnabled && config.resendApiKey
-		? new Resend(config.resendApiKey)
+const pigeon =
+	config.emailEnabled && config.sendpigeonApiKey
+		? new SendPigeon(config.sendpigeonApiKey)
 		: null;
 
 type SendInviteEmailParams = {
@@ -26,12 +26,12 @@ export async function sendInviteEmail(
 ): Promise<void> {
 	const inviteUrl = `${config.appUrl}/invite?token=${params.token}`;
 
-	if (!resend) {
-		logger.error({ inviteUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.error({ inviteUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `Join ${params.orgName} on Mockspec`,
@@ -58,12 +58,12 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
 	const resetUrl = `${config.appUrl}/reset-password?token=${params.token}`;
 
-	if (!resend) {
-		logger.warn({ resetUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.warn({ resetUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: "Reset your password",
@@ -88,12 +88,12 @@ export async function sendVerificationEmail(
 ): Promise<void> {
 	const verifyUrl = `${config.appUrl}/verify-email?token=${params.token}`;
 
-	if (!resend) {
-		logger.warn({ verifyUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.warn({ verifyUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: "Verify your email",
@@ -116,12 +116,12 @@ export async function sendPaymentFailedEmail(
 ): Promise<void> {
 	const billingUrl = `${config.appUrl}/billing`;
 
-	if (!resend) {
-		logger.warn({ billingUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.warn({ billingUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `Payment failed for ${params.orgName}`,
@@ -151,12 +151,12 @@ export async function sendPaymentReminderEmail(
 ): Promise<void> {
 	const billingUrl = `${config.appUrl}/billing`;
 
-	if (!resend) {
-		logger.warn({ billingUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.warn({ billingUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `${params.daysRemaining} days left to update payment`,
@@ -185,12 +185,12 @@ export async function sendDowngradedEmail(
 ): Promise<void> {
 	const billingUrl = `${config.appUrl}/billing`;
 
-	if (!resend) {
-		logger.warn({ billingUrl }, "resend not configured");
+	if (!pigeon) {
+		logger.warn({ billingUrl }, "sendpigeon not configured");
 		return;
 	}
 
-	const { error } = await resend.emails.send({
+	const { error } = await pigeon.send({
 		from: "Mockspec <noreply@mockspec.dev>",
 		to: params.to,
 		subject: `${params.orgName} downgraded to Free`,

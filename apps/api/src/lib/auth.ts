@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { organization } from "better-auth/plugins";
 import type { Context } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { Resend } from "resend";
+import { SendPigeon } from "sendpigeon";
 import { config } from "../config";
 import { getLimits } from "../config/limits";
 import { prisma } from "../repositories/db/prisma";
@@ -13,9 +13,9 @@ import { passwordResetEmailTemplate } from "../templates/emails/password-reset";
 import { verifyEmailTemplate } from "../templates/emails/verify-email";
 import { logger } from "../utils/logger";
 
-const resend =
-	config.emailEnabled && config.resendApiKey
-		? new Resend(config.resendApiKey)
+const pigeon =
+	config.emailEnabled && config.sendpigeonApiKey
+		? new SendPigeon(config.sendpigeonApiKey)
 		: null;
 
 async function createDefaultSubscription(orgId: string) {
@@ -89,15 +89,15 @@ export const auth = betterAuth({
 		minPasswordLength: 8,
 		autoSignIn: true,
 		sendResetPassword: async ({ user, url }) => {
-			if (!resend) {
+			if (!pigeon) {
 				logger.warn(
 					{ url },
-					"resend not configured - password reset email not sent",
+					"sendpigeon not configured - password reset email not sent",
 				);
 				return;
 			}
 
-			void resend.emails
+			pigeon
 				.send({
 					from: "Mockspec <noreply@mockspec.dev>",
 					to: user.email,
@@ -119,15 +119,15 @@ export const auth = betterAuth({
 		sendOnSignUp: true,
 		autoSignInAfterVerification: true,
 		sendVerificationEmail: async ({ user, url }) => {
-			if (!resend) {
+			if (!pigeon) {
 				logger.warn(
 					{ url },
-					"resend not configured - verification email not sent",
+					"sendpigeon not configured - verification email not sent",
 				);
 				return;
 			}
 
-			void resend.emails
+			pigeon
 				.send({
 					from: "Mockspec <noreply@mockspec.dev>",
 					to: user.email,
@@ -174,8 +174,8 @@ export const auth = betterAuth({
 				return { data };
 			},
 			async sendInvitationEmail({ invitation, inviter }) {
-				if (!resend) {
-					logger.warn("resend not configured - invite email not sent");
+				if (!pigeon) {
+					logger.warn("sendpigeon not configured - invite email not sent");
 					return;
 				}
 
@@ -197,7 +197,7 @@ export const auth = betterAuth({
 					select: { email: true },
 				});
 
-				void resend.emails
+				pigeon
 					.send({
 						from: "Mockspec <noreply@mockspec.dev>",
 						to: invitation.email,

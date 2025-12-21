@@ -16,7 +16,7 @@ export const config = {
 	stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
 	stripeProPriceId: process.env.STRIPE_PRO_PRICE_ID || "",
 	// Email
-	resendApiKey: process.env.RESEND_API_KEY || "",
+	sendpigeonApiKey: process.env.SENDPIGEON_API_KEY || "",
 	// OAuth
 	githubClientId: process.env.GITHUB_CLIENT_ID || "",
 	githubClientSecret: process.env.GITHUB_CLIENT_SECRET || "",
