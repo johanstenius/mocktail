@@ -116,9 +116,7 @@ function UsageRing({
 				</div>
 			</div>
 			<div className="flex-1 min-w-0">
-				<div className="text-sm text-[var(--text-muted)]  mb-1">
-					{label}
-				</div>
+				<div className="text-sm text-[var(--text-muted)]  mb-1">{label}</div>
 				<div className="flex items-baseline gap-1">
 					<span className="text-2xl font-bold text-[var(--text-primary)]  tabular-nums">
 						{current.toLocaleString()}
@@ -181,25 +179,19 @@ function ComingSoonPage() {
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-violet)]/10 flex items-center justify-center">
 											<Zap className="w-4 h-4 text-[var(--glow-violet)]" />
 										</div>
-										<span className="text-sm ">
-											100k requests/mo
-										</span>
+										<span className="text-sm ">100k requests/mo</span>
 									</div>
 									<div className="flex items-center gap-2 text-[var(--text-muted)]">
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-blue)]/10 flex items-center justify-center">
 											<Users className="w-4 h-4 text-[var(--glow-blue)]" />
 										</div>
-										<span className="text-sm ">
-											Team collaboration
-										</span>
+										<span className="text-sm ">Team collaboration</span>
 									</div>
 									<div className="flex items-center gap-2 text-[var(--text-muted)]">
 										<div className="w-8 h-8 rounded-lg bg-[var(--glow-pink)]/10 flex items-center justify-center">
 											<Sparkles className="w-4 h-4 text-[var(--glow-pink)]" />
 										</div>
-										<span className="text-sm ">
-											Priority support
-										</span>
+										<span className="text-sm ">Priority support</span>
 									</div>
 								</div>
 							</div>
@@ -224,10 +216,7 @@ function ComingSoonPage() {
 								<span className="text-4xl font-bold text-[var(--text-primary)] ">
 									$0
 								</span>
-								<span className="text-[var(--text-muted)] ">
-									{" "}
-									forever
-								</span>
+								<span className="text-[var(--text-muted)] "> forever</span>
 							</div>
 
 							<ul className="space-y-3">
@@ -689,9 +678,7 @@ function ActiveBillingPage() {
 											<span className="text-4xl font-bold text-[var(--text-primary)] ">
 												$29
 											</span>
-											<span className="text-[var(--text-muted)] ">
-												/mo
-											</span>
+											<span className="text-[var(--text-muted)] ">/mo</span>
 										</div>
 
 										<ul className="space-y-2 mb-6">

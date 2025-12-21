@@ -140,7 +140,10 @@ export default function LandingPage() {
 				</section>
 
 				{/* Features Section */}
-				<section id="features" className="container max-w-6xl mx-auto px-6 py-24">
+				<section
+					id="features"
+					className="container max-w-6xl mx-auto px-6 py-24"
+				>
 					<div className="text-center mb-16">
 						<h2 className="text-4xl font-bold mb-4 ">
 							Built for modern engineering teams.
@@ -246,7 +249,10 @@ export default function LandingPage() {
 				</section>
 
 				{/* Pricing Section */}
-				<section id="pricing" className="container max-w-6xl mx-auto px-6 pb-24">
+				<section
+					id="pricing"
+					className="container max-w-6xl mx-auto px-6 pb-24"
+				>
 					<h2 className="text-4xl font-bold text-center mb-16 ">
 						Simple, transparent pricing.
 					</h2>
@@ -254,7 +260,9 @@ export default function LandingPage() {
 						{/* Free Tier */}
 						<Card className="rounded-3xl p-2 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)]">
 							<CardHeader className="pb-0">
-								<CardTitle className="text-xl font-semibold mb-1">Free</CardTitle>
+								<CardTitle className="text-xl font-semibold mb-1">
+									Free
+								</CardTitle>
 							</CardHeader>
 							<CardContent className="flex flex-col flex-grow pt-4">
 								<div className="text-4xl font-bold mb-4  flex items-baseline gap-1">

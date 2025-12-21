@@ -29,7 +29,8 @@ export default function AppleIcon() {
 					left: "-30%",
 					width: "160%",
 					height: "160%",
-					background: "radial-gradient(circle at 35% 35%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)",
+					background:
+						"radial-gradient(circle at 35% 35%, rgba(139, 92, 246, 0.15) 0%, transparent 50%)",
 				}}
 			/>
 
@@ -50,7 +51,8 @@ export default function AppleIcon() {
 						position: "absolute",
 						width: "130%",
 						height: "130%",
-						background: "radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%)",
+						background:
+							"radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%)",
 						borderRadius: "50%",
 					}}
 				/>
@@ -83,7 +85,8 @@ export default function AppleIcon() {
 					style={{
 						width: "50%",
 						height: "50%",
-						background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)",
+						background:
+							"linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)",
 						borderRadius: "10px",
 						transform: "rotate(5deg)",
 						zIndex: 1,
@@ -91,6 +94,6 @@ export default function AppleIcon() {
 				/>
 			</div>
 		</div>,
-		{ ...size }
+		{ ...size },
 	);
 }

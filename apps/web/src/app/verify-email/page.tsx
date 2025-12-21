@@ -56,9 +56,7 @@ function VerifyEmailContent() {
 						{isLoading ? (
 							<>
 								<Loader2 className="w-12 h-12 animate-spin text-[var(--text-muted)] mx-auto mb-4" />
-								<h1 className="text-2xl font-bold mb-2 ">
-									Verifying email...
-								</h1>
+								<h1 className="text-2xl font-bold mb-2 ">Verifying email...</h1>
 								<p className="text-[var(--text-secondary)]">
 									Please wait while we verify your email address.
 								</p>
@@ -68,9 +66,7 @@ function VerifyEmailContent() {
 								<div className="w-16 h-16 rounded-full bg-[var(--glow-emerald)]/10 flex items-center justify-center mx-auto mb-6">
 									<CheckCircle className="w-8 h-8 text-[var(--glow-emerald)]" />
 								</div>
-								<h1 className="text-2xl font-bold mb-2 ">
-									Email verified!
-								</h1>
+								<h1 className="text-2xl font-bold mb-2 ">Email verified!</h1>
 								<p className="text-[var(--text-secondary)]">
 									Redirecting to dashboard...
 								</p>

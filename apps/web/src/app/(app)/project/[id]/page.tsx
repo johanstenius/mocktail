@@ -99,12 +99,10 @@ function EndpointRow({
 	});
 
 	return (
-		<div
-			role="button"
-			tabIndex={0}
-			className="group flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] hover:translate-x-1 transition-all cursor-pointer"
+		<button
+			type="button"
+			className="group flex items-center justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 hover:border-[var(--border-highlight)] hover:bg-[var(--bg-surface-hover)] hover:translate-x-1 transition-all cursor-pointer w-full text-left"
 			onClick={onClick}
-			onKeyDown={(e) => e.key === "Enter" && onClick()}
 		>
 			<div className="flex items-center gap-4">
 				<MethodBadge method={endpoint.method} className="w-16 justify-center" />
@@ -188,7 +186,7 @@ function EndpointRow({
 					)}
 				</div>
 			</div>
-		</div>
+		</button>
 	);
 }
 
@@ -218,9 +216,7 @@ function StatCard({
 			<div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
 				{label}
 			</div>
-			<div className={`text-3xl font-bold  ${colorMap[color]}`}>
-				{value}
-			</div>
+			<div className={`text-3xl font-bold  ${colorMap[color]}`}>{value}</div>
 			{subtext && (
 				<div className="text-xs text-[var(--text-muted)] mt-2">{subtext}</div>
 			)}
@@ -291,9 +287,7 @@ function ProjectAnalytics({
 
 	return (
 		<div>
-			<h3 className="text-xl font-bold mb-6 ">
-				Traffic Overview
-			</h3>
+			<h3 className="text-xl font-bold mb-6 ">Traffic Overview</h3>
 
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 				<StatCard
@@ -328,9 +322,7 @@ function ProjectAnalytics({
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 				<div>
-					<h4 className="text-lg font-bold mb-4 ">
-						Traffic by Endpoint
-					</h4>
+					<h4 className="text-lg font-bold mb-4 ">Traffic by Endpoint</h4>
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 						{sortedEndpointStats.length === 0 ? (
 							<div className="text-center text-[var(--text-muted)] py-4">
@@ -355,9 +347,7 @@ function ProjectAnalytics({
 				</div>
 
 				<div>
-					<h4 className="text-lg font-bold mb-4 ">
-						Unmatched Requests
-					</h4>
+					<h4 className="text-lg font-bold mb-4 ">Unmatched Requests</h4>
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 						{(statistics?.unmatched ?? []).length === 0 ? (
 							<div className="text-center text-[var(--text-muted)] py-4">
@@ -474,102 +464,101 @@ function ProjectSettings({
 
 			<div className="space-y-6">
 				{PROXY_ENABLED && features?.proxyMode && (
-				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-2 ">
-						Proxy Mode
-					</h4>
-					<p className="text-sm text-[var(--text-muted)] mb-4">
-						Forward requests to a real API. Unmatched requests will be proxied
-						when a base URL is set.
-					</p>
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+						<h4 className="text-lg font-semibold mb-2 ">Proxy Mode</h4>
+						<p className="text-sm text-[var(--text-muted)] mb-4">
+							Forward requests to a real API. Unmatched requests will be proxied
+							when a base URL is set.
+						</p>
 
-					<div className="space-y-4">
-						<div>
-							<Label htmlFor="proxyBaseUrl">Upstream Base URL</Label>
-							<Input
-								id="proxyBaseUrl"
-								value={proxyBaseUrl}
-								onChange={(e) => setProxyBaseUrl(e.target.value)}
-								placeholder="https://api.example.com"
-								className="mt-1.5 font-mono"
-							/>
-							<p className="text-xs text-[var(--text-muted)] mt-1">
-								Leave empty to disable proxy mode
-							</p>
-						</div>
-
-						<div className="flex items-center gap-2">
-							<button
-								type="button"
-								onClick={() => setProxyPassThroughAuth(!proxyPassThroughAuth)}
-								className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${proxyPassThroughAuth ? "bg-[var(--glow-violet)]" : "bg-white/10"}`}
-							>
-								<span
-									className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${proxyPassThroughAuth ? "translate-x-4.5" : "translate-x-1"}`}
-								/>
-							</button>
-							<Label htmlFor="proxyPassThroughAuth" className="cursor-pointer">
-								Pass through incoming Authorization header
-							</Label>
-						</div>
-
-						{!proxyPassThroughAuth && (
+						<div className="space-y-4">
 							<div>
-								<Label htmlFor="proxyAuthHeader">Upstream Auth Header</Label>
+								<Label htmlFor="proxyBaseUrl">Upstream Base URL</Label>
 								<Input
-									id="proxyAuthHeader"
-									value={proxyAuthHeader}
-									onChange={(e) => setProxyAuthHeader(e.target.value)}
-									placeholder="Bearer <token> or Basic <base64>"
+									id="proxyBaseUrl"
+									value={proxyBaseUrl}
+									onChange={(e) => setProxyBaseUrl(e.target.value)}
+									placeholder="https://api.example.com"
 									className="mt-1.5 font-mono"
 								/>
 								<p className="text-xs text-[var(--text-muted)] mt-1">
-									Sent as Authorization header to upstream
+									Leave empty to disable proxy mode
 								</p>
 							</div>
-						)}
 
-						<button
-							type="button"
-							onClick={() => setShowAdvanced(!showAdvanced)}
-							className="text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] flex items-center gap-1"
-						>
-							{showAdvanced ? "▼" : "▶"} Advanced settings
-						</button>
-
-						{showAdvanced && (
-							<div>
-								<Label htmlFor="proxyTimeout">Timeout (ms)</Label>
-								<Input
-									id="proxyTimeout"
-									type="number"
-									min={1000}
-									max={60000}
-									value={proxyTimeout}
-									onChange={(e) => setProxyTimeout(Number(e.target.value))}
-									className="mt-1.5 w-32"
-								/>
+							<div className="flex items-center gap-2">
+								<button
+									type="button"
+									onClick={() => setProxyPassThroughAuth(!proxyPassThroughAuth)}
+									className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${proxyPassThroughAuth ? "bg-[var(--glow-violet)]" : "bg-white/10"}`}
+								>
+									<span
+										className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${proxyPassThroughAuth ? "translate-x-4.5" : "translate-x-1"}`}
+									/>
+								</button>
+								<Label
+									htmlFor="proxyPassThroughAuth"
+									className="cursor-pointer"
+								>
+									Pass through incoming Authorization header
+								</Label>
 							</div>
-						)}
 
-						<Button
-							onClick={handleSaveProxy}
-							disabled={!hasProxyChanges || updateProxyMutation.isPending}
-							size="sm"
-						>
-							{updateProxyMutation.isPending ? (
-								<Loader2 className="h-4 w-4 animate-spin mr-2" />
-							) : null}
-							Save Proxy Settings
-						</Button>
+							{!proxyPassThroughAuth && (
+								<div>
+									<Label htmlFor="proxyAuthHeader">Upstream Auth Header</Label>
+									<Input
+										id="proxyAuthHeader"
+										value={proxyAuthHeader}
+										onChange={(e) => setProxyAuthHeader(e.target.value)}
+										placeholder="Bearer <token> or Basic <base64>"
+										className="mt-1.5 font-mono"
+									/>
+									<p className="text-xs text-[var(--text-muted)] mt-1">
+										Sent as Authorization header to upstream
+									</p>
+								</div>
+							)}
+
+							<button
+								type="button"
+								onClick={() => setShowAdvanced(!showAdvanced)}
+								className="text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)] flex items-center gap-1"
+							>
+								{showAdvanced ? "▼" : "▶"} Advanced settings
+							</button>
+
+							{showAdvanced && (
+								<div>
+									<Label htmlFor="proxyTimeout">Timeout (ms)</Label>
+									<Input
+										id="proxyTimeout"
+										type="number"
+										min={1000}
+										max={60000}
+										value={proxyTimeout}
+										onChange={(e) => setProxyTimeout(Number(e.target.value))}
+										className="mt-1.5 w-32"
+									/>
+								</div>
+							)}
+
+							<Button
+								onClick={handleSaveProxy}
+								disabled={!hasProxyChanges || updateProxyMutation.isPending}
+								size="sm"
+							>
+								{updateProxyMutation.isPending ? (
+									<Loader2 className="h-4 w-4 animate-spin mr-2" />
+								) : null}
+								Save Proxy Settings
+							</Button>
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-4 ">
-						API Key
-					</h4>
+					<h4 className="text-lg font-semibold mb-4 ">API Key</h4>
 					<p className="text-sm text-[var(--text-muted)] mb-4">
 						Use this key to authenticate requests to your mock endpoints.
 						Include it in the{" "}
@@ -634,9 +623,7 @@ function ProjectSettings({
 				</div>
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-4 ">
-						Example Usage
-					</h4>
+					<h4 className="text-lg font-semibold mb-4 ">Example Usage</h4>
 					<div className="relative">
 						<pre className="text-[var(--text-secondary)] font-['JetBrains_Mono'] text-sm bg-[rgba(0,0,0,0.3)] px-4 py-3 rounded-xl border border-[var(--border-subtle)] overflow-x-auto">
 							{exampleCurl}
@@ -652,11 +639,10 @@ function ProjectSettings({
 				</div>
 
 				<div className="bg-[var(--bg-surface)] border border-amber-500/20 rounded-2xl p-6">
-					<h4 className="text-lg font-semibold mb-2 ">
-						Reset State
-					</h4>
+					<h4 className="text-lg font-semibold mb-2 ">Reset State</h4>
 					<p className="text-sm text-[var(--text-muted)] mb-4">
-						Clear all sequence counters and bucket data. Request logs are preserved.
+						Clear all sequence counters and bucket data. Request logs are
+						preserved.
 					</p>
 					<div className="flex items-center gap-2">
 						{showConfirmReset ? (
@@ -830,7 +816,9 @@ export default function ProjectDetailPage() {
 
 	const navItems: { id: TabId; label: string }[] = [
 		{ id: "endpoints", label: "Endpoints" },
-		...(usage?.features?.statefulMocks ? [{ id: "data" as const, label: "Data" }] : []),
+		...(usage?.features?.statefulMocks
+			? [{ id: "data" as const, label: "Data" }]
+			: []),
 		{ id: "logs", label: "Logs" },
 		{ id: "analytics", label: "Analytics" },
 		{ id: "settings", label: "Settings" },
@@ -983,13 +971,13 @@ export default function ProjectDetailPage() {
 						</div>
 					)}
 
-					{activeTab === "data" && usage?.features?.statefulMocks && <BucketList projectId={projectId} />}
+					{activeTab === "data" && usage?.features?.statefulMocks && (
+						<BucketList projectId={projectId} />
+					)}
 
 					{activeTab === "logs" && (
 						<div>
-							<h3 className="text-xl font-bold mb-6 ">
-								Request Logs
-							</h3>
+							<h3 className="text-xl font-bold mb-6 ">Request Logs</h3>
 							<RequestLogTable projectId={projectId} />
 						</div>
 					)}

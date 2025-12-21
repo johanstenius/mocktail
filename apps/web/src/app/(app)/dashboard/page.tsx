@@ -91,7 +91,6 @@ function StatsGridSkeleton() {
 	);
 }
 
-
 function ActivityFeedSkeleton() {
 	return (
 		<Card>
@@ -108,8 +107,6 @@ function ActivityFeedSkeleton() {
 		</Card>
 	);
 }
-
-
 
 function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 	if (activity.length === 0) {
@@ -191,7 +188,6 @@ function ActivityFeed({ activity }: { activity: ActivityItem[] }) {
 		</Card>
 	);
 }
-
 
 export default function DashboardPage() {
 	const { data: session } = useSession();

@@ -60,6 +60,6 @@ export async function GET() {
 				/>
 			</div>
 		</div>,
-		{ width: 192, height: 192 }
+		{ width: 192, height: 192 },
 	);
 }

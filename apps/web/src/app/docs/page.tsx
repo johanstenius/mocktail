@@ -33,8 +33,8 @@ export default function DocsIntroduction() {
 						realistic data on each request
 					</li>
 					<li>
-						<strong>Stateful mocks</strong> - Simulate CRUD persistence with data
-						buckets and sequence responses
+						<strong>Stateful mocks</strong> - Simulate CRUD persistence with
+						data buckets and sequence responses
 					</li>
 					<li>
 						<strong>Chaos engineering</strong> - Simulate delays and failures to
@@ -83,7 +83,8 @@ export default function DocsIntroduction() {
 
 			<Section title="Plans & Limits">
 				<p className="mb-4">
-					Mockspec offers a generous free tier for individuals and a Pro plan for teams with advanced features.
+					Mockspec offers a generous free tier for individuals and a Pro plan
+					for teams with advanced features.
 				</p>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4">
@@ -97,15 +98,21 @@ export default function DocsIntroduction() {
 						</ul>
 					</div>
 					<div className="bg-[var(--bg-surface)] border border-[var(--glow-violet)]/30 rounded-xl p-4">
-						<h4 className="font-semibold mb-2 text-[var(--glow-violet)]">Pro</h4>
+						<h4 className="font-semibold mb-2 text-[var(--glow-violet)]">
+							Pro
+						</h4>
 						<ul className="text-sm text-[var(--text-secondary)] space-y-1">
 							<li>10 projects</li>
 							<li>50 endpoints per project</li>
 							<li>100,000 requests/month</li>
 							<li>10 team members</li>
 							<li>30 day log retention</li>
-							<li><strong>Proxy mode</strong></li>
-							<li><strong>Stateful mocks (CRUD)</strong></li>
+							<li>
+								<strong>Proxy mode</strong>
+							</li>
+							<li>
+								<strong>Stateful mocks (CRUD)</strong>
+							</li>
 						</ul>
 					</div>
 				</div>

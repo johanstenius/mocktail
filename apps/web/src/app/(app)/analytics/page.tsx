@@ -41,9 +41,7 @@ function StatCard({
 			<div className="text-xs text-[var(--text-muted)] uppercase tracking-wider mb-2">
 				{label}
 			</div>
-			<div className={`text-3xl font-bold  ${colorMap[color]}`}>
-				{value}
-			</div>
+			<div className={`text-3xl font-bold  ${colorMap[color]}`}>{value}</div>
 			{subtext && (
 				<div className="text-xs text-[var(--text-muted)] mt-2">{subtext}</div>
 			)}
@@ -303,9 +301,7 @@ export default function AnalyticsPage() {
 
 							<div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
 								<div>
-									<h3 className="text-xl font-bold mb-4 ">
-										Live Request Log
-									</h3>
+									<h3 className="text-xl font-bold mb-4 ">Live Request Log</h3>
 									<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl overflow-hidden">
 										<table className="w-full text-sm">
 											<thead className="bg-[rgba(0,0,0,0.3)]">

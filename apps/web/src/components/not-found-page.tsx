@@ -44,10 +44,7 @@ export function NotFoundPage() {
 						Go Back
 					</Button>
 					<Link href="/">
-						<Button
-							size="lg"
-							className="w-full sm:w-auto"
-						>
+						<Button size="lg" className="w-full sm:w-auto">
 							<Home className="mr-2 h-4 w-4" />
 							Return Home
 						</Button>

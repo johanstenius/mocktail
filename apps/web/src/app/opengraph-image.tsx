@@ -46,7 +46,8 @@ export default function Image() {
 					left: "20%",
 					width: "600px",
 					height: "600px",
-					background: "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 40%, transparent 70%)",
+					background:
+						"radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.05) 40%, transparent 70%)",
 					borderRadius: "50%",
 					filter: "blur(40px)",
 				}}
@@ -60,7 +61,8 @@ export default function Image() {
 					right: "10%",
 					width: "500px",
 					height: "500px",
-					background: "radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.04) 40%, transparent 70%)",
+					background:
+						"radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.04) 40%, transparent 70%)",
 					borderRadius: "50%",
 					filter: "blur(60px)",
 				}}
@@ -74,7 +76,8 @@ export default function Image() {
 					right: "30%",
 					width: "300px",
 					height: "300px",
-					background: "radial-gradient(circle, rgba(34, 211, 238, 0.06) 0%, transparent 60%)",
+					background:
+						"radial-gradient(circle, rgba(34, 211, 238, 0.06) 0%, transparent 60%)",
 					borderRadius: "50%",
 					filter: "blur(30px)",
 				}}
@@ -88,7 +91,8 @@ export default function Image() {
 					left: "80px",
 					right: "80px",
 					height: "1px",
-					background: "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2) 20%, rgba(139, 92, 246, 0.2) 80%, transparent)",
+					background:
+						"linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2) 20%, rgba(139, 92, 246, 0.2) 80%, transparent)",
 				}}
 			/>
 			<div
@@ -98,26 +102,111 @@ export default function Image() {
 					left: "80px",
 					right: "80px",
 					height: "1px",
-					background: "linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.15) 20%, rgba(59, 130, 246, 0.15) 80%, transparent)",
+					background:
+						"linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.15) 20%, rgba(59, 130, 246, 0.15) 80%, transparent)",
 				}}
 			/>
 
 			{/* Corner markers - technical precision */}
-			<div style={{ position: "absolute", top: "60px", left: "60px", display: "flex", flexDirection: "column" }}>
-				<div style={{ width: "24px", height: "1px", background: "rgba(139, 92, 246, 0.4)" }} />
-				<div style={{ width: "1px", height: "24px", background: "rgba(139, 92, 246, 0.4)" }} />
+			<div
+				style={{
+					position: "absolute",
+					top: "60px",
+					left: "60px",
+					display: "flex",
+					flexDirection: "column",
+				}}
+			>
+				<div
+					style={{
+						width: "24px",
+						height: "1px",
+						background: "rgba(139, 92, 246, 0.4)",
+					}}
+				/>
+				<div
+					style={{
+						width: "1px",
+						height: "24px",
+						background: "rgba(139, 92, 246, 0.4)",
+					}}
+				/>
 			</div>
-			<div style={{ position: "absolute", top: "60px", right: "60px", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-				<div style={{ width: "24px", height: "1px", background: "rgba(139, 92, 246, 0.4)" }} />
-				<div style={{ width: "1px", height: "24px", background: "rgba(139, 92, 246, 0.4)", alignSelf: "flex-end" }} />
+			<div
+				style={{
+					position: "absolute",
+					top: "60px",
+					right: "60px",
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "flex-end",
+				}}
+			>
+				<div
+					style={{
+						width: "24px",
+						height: "1px",
+						background: "rgba(139, 92, 246, 0.4)",
+					}}
+				/>
+				<div
+					style={{
+						width: "1px",
+						height: "24px",
+						background: "rgba(139, 92, 246, 0.4)",
+						alignSelf: "flex-end",
+					}}
+				/>
 			</div>
-			<div style={{ position: "absolute", bottom: "60px", left: "60px", display: "flex", flexDirection: "column-reverse" }}>
-				<div style={{ width: "24px", height: "1px", background: "rgba(59, 130, 246, 0.3)" }} />
-				<div style={{ width: "1px", height: "24px", background: "rgba(59, 130, 246, 0.3)" }} />
+			<div
+				style={{
+					position: "absolute",
+					bottom: "60px",
+					left: "60px",
+					display: "flex",
+					flexDirection: "column-reverse",
+				}}
+			>
+				<div
+					style={{
+						width: "24px",
+						height: "1px",
+						background: "rgba(59, 130, 246, 0.3)",
+					}}
+				/>
+				<div
+					style={{
+						width: "1px",
+						height: "24px",
+						background: "rgba(59, 130, 246, 0.3)",
+					}}
+				/>
 			</div>
-			<div style={{ position: "absolute", bottom: "60px", right: "60px", display: "flex", flexDirection: "column-reverse", alignItems: "flex-end" }}>
-				<div style={{ width: "24px", height: "1px", background: "rgba(59, 130, 246, 0.3)" }} />
-				<div style={{ width: "1px", height: "24px", background: "rgba(59, 130, 246, 0.3)", alignSelf: "flex-end" }} />
+			<div
+				style={{
+					position: "absolute",
+					bottom: "60px",
+					right: "60px",
+					display: "flex",
+					flexDirection: "column-reverse",
+					alignItems: "flex-end",
+				}}
+			>
+				<div
+					style={{
+						width: "24px",
+						height: "1px",
+						background: "rgba(59, 130, 246, 0.3)",
+					}}
+				/>
+				<div
+					style={{
+						width: "1px",
+						height: "24px",
+						background: "rgba(59, 130, 246, 0.3)",
+						alignSelf: "flex-end",
+					}}
+				/>
 			</div>
 
 			{/* Central content */}
@@ -148,7 +237,8 @@ export default function Image() {
 							position: "absolute",
 							width: "120%",
 							height: "120%",
-							background: "radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)",
+							background:
+								"radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%)",
 							borderRadius: "50%",
 						}}
 					/>
@@ -181,7 +271,8 @@ export default function Image() {
 						style={{
 							width: "50%",
 							height: "50%",
-							background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
+							background:
+								"linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)",
 							borderRadius: "8px",
 							transform: "rotate(5deg)",
 							zIndex: 1,
@@ -222,24 +313,26 @@ export default function Image() {
 						marginTop: "48px",
 					}}
 				>
-					{["OpenAPI Import", "Chaos Engineering", "Team Collaboration"].map((feature) => (
-						<div
-							key={feature}
-							style={{
-								fontSize: "13px",
-								fontWeight: 500,
-								color: "rgba(148, 163, 184, 0.7)",
-								letterSpacing: "0.05em",
-								textTransform: "uppercase",
-								padding: "8px 16px",
-								border: "1px solid rgba(139, 92, 246, 0.2)",
-								borderRadius: "6px",
-								background: "rgba(139, 92, 246, 0.05)",
-							}}
-						>
-							{feature}
-						</div>
-					))}
+					{["OpenAPI Import", "Chaos Engineering", "Team Collaboration"].map(
+						(feature) => (
+							<div
+								key={feature}
+								style={{
+									fontSize: "13px",
+									fontWeight: 500,
+									color: "rgba(148, 163, 184, 0.7)",
+									letterSpacing: "0.05em",
+									textTransform: "uppercase",
+									padding: "8px 16px",
+									border: "1px solid rgba(139, 92, 246, 0.2)",
+									borderRadius: "6px",
+									background: "rgba(139, 92, 246, 0.05)",
+								}}
+							>
+								{feature}
+							</div>
+						),
+					)}
 				</div>
 			</div>
 
@@ -258,6 +351,6 @@ export default function Image() {
 				mockspec.dev
 			</div>
 		</div>,
-		{ ...size }
+		{ ...size },
 	);
 }

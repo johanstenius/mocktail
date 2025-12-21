@@ -59,7 +59,8 @@ export default function Icon() {
 					style={{
 						width: "50%",
 						height: "50%",
-						background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)",
+						background:
+							"linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)",
 						borderRadius: "2px",
 						transform: "rotate(5deg)",
 						zIndex: 1,
@@ -67,6 +68,6 @@ export default function Icon() {
 				/>
 			</div>
 		</div>,
-		{ ...size }
+		{ ...size },
 	);
 }

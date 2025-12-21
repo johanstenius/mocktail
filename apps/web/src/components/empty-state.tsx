@@ -39,7 +39,9 @@ export function EmptyState({
 					<Icon className="h-8 w-8 text-[var(--color-primary)]" />
 				</div>
 			)}
-			<h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
+			<h3 className="text-lg font-semibold text-[var(--text-primary)]">
+				{title}
+			</h3>
 			{description && (
 				<p className="mt-2 text-sm text-[var(--color-text-muted)] max-w-sm">
 					{description}

@@ -123,9 +123,7 @@ function InviteContent() {
 							<div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
 								<AlertCircle className="w-8 h-8 text-red-400" />
 							</div>
-							<h1 className="text-2xl font-bold mb-4 ">
-								Invalid invite
-							</h1>
+							<h1 className="text-2xl font-bold mb-4 ">Invalid invite</h1>
 							<p className="text-[var(--text-secondary)] mb-6">
 								{inviteError || "This invite link is invalid or has expired."}
 							</p>

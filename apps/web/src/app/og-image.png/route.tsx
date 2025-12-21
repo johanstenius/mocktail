@@ -320,7 +320,7 @@ export async function GET() {
 							>
 								{feature}
 							</div>
-						)
+						),
 					)}
 				</div>
 			</div>
@@ -340,6 +340,6 @@ export async function GET() {
 				mockspec.dev
 			</div>
 		</div>,
-		{ width: 1200, height: 630 }
+		{ width: 1200, height: 630 },
 	);
 }

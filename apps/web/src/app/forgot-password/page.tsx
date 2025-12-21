@@ -48,12 +48,10 @@ export default function ForgotPasswordPage() {
 								<div className="w-16 h-16 rounded-full bg-[var(--glow-emerald)]/10 flex items-center justify-center mx-auto mb-6">
 									<Mail className="w-8 h-8 text-[var(--glow-emerald)]" />
 								</div>
-								<h1 className="text-2xl font-bold mb-2 ">
-									Check your email
-								</h1>
+								<h1 className="text-2xl font-bold mb-2 ">Check your email</h1>
 								<p className="text-[var(--text-secondary)] mb-6">
-									If an account exists for {email}, you&apos;ll receive a password
-									reset link shortly.
+									If an account exists for {email}, you&apos;ll receive a
+									password reset link shortly.
 								</p>
 								<Link
 									href="/login"
@@ -66,9 +64,7 @@ export default function ForgotPasswordPage() {
 						) : (
 							<>
 								<div className="text-center mb-8">
-									<h1 className="text-3xl font-bold mb-2 ">
-										Forgot password?
-									</h1>
+									<h1 className="text-3xl font-bold mb-2 ">Forgot password?</h1>
 									<p className="text-[var(--text-secondary)]">
 										Enter your email and we&apos;ll send you a reset link
 									</p>

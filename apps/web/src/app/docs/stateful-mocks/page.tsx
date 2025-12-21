@@ -32,14 +32,12 @@ export default function DocsStatefulMocks() {
 			</Section>
 
 			<Section title="Quick Start">
-				<p className="mb-4">
-					Create a REST API with persistence in 3 steps:
-				</p>
+				<p className="mb-4">Create a REST API with persistence in 3 steps:</p>
 
 				<p className="font-semibold mb-2">1. Create a Bucket</p>
 				<p className="mb-2">
-					Go to <strong>Data</strong> tab → <strong>New Bucket</strong> →
-					name it <code className="text-[var(--glow-violet)]">users</code>
+					Go to <strong>Data</strong> tab → <strong>New Bucket</strong> → name
+					it <code className="text-[var(--glow-violet)]">users</code>
 				</p>
 				<CodeBlock>{`[
   { "id": "1", "name": "Alice" },
@@ -47,42 +45,58 @@ export default function DocsStatefulMocks() {
 ]`}</CodeBlock>
 
 				<p className="font-semibold mb-2 mt-6">2. Create Endpoints</p>
-				<p className="mb-4">
-					Create endpoints and link them to the bucket:
-				</p>
+				<p className="mb-4">Create endpoints and link them to the bucket:</p>
 
 				<div className="overflow-x-auto mb-4">
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Endpoint</th>
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Stateful</th>
-								<th className="text-left py-2 text-[var(--text-muted)]">Operation</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Endpoint
+								</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Stateful
+								</th>
+								<th className="text-left py-2 text-[var(--text-muted)]">
+									Operation
+								</th>
 							</tr>
 						</thead>
 						<tbody className="font-mono">
 							<tr className="border-b border-[var(--border-subtle)]">
-								<td className="py-2 pr-4"><span className="text-emerald-400">GET</span> /users</td>
+								<td className="py-2 pr-4">
+									<span className="text-emerald-400">GET</span> /users
+								</td>
 								<td className="py-2 pr-4">users</td>
 								<td className="py-2 text-[var(--text-secondary)]">List all</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<td className="py-2 pr-4"><span className="text-emerald-400">GET</span> /users/:id</td>
+								<td className="py-2 pr-4">
+									<span className="text-emerald-400">GET</span> /users/:id
+								</td>
 								<td className="py-2 pr-4">users</td>
 								<td className="py-2 text-[var(--text-secondary)]">Get one</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<td className="py-2 pr-4"><span className="text-amber-400">POST</span> /users</td>
+								<td className="py-2 pr-4">
+									<span className="text-amber-400">POST</span> /users
+								</td>
 								<td className="py-2 pr-4">users</td>
-								<td className="py-2 text-[var(--text-secondary)]">Create (auto UUID)</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									Create (auto UUID)
+								</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<td className="py-2 pr-4"><span className="text-blue-400">PUT</span> /users/:id</td>
+								<td className="py-2 pr-4">
+									<span className="text-blue-400">PUT</span> /users/:id
+								</td>
 								<td className="py-2 pr-4">users</td>
 								<td className="py-2 text-[var(--text-secondary)]">Update</td>
 							</tr>
 							<tr>
-								<td className="py-2 pr-4"><span className="text-red-400">DELETE</span> /users/:id</td>
+								<td className="py-2 pr-4">
+									<span className="text-red-400">DELETE</span> /users/:id
+								</td>
 								<td className="py-2 pr-4">users</td>
 								<td className="py-2 text-[var(--text-secondary)]">Remove</td>
 							</tr>
@@ -91,8 +105,8 @@ export default function DocsStatefulMocks() {
 				</div>
 
 				<p className="text-sm text-[var(--text-muted)] mb-4">
-					For each endpoint: enable <strong>Stateful</strong> toggle → select bucket →
-					ID field auto-fills from path param.
+					For each endpoint: enable <strong>Stateful</strong> toggle → select
+					bucket → ID field auto-fills from path param.
 				</p>
 
 				<p className="font-semibold mb-2">3. Test It</p>
@@ -110,7 +124,8 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 
 			<Section title="How It Works">
 				<p className="mb-4">
-					The endpoint&apos;s <strong>method</strong> and <strong>path</strong> determine the operation:
+					The endpoint&apos;s <strong>method</strong> and <strong>path</strong>{" "}
+					determine the operation:
 				</p>
 
 				<ul className="list-disc list-inside space-y-2 ml-4 mb-4">
@@ -118,10 +133,12 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 						<strong>GET</strong> without ID param → returns all items
 					</li>
 					<li>
-						<strong>GET</strong> with ID param → returns single item (404 if not found)
+						<strong>GET</strong> with ID param → returns single item (404 if not
+						found)
 					</li>
 					<li>
-						<strong>POST</strong> → creates item, auto-generates UUID if no ID in body
+						<strong>POST</strong> → creates item, auto-generates UUID if no ID
+						in body
 					</li>
 					<li>
 						<strong>PUT</strong> with ID param → replaces item
@@ -132,7 +149,8 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 				</ul>
 
 				<p className="text-sm text-[var(--text-muted)]">
-					All endpoints linked to the same bucket share data. Changes are visible immediately.
+					All endpoints linked to the same bucket share data. Changes are
+					visible immediately.
 				</p>
 			</Section>
 
@@ -145,22 +163,32 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Helper</th>
-								<th className="text-left py-2 text-[var(--text-muted)]">Returns</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Helper
+								</th>
+								<th className="text-left py-2 text-[var(--text-muted)]">
+									Returns
+								</th>
 							</tr>
 						</thead>
 						<tbody className="font-mono">
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-2 pr-4 text-[var(--glow-violet)]">{`{{ bucket 'users' }}`}</td>
-								<td className="py-2 text-[var(--text-secondary)]">Full array</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									Full array
+								</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-2 pr-4 text-[var(--glow-violet)]">{`{{ bucketLength 'users' }}`}</td>
-								<td className="py-2 text-[var(--text-secondary)]">Item count</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									Item count
+								</td>
 							</tr>
 							<tr>
 								<td className="py-2 pr-4 text-[var(--glow-violet)]">{`{{ bucketItem 'users' 0 }}`}</td>
-								<td className="py-2 text-[var(--text-secondary)]">Item by index (-1 for last)</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									Item by index (-1 for last)
+								</td>
 							</tr>
 						</tbody>
 					</table>
@@ -185,10 +213,18 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Variant</th>
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Sequence</th>
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Status</th>
-								<th className="text-left py-2 text-[var(--text-muted)]">When</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Variant
+								</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Sequence
+								</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Status
+								</th>
+								<th className="text-left py-2 text-[var(--text-muted)]">
+									When
+								</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -196,26 +232,35 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 								<td className="py-2 pr-4">First Fail</td>
 								<td className="py-2 pr-4 font-mono text-amber-400">#1</td>
 								<td className="py-2 pr-4 font-mono text-red-400">500</td>
-								<td className="py-2 text-[var(--text-secondary)]">1st request</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									1st request
+								</td>
 							</tr>
 							<tr className="border-b border-[var(--border-subtle)]">
 								<td className="py-2 pr-4">Second Fail</td>
 								<td className="py-2 pr-4 font-mono text-amber-400">#2</td>
 								<td className="py-2 pr-4 font-mono text-red-400">500</td>
-								<td className="py-2 text-[var(--text-secondary)]">2nd request</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									2nd request
+								</td>
 							</tr>
 							<tr>
 								<td className="py-2 pr-4">Success</td>
-								<td className="py-2 pr-4 font-mono text-[var(--text-muted)]">-</td>
+								<td className="py-2 pr-4 font-mono text-[var(--text-muted)]">
+									-
+								</td>
 								<td className="py-2 pr-4 font-mono text-emerald-400">200</td>
-								<td className="py-2 text-[var(--text-secondary)]">3rd+ requests</td>
+								<td className="py-2 text-[var(--text-secondary)]">
+									3rd+ requests
+								</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
 
 				<p className="text-sm text-[var(--text-muted)]">
-					First two requests fail, third succeeds. Perfect for testing retry logic.
+					First two requests fail, third succeeds. Perfect for testing retry
+					logic.
 				</p>
 			</Section>
 
@@ -230,7 +275,9 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 					</li>
 					<li>
 						<strong>API:</strong>{" "}
-						<code className="text-[var(--glow-violet)]">POST /projects/:id/state/reset</code>
+						<code className="text-[var(--glow-violet)]">
+							POST /projects/:id/state/reset
+						</code>
 					</li>
 				</ul>
 
@@ -244,8 +291,12 @@ curl -H "X-API-Key: YOUR_KEY" https://api.mockspec.dev/mock/users`}</CodeBlock>
 					<table className="w-full text-sm">
 						<thead>
 							<tr className="border-b border-[var(--border-subtle)]">
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Limit</th>
-								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">Free</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Limit
+								</th>
+								<th className="text-left py-2 pr-4 text-[var(--text-muted)]">
+									Free
+								</th>
 								<th className="text-left py-2 text-[var(--text-muted)]">Pro</th>
 							</tr>
 						</thead>

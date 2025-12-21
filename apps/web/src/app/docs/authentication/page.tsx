@@ -15,8 +15,8 @@ export default function DocsAuthentication() {
 			/>
 
 			<p className="text-[var(--text-secondary)] mb-8">
-				Every request to your mock endpoints must include your project&apos;s API
-				key. Mockspec supports three authentication methods:
+				Every request to your mock endpoints must include your project&apos;s
+				API key. Mockspec supports three authentication methods:
 			</p>
 
 			<Section title="X-API-Key Header (Recommended)">

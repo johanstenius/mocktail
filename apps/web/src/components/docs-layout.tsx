@@ -248,7 +248,9 @@ export function Section({
 			<h2 className="text-xl font-bold mb-4 text-[var(--text-primary)]">
 				{title}
 			</h2>
-			<div className="space-y-4 text-[var(--text-secondary)] leading-relaxed">{children}</div>
+			<div className="space-y-4 text-[var(--text-secondary)] leading-relaxed">
+				{children}
+			</div>
 		</section>
 	);
 }

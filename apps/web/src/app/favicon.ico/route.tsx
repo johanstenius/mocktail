@@ -60,7 +60,7 @@ export async function GET() {
 				/>
 			</div>
 		</div>,
-		{ width: 32, height: 32 }
+		{ width: 32, height: 32 },
 	);
 
 	const arrayBuffer = await imageResponse.arrayBuffer();

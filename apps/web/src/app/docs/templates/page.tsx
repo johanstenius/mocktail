@@ -16,8 +16,8 @@ export default function DocsTemplates() {
 
 			<Section title="Template Syntax">
 				<p className="mb-4">
-					Templates use double curly braces. They&apos;re auto-detected when your
-					response contains{" "}
+					Templates use double curly braces. They&apos;re auto-detected when
+					your response contains{" "}
 					<code className="text-[var(--glow-violet)]">{"{{"}</code> syntax.
 				</p>
 

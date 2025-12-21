@@ -51,7 +51,9 @@ export default function DocsEndpoints() {
 					Request: <code className="text-[var(--glow-violet)]">/users/123</code>
 					<br />
 					Result:{" "}
-					<code className="text-[var(--glow-violet)]">params.id = &quot;123&quot;</code>
+					<code className="text-[var(--glow-violet)]">
+						params.id = &quot;123&quot;
+					</code>
 				</p>
 
 				<p className="mt-4 mb-2">Use in response body with :param syntax:</p>

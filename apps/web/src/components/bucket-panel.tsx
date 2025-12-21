@@ -100,7 +100,9 @@ function BucketFormModal({
 		}
 
 		if (!/^[a-z][a-z0-9_]*$/.test(name)) {
-			setError("Name must start with letter, contain only lowercase letters, numbers, underscores");
+			setError(
+				"Name must start with letter, contain only lowercase letters, numbers, underscores",
+			);
 			return;
 		}
 

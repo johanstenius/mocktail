@@ -36,8 +36,8 @@ export default function DocsRequestLogs() {
 
 			<Section title="Unmatched Requests">
 				<p>
-					Requests that don&apos;t match any endpoint are logged with status 404. Use
-					this to identify missing endpoints or incorrect paths in your
+					Requests that don&apos;t match any endpoint are logged with status
+					404. Use this to identify missing endpoints or incorrect paths in your
 					application.
 				</p>
 			</Section>

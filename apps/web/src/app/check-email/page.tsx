@@ -87,9 +87,7 @@ function CheckEmailContent() {
 						<div className="w-16 h-16 rounded-full bg-[var(--glow-violet)]/10 flex items-center justify-center mx-auto mb-6">
 							<Mail className="w-8 h-8 text-[var(--glow-violet)]" />
 						</div>
-						<h1 className="text-2xl font-bold mb-2 ">
-							Check your email
-						</h1>
+						<h1 className="text-2xl font-bold mb-2 ">Check your email</h1>
 						<p className="text-[var(--text-secondary)] mb-2">
 							We sent a verification link to
 						</p>

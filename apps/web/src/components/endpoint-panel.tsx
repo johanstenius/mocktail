@@ -31,6 +31,8 @@ import {
 } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 
+import { Checkbox } from "@/components/ui/checkbox";
+import { useFeatures } from "@/hooks/use-features";
 import type {
 	Bucket,
 	CreateEndpointInput,
@@ -45,8 +47,6 @@ import type {
 	Variant,
 } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useFeatures } from "@/hooks/use-features";
 import { GripVertical, Plus, Settings2, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -433,7 +433,9 @@ function VariantFormModal({
 											setIsDefault(checked === true)
 										}
 									/>
-									<span className="text-sm text-[var(--text-secondary)]">Default fallback</span>
+									<span className="text-sm text-[var(--text-secondary)]">
+										Default fallback
+									</span>
 								</label>
 							</div>
 						</div>
@@ -1264,72 +1266,72 @@ export function EndpointPanel({
 
 								{/* Stateful Mode */}
 								{features?.statefulMocks && (
-								<div className="space-y-3">
-									<div className="flex items-center justify-between">
-										<div>
-											<Label>Stateful</Label>
-											<p className="text-xs text-[var(--text-muted)] mt-0.5">
-												Link to a data bucket for persistence
-											</p>
-										</div>
-										<button
-											type="button"
-											onClick={() => {
-												const newValue = !isCrud;
-												setIsCrud(newValue);
-												if (newValue) setProxyEnabled(false);
-											}}
-											className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-												isCrud ? "bg-[var(--glow-violet)]" : "bg-white/10"
-											}`}
-										>
-											<span
-												className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-													isCrud ? "translate-x-4.5" : "translate-x-1"
-												}`}
-											/>
-										</button>
-									</div>
-									{isCrud && (
-										<div className="space-y-3 pl-4 border-l-2 border-[var(--border-subtle)]">
+									<div className="space-y-3">
+										<div className="flex items-center justify-between">
 											<div>
-												<Label htmlFor="crudBucket">Bucket</Label>
-												{buckets.length > 0 ? (
-													<Select
-														id="crudBucket"
-														value={crudBucket}
-														onChange={(e) => setCrudBucket(e.target.value)}
-														className="mt-1.5"
-													>
-														<option value="">Select a bucket...</option>
-														{buckets.map((b) => (
-															<option key={b.id} value={b.name}>
-																{b.name} ({b.data.length} items)
-															</option>
-														))}
-													</Select>
-												) : (
-													<p className="text-sm text-[var(--text-muted)] mt-1.5">
-														No buckets yet. Create one in the Data tab first.
-													</p>
-												)}
-											</div>
-											<div>
-												<Label htmlFor="crudIdField">ID Field</Label>
-												<Input
-													id="crudIdField"
-													value={crudIdField}
-													onChange={(e) => setCrudIdField(e.target.value)}
-													placeholder="id"
-													className="mt-1.5 font-mono"
-												/>
-												<p className="text-xs text-[var(--text-muted)] mt-1">
-													Field used for lookups in the bucket
+												<Label>Stateful</Label>
+												<p className="text-xs text-[var(--text-muted)] mt-0.5">
+													Link to a data bucket for persistence
 												</p>
 											</div>
+											<button
+												type="button"
+												onClick={() => {
+													const newValue = !isCrud;
+													setIsCrud(newValue);
+													if (newValue) setProxyEnabled(false);
+												}}
+												className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+													isCrud ? "bg-[var(--glow-violet)]" : "bg-white/10"
+												}`}
+											>
+												<span
+													className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+														isCrud ? "translate-x-4.5" : "translate-x-1"
+													}`}
+												/>
+											</button>
 										</div>
-									)}
-								</div>
+										{isCrud && (
+											<div className="space-y-3 pl-4 border-l-2 border-[var(--border-subtle)]">
+												<div>
+													<Label htmlFor="crudBucket">Bucket</Label>
+													{buckets.length > 0 ? (
+														<Select
+															id="crudBucket"
+															value={crudBucket}
+															onChange={(e) => setCrudBucket(e.target.value)}
+															className="mt-1.5"
+														>
+															<option value="">Select a bucket...</option>
+															{buckets.map((b) => (
+																<option key={b.id} value={b.name}>
+																	{b.name} ({b.data.length} items)
+																</option>
+															))}
+														</Select>
+													) : (
+														<p className="text-sm text-[var(--text-muted)] mt-1.5">
+															No buckets yet. Create one in the Data tab first.
+														</p>
+													)}
+												</div>
+												<div>
+													<Label htmlFor="crudIdField">ID Field</Label>
+													<Input
+														id="crudIdField"
+														value={crudIdField}
+														onChange={(e) => setCrudIdField(e.target.value)}
+														placeholder="id"
+														className="mt-1.5 font-mono"
+													/>
+													<p className="text-xs text-[var(--text-muted)] mt-1">
+														Field used for lookups in the bucket
+													</p>
+												</div>
+											</div>
+										)}
+									</div>
 								)}
 
 								{/* Response Config - hidden when proxy or stateful */}
