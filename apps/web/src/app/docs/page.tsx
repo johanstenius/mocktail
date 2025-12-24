@@ -49,6 +49,10 @@ export default function DocsIntroduction() {
 						real-time
 					</li>
 					<li>
+						<strong>TypeScript SDK</strong> - Programmatically manage mocks for
+						CI/CD and test automation
+					</li>
+					<li>
 						<strong>Team collaboration</strong> - Share projects with your team
 					</li>
 				</ul>
@@ -78,7 +82,7 @@ export default function DocsIntroduction() {
 			<Section title="Example Request">
 				<p>Once you&apos;ve created an endpoint, call it like any other API:</p>
 				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
-  -H "X-API-Key: mk_your_api_key"`}</CodeBlock>
+  -H "X-API-Key: ms_proj_xxx"`}</CodeBlock>
 			</Section>
 
 			<Section title="Plans & Limits">

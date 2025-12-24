@@ -1,0 +1,38 @@
+{
+	"name": "@mockspec/sdk",
+	"version": "0.0.1",
+	"description": "TypeScript SDK for Mockspec API",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": ["dist"],
+	"scripts": {
+		"build": "tsup src/index.ts --format esm --dts",
+		"dev": "tsup src/index.ts --format esm --dts --watch",
+		"lint": "biome check src/",
+		"test": "vitest",
+		"test:run": "vitest run --passWithNoTests"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/node": "22.10.1",
+		"tsup": "8.3.5",
+		"typescript": "5.7.2",
+		"vitest": "2.1.6"
+	},
+	"peerDependencies": {
+		"typescript": ">=5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"typescript": {
+			"optional": true
+		}
+	}
+}

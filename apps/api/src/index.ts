@@ -3,6 +3,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { except } from "hono/combine";
 import { cors } from "hono/cors";
 import { adminRouter } from "./controllers/admin";
+import { orgApiKeysRouter, projectApiKeysRouter } from "./controllers/api-keys";
 import { auditRouter } from "./controllers/audit";
 import { billingRouter } from "./controllers/billing";
 import { bucketsRouter } from "./controllers/buckets";
@@ -19,6 +20,8 @@ import { initCronJobs } from "./cron";
 import { type AuthVariables, auth } from "./lib/auth";
 import { errorHandler } from "./middleware/error-handler";
 import { loggerMiddleware } from "./middleware/logger";
+import * as apiKeyRepo from "./repositories/api-key.repository";
+import { parseApiKeyType } from "./utils/api-key";
 import { logger } from "./utils/logger";
 
 const app = new OpenAPIHono<{ Variables: AuthVariables }>();
@@ -47,10 +50,30 @@ const PUBLIC_ROUTES = [
 	"/events/*", // SSE events (auth via token)
 ];
 
-// Auth middleware - sets user/session on context
+// Auth middleware - supports both session and org API key auth
 app.use(
 	"*",
 	except(PUBLIC_ROUTES, async (c, next) => {
+		c.set("apiKeyOrgId", null);
+
+		// Check for org API key first
+		const apiKey =
+			c.req.header("X-API-Key") ||
+			c.req.header("Authorization")?.replace("Bearer ", "");
+
+		if (apiKey && parseApiKeyType(apiKey) === "org") {
+			const key = await apiKeyRepo.findByKey(apiKey);
+			if (key && (!key.expiresAt || key.expiresAt > new Date())) {
+				c.set("apiKeyOrgId", key.orgId);
+				c.set("user", null);
+				c.set("session", null);
+				// Update lastUsedAt in background
+				apiKeyRepo.updateLastUsed(key.id).catch(() => {});
+				return next();
+			}
+		}
+
+		// Fall back to session auth
 		const session = await auth.api.getSession({ headers: c.req.raw.headers });
 		c.set("user", session?.user ?? null);
 		c.set("session", session?.session ?? null);
@@ -79,7 +102,9 @@ app.route(
 app.route("/projects/:projectId/import", importRouter);
 app.route("/projects/:projectId/logs", requestLogsRouter);
 app.route("/projects/:projectId/statistics", statisticsRouter);
+app.route("/projects/:projectId/api-keys", projectApiKeysRouter);
 app.route("/projects/:id/buckets", bucketsRouter);
+app.route("/org/api-keys", orgApiKeysRouter);
 app.route("/billing", billingRouter);
 app.route("/", auditRouter);
 app.route("/dashboard", dashboardRouter);

@@ -293,3 +293,23 @@ export type GetAuditLogsParams = {
 	from?: string;
 	to?: string;
 };
+
+// API Key types
+export type ApiKeyType = "project" | "org";
+
+export type ApiKey = {
+	id: string;
+	key: string;
+	type: ApiKeyType;
+	name: string;
+	orgId: string;
+	projectId: string | null;
+	lastUsedAt: string | null;
+	expiresAt: string | null;
+	createdAt: string;
+};
+
+export type CreateApiKeyInput = {
+	name: string;
+	expiresAt?: string | null;
+};

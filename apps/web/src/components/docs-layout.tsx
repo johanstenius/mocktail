@@ -45,6 +45,8 @@ const navigation: NavGroup[] = [
 	{
 		title: "Reference",
 		items: [
+			{ href: "/docs/sdk", label: "SDK" },
+			{ href: "/docs/api-reference", label: "REST API" },
 			{ href: "/docs/rate-limits", label: "Rate Limits" },
 			{ href: "/docs/errors", label: "Error Responses" },
 		],

@@ -12,13 +12,22 @@ import { RequestLogTable } from "@/components/request-log-table";
 import { EndpointRowSkeleton, Skeleton } from "@/components/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFeatures } from "@/hooks/use-features";
 import {
+	createProjectApiKey,
 	deleteEndpoint,
+	deleteProjectApiKey,
 	getEndpoints,
 	getProject,
+	getProjectApiKeys,
 	getProjectStatistics,
 	getUsage,
 	resetProjectState,
@@ -29,6 +38,7 @@ import { useSession } from "@/lib/auth-client";
 import { createSSEConnection } from "@/lib/sse";
 import { getCurlCommand, getMockBaseUrl, getMockUrl } from "@/lib/url";
 import type {
+	ApiKey,
 	Endpoint,
 	HttpMethod,
 	Project,
@@ -38,7 +48,10 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	AlertCircle,
+	Check,
+	Copy,
 	FolderOpen,
+	Key,
 	Loader2,
 	Plus,
 	RefreshCw,
@@ -380,6 +393,227 @@ function ProjectAnalytics({
 	);
 }
 
+function ProjectApiKeyRow({
+	apiKey,
+	projectId,
+	onDelete,
+	isDeleting,
+}: {
+	apiKey: ApiKey;
+	projectId: string;
+	onDelete: () => void;
+	isDeleting: boolean;
+}) {
+	const [showConfirm, setShowConfirm] = useState(false);
+	const [copied, setCopied] = useState(false);
+
+	async function handleCopy() {
+		await navigator.clipboard.writeText(apiKey.key);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	}
+
+	return (
+		<div className="flex items-center justify-between p-3 bg-[rgba(0,0,0,0.2)] rounded-xl">
+			<div className="flex items-center gap-3">
+				<Key className="h-4 w-4 text-[var(--text-muted)]" />
+				<div>
+					<div className="text-sm font-medium text-[var(--text-primary)]">
+						{apiKey.name}
+					</div>
+					<div className="flex items-center gap-2">
+						<code className="text-xs text-[var(--text-muted)] font-['JetBrains_Mono']">
+							{apiKey.key.slice(0, 16)}...
+						</code>
+						<button
+							type="button"
+							onClick={handleCopy}
+							className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+						>
+							{copied ? (
+								<Check className="h-3 w-3" />
+							) : (
+								<Copy className="h-3 w-3" />
+							)}
+						</button>
+					</div>
+				</div>
+			</div>
+			<div className="flex items-center gap-2">
+				{apiKey.lastUsedAt && (
+					<span className="text-xs text-[var(--text-muted)]">
+						Last used: {new Date(apiKey.lastUsedAt).toLocaleDateString()}
+					</span>
+				)}
+				{showConfirm ? (
+					<>
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setShowConfirm(false)}
+							disabled={isDeleting}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							size="sm"
+							onClick={onDelete}
+							disabled={isDeleting}
+						>
+							{isDeleting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								"Delete"
+							)}
+						</Button>
+					</>
+				) : (
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-7 w-7 text-[var(--text-muted)] hover:text-[var(--status-error)]"
+						onClick={() => setShowConfirm(true)}
+					>
+						<Trash2 className="h-3 w-3" />
+					</Button>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function ProjectApiKeysSection({ projectId }: { projectId: string }) {
+	const [createModalOpen, setCreateModalOpen] = useState(false);
+	const [newKeyName, setNewKeyName] = useState("");
+	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const queryClient = useQueryClient();
+
+	const { data: apiKeys = [], isLoading } = useQuery({
+		queryKey: ["project-api-keys", projectId],
+		queryFn: () => getProjectApiKeys(projectId),
+	});
+
+	const createMutation = useMutation({
+		mutationFn: () => createProjectApiKey(projectId, { name: newKeyName }),
+		onSuccess: (newKey) => {
+			queryClient.invalidateQueries({
+				queryKey: ["project-api-keys", projectId],
+			});
+			setCreateModalOpen(false);
+			setNewKeyName("");
+			toast.success("API key created - copied to clipboard");
+			navigator.clipboard.writeText(newKey.key);
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : "Failed to create");
+		},
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: (keyId: string) => deleteProjectApiKey(projectId, keyId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["project-api-keys", projectId],
+			});
+			toast.success("API key deleted");
+			setDeletingId(null);
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : "Failed to delete");
+			setDeletingId(null);
+		},
+	});
+
+	function handleDelete(keyId: string) {
+		setDeletingId(keyId);
+		deleteMutation.mutate(keyId);
+	}
+
+	return (
+		<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
+			<div className="flex items-center justify-between mb-4">
+				<div>
+					<h4 className="text-lg font-semibold">Additional API Keys</h4>
+					<p className="text-sm text-[var(--text-muted)]">
+						Create multiple keys for different environments (dev, staging, CI)
+					</p>
+				</div>
+				<Button size="sm" onClick={() => setCreateModalOpen(true)}>
+					<Plus className="h-4 w-4 mr-2" />
+					Create Key
+				</Button>
+			</div>
+
+			{isLoading ? (
+				<div className="text-center py-4 text-[var(--text-muted)]">
+					<Loader2 className="h-5 w-5 animate-spin mx-auto" />
+				</div>
+			) : apiKeys.length > 0 ? (
+				<div className="space-y-2">
+					{apiKeys.map((key) => (
+						<ProjectApiKeyRow
+							key={key.id}
+							apiKey={key}
+							projectId={projectId}
+							onDelete={() => handleDelete(key.id)}
+							isDeleting={deletingId === key.id}
+						/>
+					))}
+				</div>
+			) : (
+				<div className="text-center py-4 text-[var(--text-muted)] text-sm">
+					No additional API keys. The default key above always works.
+				</div>
+			)}
+
+			<Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Create Project API Key</DialogTitle>
+					</DialogHeader>
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							createMutation.mutate();
+						}}
+						className="space-y-4"
+					>
+						<div className="space-y-2">
+							<Label htmlFor="keyName">Name</Label>
+							<Input
+								id="keyName"
+								placeholder="e.g. Development, CI, Staging"
+								value={newKeyName}
+								onChange={(e) => setNewKeyName(e.target.value)}
+								required
+							/>
+						</div>
+						<div className="flex justify-end gap-3">
+							<Button
+								type="button"
+								variant="ghost"
+								onClick={() => setCreateModalOpen(false)}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								disabled={createMutation.isPending || !newKeyName}
+							>
+								{createMutation.isPending && (
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								)}
+								Create
+							</Button>
+						</div>
+					</form>
+				</DialogContent>
+			</Dialog>
+		</div>
+	);
+}
+
 function ProjectSettings({
 	projectId,
 	project,
@@ -621,6 +855,8 @@ function ProjectSettings({
 						)}
 					</div>
 				</div>
+
+				<ProjectApiKeysSection projectId={projectId} />
 
 				<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl p-6">
 					<h4 className="text-lg font-semibold mb-4 ">Example Usage</h4>

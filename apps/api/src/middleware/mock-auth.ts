@@ -1,7 +1,8 @@
 import type { Tier } from "@prisma/client";
 import type { Context, Next } from "hono";
-import * as projectRepo from "../repositories/project.repository";
+import * as apiKeyRepo from "../repositories/api-key.repository";
 import * as subRepo from "../repositories/subscription.repository";
+import { parseApiKeyType } from "../utils/api-key";
 import { unauthorized } from "../utils/errors";
 import { LRUCache } from "../utils/lru-cache";
 
@@ -12,6 +13,7 @@ export type MockAuthContext = {
 };
 
 type CachedProject = {
+	apiKeyId: string;
 	projectId: string;
 	orgId: string;
 	tier: Tier;
@@ -35,6 +37,10 @@ export async function mockAuthMiddleware(c: Context, next: Next) {
 	c.set("mockProjectId", result.projectId);
 	c.set("mockOrgId", result.orgId);
 	c.set("mockTier", result.tier);
+
+	// Update lastUsedAt in background (don't await)
+	apiKeyRepo.updateLastUsed(result.apiKeyId).catch(() => {});
+
 	await next();
 }
 
@@ -72,14 +78,25 @@ async function validateProjectApiKey(
 	const cached = projectKeyCache.get(key);
 	if (cached) return cached;
 
-	const project = await projectRepo.findByApiKey(key);
-	if (!project) return null;
+	// Only accept project keys for mock auth
+	const keyType = parseApiKeyType(key);
+	if (keyType !== "project") return null;
 
-	const sub = await subRepo.findByOrgId(project.org.id);
+	const apiKey = await apiKeyRepo.findByKey(key);
+	if (!apiKey) return null;
+	if (!apiKey.projectId) return null;
+
+	// Check expiration
+	if (apiKey.expiresAt && apiKey.expiresAt < new Date()) {
+		return null;
+	}
+
+	const sub = await subRepo.findByOrgId(apiKey.orgId);
 
 	const result: CachedProject = {
-		projectId: project.id,
-		orgId: project.org.id,
+		apiKeyId: apiKey.id,
+		projectId: apiKey.projectId,
+		orgId: apiKey.orgId,
 		tier: sub?.tier ?? "free",
 	};
 	projectKeyCache.set(key, result);

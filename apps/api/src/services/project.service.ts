@@ -1,5 +1,6 @@
-import { nanoid } from "nanoid";
+import * as apiKeyRepo from "../repositories/api-key.repository";
 import * as projectRepo from "../repositories/project.repository";
+import { generateApiKey } from "../utils/api-key";
 import * as auditService from "./audit.service";
 import type { AuditContext } from "./audit.service";
 
@@ -50,8 +51,18 @@ export async function create(
 	},
 	ctx?: AuditContext,
 ): Promise<ProjectModel> {
-	const apiKey = `mk_${nanoid(24)}`;
-	const project = await projectRepo.create({ ...data, apiKey });
+	// Create project with a temporary apiKey (will be deprecated)
+	const tempKey = generateApiKey("project");
+	const project = await projectRepo.create({ ...data, apiKey: tempKey });
+
+	// Create the API key in the new table
+	await apiKeyRepo.create({
+		key: tempKey,
+		type: "project",
+		name: "Default",
+		orgId: data.orgId,
+		projectId: project.id,
+	});
 
 	await auditService.log({
 		orgId: data.orgId,
@@ -133,7 +144,21 @@ export async function rotateApiKey(
 	const existing = await projectRepo.findById(id);
 	if (!existing) return null;
 
-	const newApiKey = `mk_${nanoid(24)}`;
+	// Delete all existing project keys and create a new one
+	await apiKeyRepo.removeByProjectId(id);
+
+	const newApiKey = generateApiKey("project");
+
+	// Create new key in ApiKey table
+	await apiKeyRepo.create({
+		key: newApiKey,
+		type: "project",
+		name: "Default",
+		orgId: existing.orgId,
+		projectId: id,
+	});
+
+	// Update project's apiKey field (for backwards compatibility)
 	const updated = await projectRepo.updateApiKey(id, newApiKey);
 
 	await auditService.log({

@@ -98,7 +98,9 @@ export default function DocsTemplates() {
 					</li>
 					<li>
 						<code className="text-[var(--glow-pink)]">{"{{ float }}"}</code>,{" "}
-						<code className="text-[var(--glow-pink)]">{"{{ float 100 2 }}"}</code>{" "}
+						<code className="text-[var(--glow-pink)]">
+							{"{{ float 100 2 }}"}
+						</code>{" "}
 						- Float (optional max, precision)
 					</li>
 				</ul>

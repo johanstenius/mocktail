@@ -1,6 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { config } from "../config";
-import { type AuthVariables, getAuth } from "../lib/auth";
+import { type AuthVariables, getAuth, getSessionAuth } from "../lib/auth";
 import * as orgRepo from "../repositories/organization.repository";
 import * as userRepo from "../repositories/user.repository";
 import {
@@ -82,7 +82,7 @@ billingRouter.openapi(getUsageRoute, async (c) => {
 });
 
 billingRouter.openapi(createCheckoutRoute, async (c) => {
-	const auth = getAuth(c);
+	const auth = getSessionAuth(c);
 
 	const [org, user] = await Promise.all([
 		orgRepo.findById(auth.orgId),

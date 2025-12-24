@@ -1,7 +1,9 @@
 import type {
 	ActivityItem,
+	ApiKey,
 	AuditLog,
 	Bucket,
+	CreateApiKeyInput,
 	CreateBucketInput,
 	CreateEndpointInput,
 	CreateProjectInput,
@@ -460,5 +462,51 @@ export async function deleteBucket(
 export async function resetProjectState(projectId: string): Promise<void> {
 	await fetchVoid(`${API_BASE}/projects/${projectId}/state/reset`, {
 		method: "POST",
+	});
+}
+
+// Org API Keys
+export async function getOrgApiKeys(): Promise<ApiKey[]> {
+	const data = await fetchJson<{ keys: ApiKey[] }>(`${API_BASE}/api-keys`);
+	return data.keys;
+}
+
+export async function createOrgApiKey(
+	input: CreateApiKeyInput,
+): Promise<ApiKey> {
+	return fetchJson<ApiKey>(`${API_BASE}/api-keys`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+}
+
+export async function deleteOrgApiKey(keyId: string): Promise<void> {
+	await fetchVoid(`${API_BASE}/api-keys/${keyId}`, { method: "DELETE" });
+}
+
+// Project API Keys
+export async function getProjectApiKeys(projectId: string): Promise<ApiKey[]> {
+	const data = await fetchJson<{ keys: ApiKey[] }>(
+		`${API_BASE}/projects/${projectId}/api-keys`,
+	);
+	return data.keys;
+}
+
+export async function createProjectApiKey(
+	projectId: string,
+	input: CreateApiKeyInput,
+): Promise<ApiKey> {
+	return fetchJson<ApiKey>(`${API_BASE}/projects/${projectId}/api-keys`, {
+		method: "POST",
+		body: JSON.stringify(input),
+	});
+}
+
+export async function deleteProjectApiKey(
+	projectId: string,
+	keyId: string,
+): Promise<void> {
+	await fetchVoid(`${API_BASE}/projects/${projectId}/api-keys/${keyId}`, {
+		method: "DELETE",
 	});
 }

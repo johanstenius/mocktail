@@ -26,7 +26,7 @@ export const integrations: Integration[] = [
 			"Set up your base URL and headers",
 			"Make requests to your mock endpoints",
 		],
-		exampleCode: `const API_KEY = "mk_your_api_key";
+		exampleCode: `const API_KEY = "ms_proj_xxx";
 const BASE_URL = "https://api.mockspec.dev/mock";
 
 async function fetchUsers() {
@@ -65,7 +65,7 @@ console.log(users);`,
 		],
 		exampleCode: `import requests
 
-API_KEY = "mk_your_api_key"
+API_KEY = "ms_proj_xxx"
 BASE_URL = "https://api.mockspec.dev/mock"
 
 def fetch_users():
@@ -161,7 +161,7 @@ import (
 )
 
 const (
-    apiKey  = "mk_your_api_key"
+    apiKey  = "ms_proj_xxx"
     baseURL = "https://api.mockspec.dev/mock"
 )
 
@@ -213,7 +213,7 @@ func main() {
 		],
 		exampleCode: `require 'httparty'
 
-API_KEY = "mk_your_api_key"
+API_KEY = "ms_proj_xxx"
 BASE_URL = "https://api.mockspec.dev/mock"
 
 class MockspecClient

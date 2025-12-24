@@ -43,18 +43,18 @@ export default function DocsQuickstart() {
 
 			<Section title="3. Make a Request">
 				<p className="mb-2">
-					Copy your API key from the project settings and make a request:
+					Copy your project API key from settings and make a request:
 				</p>
 
 				<p className="text-sm text-[var(--text-muted)] mb-2">curl:</p>
 				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
-  -H "X-API-Key: mk_your_api_key_here"`}</CodeBlock>
+  -H "X-API-Key: ms_proj_xxx"`}</CodeBlock>
 
 				<p className="text-sm text-[var(--text-muted)] mb-2 mt-4">
 					TypeScript:
 				</p>
 				<CodeBlock>{`const response = await fetch("https://api.mockspec.dev/mock/users", {
-  headers: { "X-API-Key": "mk_your_api_key_here" }
+  headers: { "X-API-Key": "ms_proj_xxx" }
 });
 
 const data = await response.json();

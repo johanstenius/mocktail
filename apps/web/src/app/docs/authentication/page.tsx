@@ -14,28 +14,51 @@ export default function DocsAuthentication() {
 				description="Authenticate requests to your mock endpoints using API keys."
 			/>
 
-			<p className="text-[var(--text-secondary)] mb-8">
-				Every request to your mock endpoints must include your project&apos;s
-				API key. Mockspec supports three authentication methods:
-			</p>
+			<Section title="API Key Types">
+				<p className="mb-4">Mockspec uses two types of API keys:</p>
+				<div className="space-y-4">
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4">
+						<h4 className="font-semibold mb-1">
+							Project Keys{" "}
+							<code className="text-[var(--glow-violet)]">ms_proj_xxx</code>
+						</h4>
+						<p className="text-sm text-[var(--text-muted)]">
+							For consuming mock endpoints. Each project has a default key, and
+							you can create additional keys for different environments (dev,
+							staging, CI).
+						</p>
+					</div>
+					<div className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-4">
+						<h4 className="font-semibold mb-1">
+							Org Keys{" "}
+							<code className="text-[var(--glow-violet)]">ms_org_xxx</code>
+						</h4>
+						<p className="text-sm text-[var(--text-muted)]">
+							For programmatic management via the SDK. Create, update, and
+							delete projects, endpoints, and more. Manage org keys from the{" "}
+							<strong>API Keys</strong> page in the dashboard.
+						</p>
+					</div>
+				</div>
+			</Section>
 
 			<Section title="X-API-Key Header (Recommended)">
 				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
-  -H "X-API-Key: mk_your_api_key_here"`}</CodeBlock>
+  -H "X-API-Key: ms_proj_xxx"`}</CodeBlock>
 
 				<p className="mt-4 mb-2">TypeScript:</p>
 				<CodeBlock>{`fetch("https://api.mockspec.dev/mock/users", {
-  headers: { "X-API-Key": "mk_your_api_key_here" }
+  headers: { "X-API-Key": "ms_proj_xxx" }
 });`}</CodeBlock>
 			</Section>
 
 			<Section title="Bearer Token">
 				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
-  -H "Authorization: Bearer mk_your_api_key_here"`}</CodeBlock>
+  -H "Authorization: Bearer ms_proj_xxx"`}</CodeBlock>
 
 				<p className="mt-4 mb-2">TypeScript:</p>
 				<CodeBlock>{`fetch("https://api.mockspec.dev/mock/users", {
-  headers: { "Authorization": "Bearer mk_your_api_key_here" }
+  headers: { "Authorization": "Bearer ms_proj_xxx" }
 });`}</CodeBlock>
 			</Section>
 
@@ -44,10 +67,10 @@ export default function DocsAuthentication() {
 					Use your API key as the username (password can be empty):
 				</p>
 				<CodeBlock>{`curl -X GET "https://api.mockspec.dev/mock/users" \\
-  -H "Authorization: Basic $(echo -n 'mk_your_api_key_here:' | base64)"`}</CodeBlock>
+  -H "Authorization: Basic $(echo -n 'ms_proj_xxx:' | base64)"`}</CodeBlock>
 
 				<p className="mt-4 mb-2">TypeScript:</p>
-				<CodeBlock>{`const apiKey = "mk_your_api_key_here";
+				<CodeBlock>{`const apiKey = "ms_proj_xxx";
 const encoded = btoa(\`\${apiKey}:\`);
 
 fetch("https://api.mockspec.dev/mock/users", {
@@ -55,12 +78,21 @@ fetch("https://api.mockspec.dev/mock/users", {
 });`}</CodeBlock>
 			</Section>
 
-			<Section title="Rotating API Keys">
-				<p>
-					You can rotate your API key at any time from project settings. The old
-					key is invalidated immediately - update your applications with the new
-					key.
-				</p>
+			<Section title="Managing API Keys">
+				<ul className="list-disc list-inside space-y-2 ml-4">
+					<li>
+						<strong>Project keys:</strong> Found in project settings. Create
+						additional keys for different environments.
+					</li>
+					<li>
+						<strong>Org keys:</strong> Manage from the <strong>API Keys</strong>{" "}
+						page in the dashboard sidebar.
+					</li>
+					<li>
+						<strong>Rotation:</strong> Rotate any key instantly. The old key is
+						invalidated immediately.
+					</li>
+				</ul>
 			</Section>
 
 			<DocsFooter />

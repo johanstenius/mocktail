@@ -13,6 +13,8 @@ export const auditActionSchema = z.enum([
 	"project_updated",
 	"project_deleted",
 	"api_key_rotated",
+	"api_key_created",
+	"api_key_deleted",
 	"endpoint_created",
 	"endpoint_updated",
 	"endpoint_deleted",

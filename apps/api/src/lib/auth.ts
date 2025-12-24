@@ -232,6 +232,7 @@ export type Session = typeof auth.$Infer.Session;
 export type AuthVariables = {
 	user: Session["user"] | null;
 	session: Session["session"] | null;
+	apiKeyOrgId: string | null;
 };
 
 type AuthContext = Context<{ Variables: AuthVariables }>;
@@ -246,6 +247,33 @@ export function getSession(c: AuthContext) {
 }
 
 export function getAuth(c: AuthContext) {
+	// Check API key auth first
+	const apiKeyOrgId = c.get("apiKeyOrgId");
+	if (apiKeyOrgId) {
+		return {
+			userId: null as string | null,
+			orgId: apiKeyOrgId,
+			user: null,
+			session: null,
+		};
+	}
+
+	// Fall back to session auth
+	const { user, session } = getSession(c);
+	const activeOrgId = (session as { activeOrganizationId?: string })
+		.activeOrganizationId;
+	if (!activeOrgId) {
+		throw new HTTPException(403, { message: "No active organization" });
+	}
+	return {
+		userId: user.id as string | null,
+		orgId: activeOrgId,
+		user,
+		session,
+	};
+}
+
+export function getSessionAuth(c: AuthContext) {
 	const { user, session } = getSession(c);
 	const activeOrgId = (session as { activeOrganizationId?: string })
 		.activeOrganizationId;
