@@ -43,6 +43,7 @@ app.use(
 const PUBLIC_ROUTES = [
 	"/health",
 	"/docs",
+	"/robots.txt",
 	"/auth/*", // Better-auth routes
 	"/mock/*", // Mock server (has own API key auth)
 	"/admin/*", // Admin routes (has own auth)
@@ -88,6 +89,13 @@ app.use(
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
+
+// Robots.txt - disallow all crawling on API subdomain
+app.get("/robots.txt", (c) => {
+	return c.text("User-agent: *\nDisallow: /\n", 200, {
+		"Content-Type": "text/plain",
+	});
+});
 
 // Better-auth routes
 app.on(["POST", "GET"], "/auth/*", (c) => auth.handler(c.req.raw));
