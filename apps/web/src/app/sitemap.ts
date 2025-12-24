@@ -1,9 +1,15 @@
+import {
+	getAllHttpMethods,
+	getAllStatusCodes,
+} from "@/data/seo/http-reference";
+import { getAllIntegrationSlugs } from "@/data/seo/integrations";
+import { getAllUseCaseSlugs } from "@/data/seo/use-cases";
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
 	const baseUrl = "https://mockspec.dev";
 
-	return [
+	const staticPages: MetadataRoute.Sitemap = [
 		{
 			url: baseUrl,
 			lastModified: new Date(),
@@ -82,5 +88,49 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			changeFrequency: "yearly",
 			priority: 0.5,
 		},
+	];
+
+	const integrationPages: MetadataRoute.Sitemap = getAllIntegrationSlugs().map(
+		(slug) => ({
+			url: `${baseUrl}/guides/integrations/${slug}`,
+			lastModified: new Date(),
+			changeFrequency: "monthly" as const,
+			priority: 0.7,
+		}),
+	);
+
+	const useCasePages: MetadataRoute.Sitemap = getAllUseCaseSlugs().map(
+		(slug) => ({
+			url: `${baseUrl}/guides/use-cases/${slug}`,
+			lastModified: new Date(),
+			changeFrequency: "monthly" as const,
+			priority: 0.7,
+		}),
+	);
+
+	const statusCodePages: MetadataRoute.Sitemap = getAllStatusCodes().map(
+		(code) => ({
+			url: `${baseUrl}/guides/status-codes/${code}`,
+			lastModified: new Date(),
+			changeFrequency: "monthly" as const,
+			priority: 0.6,
+		}),
+	);
+
+	const methodPages: MetadataRoute.Sitemap = getAllHttpMethods().map(
+		(method) => ({
+			url: `${baseUrl}/guides/methods/${method}`,
+			lastModified: new Date(),
+			changeFrequency: "monthly" as const,
+			priority: 0.6,
+		}),
+	);
+
+	return [
+		...staticPages,
+		...integrationPages,
+		...useCasePages,
+		...statusCodePages,
+		...methodPages,
 	];
 }

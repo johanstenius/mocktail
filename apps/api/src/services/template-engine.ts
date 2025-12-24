@@ -79,6 +79,33 @@ function registerFakerHelpers(): void {
 
 	// Image
 	Handlebars.registerHelper("faker_image_url", () => faker.image.url());
+
+	// Clean aliases (preferred)
+	Handlebars.registerHelper("uuid", () => faker.string.uuid());
+	Handlebars.registerHelper("now", () => new Date().toISOString());
+	Handlebars.registerHelper("name", () => faker.person.fullName());
+	Handlebars.registerHelper("firstName", () => faker.person.firstName());
+	Handlebars.registerHelper("lastName", () => faker.person.lastName());
+	Handlebars.registerHelper("email", () => faker.internet.email());
+	Handlebars.registerHelper("username", () => faker.internet.username());
+	Handlebars.registerHelper("url", () => faker.internet.url());
+	Handlebars.registerHelper("imageUrl", () => faker.image.url());
+	Handlebars.registerHelper("int", (max: number | HandlebarsOptions) =>
+		faker.number.int(typeof max === "number" ? { max } : undefined),
+	);
+	Handlebars.registerHelper(
+		"float",
+		(max: number | HandlebarsOptions, precision?: number | HandlebarsOptions) =>
+			faker.number.float({
+				max: typeof max === "number" ? max : undefined,
+				fractionDigits: typeof precision === "number" ? precision : 2,
+			}),
+	);
+	Handlebars.registerHelper("sentence", () => faker.lorem.sentence());
+	Handlebars.registerHelper("paragraph", () => faker.lorem.paragraph());
+	Handlebars.registerHelper("past", () => faker.date.past().toISOString());
+	Handlebars.registerHelper("future", () => faker.date.future().toISOString());
+	Handlebars.registerHelper("recent", () => faker.date.recent().toISOString());
 }
 
 let helpersRegistered = false;

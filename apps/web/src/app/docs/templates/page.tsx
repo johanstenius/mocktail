@@ -64,101 +64,77 @@ export default function DocsTemplates() {
 			<Section title="Fake Data Helpers">
 				<p className="mb-4">Generate realistic data on each request:</p>
 
-				<p className="font-semibold mb-2">Person</p>
+				<p className="font-semibold mb-2">Identity</p>
 				<ul className="list-disc list-inside space-y-1 ml-4 mb-4">
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_person_fullName }}"}
-						</code>{" "}
-						- &quot;John Smith&quot;
+						<code className="text-[var(--glow-pink)]">{"{{ uuid }}"}</code> -
+						UUID v4
 					</li>
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_person_firstName }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ name }}"}</code> -
+						Full name
+					</li>
+					<li>
+						<code className="text-[var(--glow-pink)]">{"{{ firstName }}"}</code>
 						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_person_lastName }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ lastName }}"}</code>
+					</li>
+					<li>
+						<code className="text-[var(--glow-pink)]">{"{{ email }}"}</code> -
+						Email address
+					</li>
+					<li>
+						<code className="text-[var(--glow-pink)]">{"{{ username }}"}</code>{" "}
+						- Username
 					</li>
 				</ul>
 
-				<p className="font-semibold mb-2">Internet</p>
+				<p className="font-semibold mb-2">Numbers</p>
 				<ul className="list-disc list-inside space-y-1 ml-4 mb-4">
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_internet_email }}"}
-						</code>{" "}
-						- Email address
+						<code className="text-[var(--glow-pink)]">{"{{ int }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ int 100 }}"}</code> -
+						Random integer (optional max)
 					</li>
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_internet_username }}"}
-						</code>
-						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_internet_url }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ float }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ float 100 2 }}"}</code>{" "}
+						- Float (optional max, precision)
 					</li>
 				</ul>
 
-				<p className="font-semibold mb-2">String & Number</p>
+				<p className="font-semibold mb-2">Date & Time</p>
 				<ul className="list-disc list-inside space-y-1 ml-4 mb-4">
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_string_uuid }}"}
-						</code>{" "}
-						- UUID v4
+						<code className="text-[var(--glow-pink)]">{"{{ now }}"}</code> -
+						Current ISO timestamp
 					</li>
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_number_int }}"}
-						</code>
-						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_number_float }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ past }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ future }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ recent }}"}</code>
 					</li>
 				</ul>
 
-				<p className="font-semibold mb-2">Date & Text</p>
+				<p className="font-semibold mb-2">Content</p>
 				<ul className="list-disc list-inside space-y-1 ml-4 mb-4">
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_date_past }}"}
-						</code>
-						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_date_future }}"}
-						</code>
-						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_date_recent }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ sentence }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ paragraph }}"}</code>
 					</li>
 					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_lorem_sentence }}"}
-						</code>
-						,{" "}
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_lorem_paragraph }}"}
-						</code>
-					</li>
-					<li>
-						<code className="text-[var(--glow-pink)]">
-							{"{{ faker_image_url }}"}
-						</code>
+						<code className="text-[var(--glow-pink)]">{"{{ url }}"}</code>,{" "}
+						<code className="text-[var(--glow-pink)]">{"{{ imageUrl }}"}</code>
 					</li>
 				</ul>
 			</Section>
 
 			<Section title="Full Example">
 				<CodeBlock>{`{
-  "id": "{{ faker_string_uuid }}",
-  "name": "{{ faker_person_fullName }}",
-  "email": "{{ faker_internet_email }}",
-  "createdAt": "{{ faker_date_past }}"
+  "id": "{{ uuid }}",
+  "name": "{{ name }}",
+  "email": "{{ email }}",
+  "createdAt": "{{ past }}"
 }`}</CodeBlock>
 				<p className="mt-2 mb-2">Returns:</p>
 				<CodeBlock>{`{

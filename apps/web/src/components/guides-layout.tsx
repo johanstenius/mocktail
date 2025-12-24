@@ -19,34 +19,62 @@ type NavGroup = {
 
 const navigation: NavGroup[] = [
 	{
-		title: "Getting Started",
+		title: "Integrations",
 		items: [
-			{ href: "/docs", label: "Introduction" },
-			{ href: "/docs/quickstart", label: "Quick Start" },
+			{ href: "/guides/integrations/node", label: "Node.js" },
+			{ href: "/guides/integrations/python", label: "Python" },
+			{ href: "/guides/integrations/react", label: "React" },
+			{ href: "/guides/integrations/go", label: "Go" },
+			{ href: "/guides/integrations/ruby", label: "Ruby" },
 		],
 	},
 	{
-		title: "Core Concepts",
+		title: "Use Cases",
 		items: [
-			{ href: "/docs/authentication", label: "Authentication" },
-			{ href: "/docs/endpoints", label: "Endpoints" },
-			{ href: "/docs/templates", label: "Response Templates" },
+			{
+				href: "/guides/use-cases/demo-environments",
+				label: "Demo Environments",
+			},
+			{
+				href: "/guides/use-cases/ci-cd-integration",
+				label: "CI/CD Integration",
+			},
+			{
+				href: "/guides/use-cases/offline-development",
+				label: "Offline Development",
+			},
+			{
+				href: "/guides/use-cases/frontend-prototyping",
+				label: "Frontend Prototyping",
+			},
+			{ href: "/guides/use-cases/load-testing", label: "Load Testing" },
 		],
 	},
 	{
-		title: "Features",
+		title: "HTTP Status Codes",
 		items: [
-			{ href: "/docs/stateful-mocks", label: "Stateful Mocks" },
-			{ href: "/docs/chaos-engineering", label: "Chaos Engineering" },
-			{ href: "/docs/openapi-import", label: "OpenAPI Import" },
-			{ href: "/docs/request-logs", label: "Request Logs" },
+			{ href: "/guides/status-codes/200", label: "200 OK" },
+			{ href: "/guides/status-codes/201", label: "201 Created" },
+			{ href: "/guides/status-codes/400", label: "400 Bad Request" },
+			{ href: "/guides/status-codes/401", label: "401 Unauthorized" },
+			{ href: "/guides/status-codes/403", label: "403 Forbidden" },
+			{ href: "/guides/status-codes/404", label: "404 Not Found" },
+			{ href: "/guides/status-codes/429", label: "429 Too Many Requests" },
+			{ href: "/guides/status-codes/500", label: "500 Internal Error" },
+			{ href: "/guides/status-codes/502", label: "502 Bad Gateway" },
+			{ href: "/guides/status-codes/503", label: "503 Unavailable" },
 		],
 	},
 	{
-		title: "Reference",
+		title: "HTTP Methods",
 		items: [
-			{ href: "/docs/rate-limits", label: "Rate Limits" },
-			{ href: "/docs/errors", label: "Error Responses" },
+			{ href: "/guides/methods/get", label: "GET" },
+			{ href: "/guides/methods/post", label: "POST" },
+			{ href: "/guides/methods/put", label: "PUT" },
+			{ href: "/guides/methods/patch", label: "PATCH" },
+			{ href: "/guides/methods/delete", label: "DELETE" },
+			{ href: "/guides/methods/head", label: "HEAD" },
+			{ href: "/guides/methods/options", label: "OPTIONS" },
 		],
 	},
 ];
@@ -75,7 +103,7 @@ function NavLink({
 	);
 }
 
-function useDocsNavigation() {
+function useGuidesNavigation() {
 	const pathname = usePathname();
 	const flatNav = navigation.flatMap((group) => group.items);
 	const currentIndex = flatNav.findIndex((item) => item.href === pathname);
@@ -87,9 +115,9 @@ function useDocsNavigation() {
 	return { prev, next };
 }
 
-export function DocsLayout({ children }: { children: React.ReactNode }) {
+export function GuidesLayout({ children }: { children: React.ReactNode }) {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-	const { prev, next } = useDocsNavigation();
+	const { prev, next } = useGuidesNavigation();
 
 	return (
 		<div className="min-h-screen">
@@ -109,16 +137,10 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 					</div>
 					<nav className="flex items-center gap-6">
 						<Link
-							href="/"
+							href="/docs"
 							className="hidden sm:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
 						>
-							Home
-						</Link>
-						<Link
-							href="/guides/integrations/node"
-							className="hidden sm:block text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
-						>
-							Guides
+							Docs
 						</Link>
 						<Link
 							href="/login"
@@ -160,6 +182,15 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 				<div className="flex gap-12">
 					<aside className="hidden lg:block w-56 flex-shrink-0">
 						<nav className="sticky top-24 space-y-6">
+							<div className="mb-6">
+								<Link
+									href="/docs"
+									className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1"
+								>
+									<ChevronLeft size={12} />
+									Back to Docs
+								</Link>
+							</div>
 							{navigation.map((group) => (
 								<div key={group.title}>
 									<div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2 font-semibold">
@@ -172,15 +203,6 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 									))}
 								</div>
 							))}
-							<div className="pt-4 border-t border-[var(--border-subtle)]">
-								<Link
-									href="/guides/integrations/node"
-									className="flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-								>
-									<ChevronRight size={12} />
-									Guides & Tutorials
-								</Link>
-							</div>
 						</nav>
 					</aside>
 
@@ -226,15 +248,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
 	);
 }
 
-export function CodeBlock({ children }: { children: string }) {
-	return (
-		<pre className="bg-[rgba(0,0,0,0.4)] border border-[var(--border-subtle)] rounded-xl p-4 overflow-x-auto text-sm font-mono text-[var(--text-secondary)]">
-			<code>{children}</code>
-		</pre>
-	);
-}
-
-export function DocsHeader({
+export function GuidesHeader({
 	title,
 	description,
 }: {
@@ -251,7 +265,7 @@ export function DocsHeader({
 	);
 }
 
-export function Section({
+export function GuidesSection({
 	title,
 	children,
 }: {
@@ -270,18 +284,20 @@ export function Section({
 	);
 }
 
-export function DocsFooter() {
+export function GuidesFooter() {
 	return (
 		<div className="border-t border-[var(--border-subtle)] pt-8 mt-16">
 			<p className="text-[var(--text-muted)] text-sm">
-				Need help?{" "}
-				<a
-					href="mailto:support@mockspec.dev"
+				Ready to get started?{" "}
+				<Link
+					href="/docs/quickstart"
 					className="text-[var(--glow-violet)] hover:underline"
 				>
-					Contact support
-				</a>
+					Read the quickstart guide
+				</Link>
 			</p>
 		</div>
 	);
 }
+
+export { CodeBlock } from "@/components/docs-layout";

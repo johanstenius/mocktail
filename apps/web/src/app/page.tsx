@@ -53,6 +53,12 @@ export default function LandingPage() {
 							>
 								Docs
 							</Link>
+							<Link
+								href="/guides/integrations/node"
+								className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-medium transition-colors"
+							>
+								Guides
+							</Link>
 						</nav>
 						<div className="flex items-center gap-4">
 							<Link
@@ -403,9 +409,27 @@ export default function LandingPage() {
 				</section>
 
 				{/* Footer */}
-				<footer className="border-t border-[var(--border-subtle)] py-16 text-center text-[var(--text-muted)] text-sm bg-[rgba(5,5,5,0.5)] backdrop-blur-md">
+				<footer className="border-t border-[var(--border-subtle)] py-16 bg-[rgba(5,5,5,0.5)] backdrop-blur-md">
 					<div className="container max-w-6xl mx-auto px-6">
-						<p>&copy; 2025 Mockspec.</p>
+						<div className="flex flex-col md:flex-row justify-between items-center gap-6">
+							<p className="text-[var(--text-muted)] text-sm">
+								&copy; 2025 Mockspec.
+							</p>
+							<nav className="flex items-center gap-6 text-sm">
+								<Link
+									href="/docs"
+									className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+								>
+									Docs
+								</Link>
+								<Link
+									href="/guides/integrations/node"
+									className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+								>
+									Guides
+								</Link>
+							</nav>
+						</div>
 					</div>
 				</footer>
 			</div>
